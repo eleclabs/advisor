@@ -27,11 +27,25 @@ interface HomeroomPlan {
   createdAt: string;
 }
 
+interface ActivityRecord {
+  id: string;
+  date: string;
+  studentsAttended: number;
+  totalStudents: number;
+  notes: string;
+  problems: string;
+  solutions: string;
+  evaluator: string;
+  createdAt: string;
+}
+
 export default function HomeroomPlanDetailPage() {
   const router = useRouter();
   const params = useParams();
   const [plan, setPlan] = useState<HomeroomPlan | null>(null);
+  const [records, setRecords] = useState<ActivityRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"plan" | "records">("plan");
 
   const teacher_name = "อาจารย์วิมลรัตน์";
 
@@ -76,20 +90,35 @@ export default function HomeroomPlanDetailPage() {
       createdAt: "01/05/2568"
     };
 
+    const mockRecords: ActivityRecord[] = [
+      {
+        id: "r1",
+        date: "2024-05-01",
+        studentsAttended: 32,
+        totalStudents: 35,
+        notes: "นักเรียนให้ความร่วมมือดี กิจกรรมผ่านไปด้วยดี นักเรียนส่วนใหญ่กล้าแสดงออก",
+        problems: "มีนักเรียน 3 คนไม่ร่วมกิจกรรม ต้องเรียกพูดคุยแยก",
+        solutions: "นัดหมายพูดคุยรายบุคคลในคาบว่าง",
+        evaluator: "อาจารย์วิมลรัตน์",
+        createdAt: "01/05/2568"
+      }
+    ];
+
     setPlan(mockPlan);
+    setRecords(mockRecords);
     setLoading(false);
   }, [params.id]);
 
   const getStatusBadge = (status: string) => {
     switch(status) {
       case 'ร่าง':
-        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">ร่าง</span>;
+        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold px-3 py-2">ร่าง</span>;
       case 'เผยแพร่':
-        return <span className="badge bg-success rounded-0 text-uppercase fw-semibold">เผยแพร่</span>;
+        return <span className="badge bg-success rounded-0 text-uppercase fw-semibold px-3 py-2">เผยแพร่</span>;
       case 'เสร็จสิ้น':
-        return <span className="badge bg-info rounded-0 text-uppercase fw-semibold">เสร็จสิ้น</span>;
+        return <span className="badge bg-info rounded-0 text-uppercase fw-semibold px-3 py-2">เสร็จสิ้น</span>;
       default:
-        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">{status}</span>;
+        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold px-3 py-2">{status}</span>;
     }
   };
 
@@ -184,40 +213,86 @@ export default function HomeroomPlanDetailPage() {
               <i className="bi bi-arrow-left me-2"></i>กลับ
             </button>
             <div>
-              <button 
-                className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
-                onClick={() => router.push(`/student_learn/${plan.id}/edit`)}
-              >
-                <i className="bi bi-pencil me-2"></i>แก้ไข
-              </button>
-              <button 
-                className="btn btn-success rounded-0 text-uppercase fw-semibold"
-                onClick={() => router.push(`/student_learn/${plan.id}/record`)}
-              >
-                <i className="bi bi-check-circle me-2"></i>บันทึกผลกิจกรรม
-              </button>
+              {plan.status === 'ร่าง' && (
+                <button 
+                  className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+                  onClick={() => router.push(`/student_learn/${plan.id}/edit`)}
+                >
+                  <i className="bi bi-pencil me-2"></i>แก้ไข
+                </button>
+              )}
+              {plan.status !== 'เสร็จสิ้น' && (
+                <button 
+                  className="btn btn-success rounded-0 text-uppercase fw-semibold"
+                  onClick={() => router.push(`/student_learn/${plan.id}/record`)}
+                >
+                  <i className="bi bi-check-circle me-2"></i>บันทึกผลกิจกรรม
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Plan Details */}
-        <div className="row">
-          <div className="col-md-12">
-            {/* Header Info */}
-            <div className="card rounded-0 border-0 shadow-sm mb-4">
-              <div className="card-body">
+        {/* Status Banner */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className={`p-3 rounded-0 ${
+              plan.status === 'ร่าง' ? 'bg-secondary bg-opacity-10' :
+              plan.status === 'เผยแพร่' ? 'bg-success bg-opacity-10' :
+              'bg-info bg-opacity-10'
+            }`}>
+              <div className="d-flex align-items-center">
+                <div className="me-3">
+                  {getStatusBadge(plan.status)}
+                </div>
+                <div>
+                  {plan.status === 'ร่าง' && <span className="text-secondary">แผนกิจกรรมนี้ยังไม่ได้เผยแพร่ สามารถแก้ไขได้</span>}
+                  {plan.status === 'เผยแพร่' && <span className="text-success">แผนกิจกรรมนี้เผยแพร่แล้ว พร้อมดำเนินการ</span>}
+                  {plan.status === 'เสร็จสิ้น' && <span className="text-info">แผนกิจกรรมนี้ดำเนินการเสร็จสิ้นแล้ว</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <ul className="nav nav-tabs border-bottom-0">
+          <li className="nav-item">
+            <button 
+              className={`nav-link rounded-0 ${activeTab === 'plan' ? 'active bg-dark text-white' : 'bg-light'}`}
+              onClick={() => setActiveTab('plan')}
+            >
+              <i className="bi bi-file-text me-2"></i>รายละเอียดแผน
+            </button>
+          </li>
+          <li className="nav-item">
+            <button 
+              className={`nav-link rounded-0 ${activeTab === 'records' ? 'active bg-dark text-white' : 'bg-light'}`}
+              onClick={() => setActiveTab('records')}
+            >
+              <i className="bi bi-journal-text me-2"></i>บันทึกผลกิจกรรม ({records.length})
+            </button>
+          </li>
+        </ul>
+
+        {/* Tab Content */}
+        <div className="tab-content bg-white p-4 border">
+          {/* แผนรายละเอียด */}
+          {activeTab === 'plan' && (
+            <div>
+              {/* Header Info */}
+              <div className="mb-4">
                 <div className="row">
                   <div className="col-md-8">
                     <h3 className="fw-bold mb-3">{plan.title}</h3>
-                    <div className="d-flex gap-3 mb-2">
-                      <span className="badge bg-dark rounded-0">ระดับชั้น: {plan.level}</span>
-                      <span className="badge bg-dark rounded-0">{plan.week}</span>
-                      <span className="badge bg-dark rounded-0">{plan.semester}</span>
+                    <div className="d-flex gap-3 mb-2 flex-wrap">
+                      <span className="badge bg-dark rounded-0 p-2">ระดับชั้น: {plan.level}</span>
+                      <span className="badge bg-dark rounded-0 p-2">{plan.week}</span>
+                      <span className="badge bg-dark rounded-0 p-2">{plan.semester}</span>
                     </div>
                   </div>
-                  <div className="col-md-4 text-end">
-                    <div className="mb-2">{getStatusBadge(plan.status)}</div>
-                    <div className="text-muted small">
+                  <div className="col-md-4 text-md-end">
+                    <div className="text-muted small mb-1">
                       <i className="bi bi-calendar me-1"></i> วันที่จัด: {formatDate(plan.date)}
                     </div>
                     <div className="text-muted small">
@@ -226,86 +301,66 @@ export default function HomeroomPlanDetailPage() {
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Objectives */}
-            <div className="card rounded-0 border-0 shadow-sm mb-4">
-              <div className="card-header bg-dark text-white rounded-0">
-                <h5 className="card-title text-uppercase fw-semibold m-0">
-                  <i className="bi bi-bullseye me-2 text-warning"></i>
-                  วัตถุประสงค์
+              {/* Objectives */}
+              <div className="mb-4">
+                <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
+                  <i className="bi bi-bullseye me-2"></i>วัตถุประสงค์
                 </h5>
-              </div>
-              <div className="card-body">
-                <ol className="mb-0">
+                <ol className="mt-3">
                   {plan.objectives.map((obj, index) => (
                     <li key={index} className="mb-2">{obj}</li>
                   ))}
                 </ol>
               </div>
-            </div>
 
-            {/* Activity Steps */}
-            <div className="card rounded-0 border-0 shadow-sm mb-4">
-              <div className="card-header bg-dark text-white rounded-0">
-                <h5 className="card-title text-uppercase fw-semibold m-0">
-                  <i className="bi bi-list-check me-2 text-warning"></i>
-                  ขั้นตอนการดำเนินกิจกรรม
+              {/* Activity Steps */}
+              <div className="mb-4">
+                <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
+                  <i className="bi bi-list-check me-2"></i>ขั้นตอนการดำเนินกิจกรรม
                 </h5>
+                <div className="mt-3">
+                  <div className="mb-3 p-3 bg-light">
+                    <h6 className="fw-bold">ช่วงที่ 1: การจัดการระเบียบและวินัย</h6>
+                    <p className="mb-0">{plan.disciplineManagement}</p>
+                  </div>
+                  <div className="mb-3 p-3 bg-light">
+                    <h6 className="fw-bold">ช่วงที่ 2: กิจกรรมพัฒนาผู้เรียน</h6>
+                    <p className="mb-0">{plan.studentDevelopment}</p>
+                  </div>
+                  <div className="p-3 bg-light">
+                    <h6 className="fw-bold">ช่วงที่ 3: การดูแลรายบุคคล</h6>
+                    <p className="mb-0">{plan.individualCare}</p>
+                  </div>
+                </div>
               </div>
-              <div className="card-body">
-                <div className="mb-4">
-                  <h6 className="fw-bold text-warning">ช่วงที่ 1: การจัดการระเบียบและวินัย</h6>
-                  <p>{plan.disciplineManagement}</p>
-                </div>
-                <div className="mb-4">
-                  <h6 className="fw-bold text-warning">ช่วงที่ 2: กิจกรรมพัฒนาผู้เรียน</h6>
-                  <p>{plan.studentDevelopment}</p>
-                </div>
-                <div className="mb-0">
-                  <h6 className="fw-bold text-warning">ช่วงที่ 3: การดูแลรายบุคคล</h6>
-                  <p>{plan.individualCare}</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Evaluation and Materials */}
-            <div className="row">
-              <div className="col-md-6">
-                <div className="card rounded-0 border-0 shadow-sm mb-4">
-                  <div className="card-header bg-dark text-white rounded-0">
-                    <h5 className="card-title text-uppercase fw-semibold m-0">
-                      <i className="bi bi-clipboard-check me-2 text-warning"></i>
-                      การประเมินผล
-                    </h5>
-                  </div>
-                  <div className="card-body">
-                    <ul className="list-unstyled mb-0">
-                      <li className="mb-2">
-                        <i className={`bi ${plan.evaluation.observation ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2`}></i>
-                        การสังเกตพฤติกรรม
-                      </li>
-                      <li className="mb-2">
-                        <i className={`bi ${plan.evaluation.worksheet ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2`}></i>
-                        ทำใบงาน
-                      </li>
-                      <li className="mb-0">
-                        <i className={`bi ${plan.evaluation.participation ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2`}></i>
-                        การมีส่วนร่วม
-                      </li>
-                    </ul>
-                  </div>
+              {/* Evaluation and Materials */}
+              <div className="row">
+                <div className="col-md-6">
+                  <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
+                    <i className="bi bi-clipboard-check me-2"></i>การประเมินผล
+                  </h5>
+                  <ul className="list-unstyled mt-3">
+                    <li className="mb-2">
+                      <i className={`bi ${plan.evaluation.observation ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2`}></i>
+                      การสังเกตพฤติกรรม
+                    </li>
+                    <li className="mb-2">
+                      <i className={`bi ${plan.evaluation.worksheet ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2`}></i>
+                      ทำใบงาน
+                    </li>
+                    <li className="mb-0">
+                      <i className={`bi ${plan.evaluation.participation ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} me-2`}></i>
+                      การมีส่วนร่วม
+                    </li>
+                  </ul>
                 </div>
-              </div>
-              <div className="col-md-6">
-                <div className="card rounded-0 border-0 shadow-sm mb-4">
-                  <div className="card-header bg-dark text-white rounded-0">
-                    <h5 className="card-title text-uppercase fw-semibold m-0">
-                      <i className="bi bi-paperclip me-2 text-warning"></i>
-                      สื่อและวัสดุอุปกรณ์
-                    </h5>
-                  </div>
-                  <div className="card-body">
+                <div className="col-md-6">
+                  <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
+                    <i className="bi bi-paperclip me-2"></i>สื่อและวัสดุอุปกรณ์
+                  </h5>
+                  <div className="mt-3">
                     {plan.materials ? (
                       <p className="mb-0">{plan.materials}</p>
                     ) : (
@@ -315,12 +370,125 @@ export default function HomeroomPlanDetailPage() {
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Created Date */}
-            <div className="text-end text-muted small">
-              สร้างเมื่อ: {plan.createdAt}
+          {/* บันทึกผลกิจกรรม */}
+          {activeTab === 'records' && (
+            <div>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h5 className="fw-bold m-0">ประวัติการบันทึกผลกิจกรรม</h5>
+                {plan.status !== 'เสร็จสิ้น' && (
+                  <button 
+                    className="btn btn-success rounded-0 text-uppercase fw-semibold"
+                    onClick={() => router.push(`/student_learn/${plan.id}/record`)}
+                  >
+                    <i className="bi bi-plus-circle me-2"></i>เพิ่มบันทึกผล
+                  </button>
+                )}
+              </div>
+
+              {records.length === 0 ? (
+                <div className="text-center py-5">
+                  <i className="bi bi-journal-x fs-1 text-muted"></i>
+                  <p className="mt-3 text-muted">ยังไม่มีบันทึกผลกิจกรรม</p>
+                  {plan.status !== 'เสร็จสิ้น' && (
+                    <button 
+                      className="btn btn-success rounded-0 mt-2"
+                      onClick={() => router.push(`/student_learn/${plan.id}/record`)}
+                    >
+                      <i className="bi bi-plus-circle me-2"></i>บันทึกผลกิจกรรมครั้งแรก
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="accordion" id="recordsAccordion">
+                  {records.map((record, index) => (
+                    <div className="accordion-item rounded-0 border mb-2" key={record.id}>
+                      <h2 className="accordion-header">
+                        <button 
+                          className="accordion-button bg-light text-dark fw-bold collapsed rounded-0" 
+                          type="button" 
+                          data-bs-toggle="collapse" 
+                          data-bs-target={`#record${index}`}
+                        >
+                          <div className="d-flex w-100 justify-content-between align-items-center">
+                            <span>
+                              <i className="bi bi-calendar-check me-2 text-success"></i>
+                              บันทึกผลวันที่ {formatDate(record.date)}
+                            </span>
+                            <span className="badge bg-dark rounded-0 me-3">
+                              เข้าร่วม {record.studentsAttended}/{record.totalStudents} คน
+                            </span>
+                          </div>
+                        </button>
+                      </h2>
+                      <div 
+                        id={`record${index}`} 
+                        className="accordion-collapse collapse" 
+                        data-bs-parent="#recordsAccordion"
+                      >
+                        <div className="accordion-body">
+                          <div className="row">
+                            <div className="col-md-6">
+                              <p className="mb-2">
+                                <span className="fw-bold">จำนวนผู้เข้าร่วม:</span>{' '}
+                                {record.studentsAttended} คน จากทั้งหมด {record.totalStudents} คน
+                              </p>
+                              <p className="mb-2">
+                                <span className="fw-bold">ผู้บันทึก:</span> {record.evaluator}
+                              </p>
+                              <p className="mb-2">
+                                <span className="fw-bold">วันที่บันทึก:</span> {record.createdAt}
+                              </p>
+                            </div>
+                            <div className="col-md-6">
+                              <p className="mb-2">
+                                <span className="fw-bold">บันทึกผล:</span>
+                              </p>
+                              <p className="bg-light p-2">{record.notes}</p>
+                            </div>
+                          </div>
+                          
+                          {(record.problems || record.solutions) && (
+                            <div className="row mt-3">
+                              <div className="col-md-6">
+                                <p className="mb-2 fw-bold text-danger">ปัญหาที่พบ:</p>
+                                <p className="bg-light p-2">{record.problems || 'ไม่มี'}</p>
+                              </div>
+                              <div className="col-md-6">
+                                <p className="mb-2 fw-bold text-success">แนวทางแก้ไข:</p>
+                                <p className="bg-light p-2">{record.solutions || 'ไม่มี'}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="text-end mt-3">
+                            <button 
+                              className="btn btn-sm btn-outline-primary rounded-0 me-2"
+                              onClick={() => router.push(`/student_learn/${plan.id}/record/${record.id}`)}
+                            >
+                              <i className="bi bi-eye"></i> ดูรายละเอียด
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-outline-warning rounded-0"
+                              onClick={() => router.push(`/student_learn/${plan.id}/record/${record.id}/edit`)}
+                            >
+                              <i className="bi bi-pencil"></i> แก้ไข
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
+        </div>
+
+        {/* Created Date */}
+        <div className="text-end text-muted small mt-3">
+          สร้างเมื่อ: {plan.createdAt}
         </div>
       </div>
 
