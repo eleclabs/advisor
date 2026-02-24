@@ -1,147 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface StudentData {
-  id: string;
+interface BasicInfoFormData {
+  student_id: string;
   prefix: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   nickname: string;
   gender: string;
-  birthDate: string;
+  birth_date: string;
   level: string;
-  classGroup: string;
-  advisorName: string;
+  class_group: string;
+  advisor_name: string;
   phone: string;
   religion: string;
   address: string;
   weight: string;
   height: string;
-  bloodType: string;
+  blood_type: string;
 }
 
-// Mock detailed student data
-const mockStudentDetails: { [key: string]: StudentData } = {
-  "66001": {
-    id: "66001",
-    prefix: "นาย",
-    firstName: "สมชาย",
-    lastName: "ใจดี",
-    nickname: "ชาย",
-    gender: "ชาย",
-    birthDate: "2005-01-01",
-    level: "ปวช.3",
-    classGroup: "ชฟ.1",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "081-234-5678",
-    religion: "พุทธ",
-    address: "123 ม.1 ต.ในเมือง อ.เมือง จ.ขอนแก่น",
-    weight: "65",
-    height: "175",
-    bloodType: "O",
-  },
-  "66002": {
-    id: "66002",
-    prefix: "นางสาว",
-    firstName: "จิรา",
-    lastName: "สวยใจ",
-    nickname: "จิรา",
-    gender: "หญิง",
-    birthDate: "2006-05-15",
-    level: "ปวช.3",
-    classGroup: "ชฟ.2",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "089-876-5432",
-    religion: "พุทธ",
-    address: "456 ถ.ประชาสำมงค์ อ.เมือง จ.ขอนแก่น",
-    weight: "55",
-    height: "162",
-    bloodType: "A",
-  },
-  "66003": {
-    id: "66003",
-    prefix: "นาย",
-    firstName: "สมเด็จ",
-    lastName: "วิจิตร",
-    nickname: "เด็จ",
-    gender: "ชาย",
-    birthDate: "2006-08-22",
-    level: "ปวช.2",
-    classGroup: "ชฟ.1",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "091-234-5678",
-    religion: "พุทธ",
-    address: "789 ม.3 ต.อีสาน อ.เมือง จ.ขอนแก่น",
-    weight: "70",
-    height: "180",
-    bloodType: "B",
-  },
-  "66004": {
-    id: "66004",
-    prefix: "นางสาว",
-    firstName: "มาศ",
-    lastName: "สุขศรี",
-    nickname: "น้อย",
-    gender: "หญิง",
-    birthDate: "2005-12-10",
-    level: "ปวช.3",
-    classGroup: "ชฟ.3",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "086-543-2109",
-    religion: "พุทธ",
-    address: "321 ถ.วิทยาสมบูรณ์ อ.เมือง จ.ขอนแก่น",
-    weight: "60",
-    height: "165",
-    bloodType: "O",
-  },
-  "66005": {
-    id: "66005",
-    prefix: "นาย",
-    firstName: "กิจ",
-    lastName: "ขยันหนุ่ม",
-    nickname: "หนุ่ม",
-    gender: "ชาย",
-    birthDate: "2006-03-05",
-    level: "ปวช.2",
-    classGroup: "ชฟ.2",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "084-765-4321",
-    religion: "พุทธ",
-    address: "654 ม.2 ต.ชุมชน อ.เมือง จ.ขอนแก่น",
-    weight: "68",
-    height: "178",
-    bloodType: "AB",
-  },
-};
-
-export default function EditStudentPage() {
+export default function StudentAddBasicPage() {
   const router = useRouter();
-  const params = useParams();
-  const studentId = Array.isArray(params.id) ? params.id[0] : params.id;
-  
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [studentData, setStudentData] = useState<StudentData>({
-    id: studentId,
+  const [formData, setFormData] = useState<BasicInfoFormData>({
+    student_id: "",
     prefix: "นาย",
-    firstName: "",
-    lastName: "",
+    first_name: "",
+    last_name: "",
     nickname: "",
     gender: "ชาย",
-    birthDate: "",
+    birth_date: "",
     level: "ปวช.1",
-    classGroup: "",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
+    class_group: "",
+    advisor_name: "อาจารย์วิมลรัตน์ ใจดี",
     phone: "",
     religion: "พุทธ",
     address: "",
     weight: "",
     height: "",
-    bloodType: "B",
+    blood_type: "B",
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     // Load Bootstrap CSS
@@ -155,30 +57,43 @@ export default function EditStudentPage() {
     iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
     iconLink.rel = "stylesheet";
     document.head.appendChild(iconLink);
-
-    // Load student data from mock data
-    if (studentId && mockStudentDetails[studentId]) {
-      setStudentData(mockStudentDetails[studentId]);
-    }
-    setLoading(false);
-  }, [studentId]);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setStudentData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const calculateBMI = () => {
+    if (formData.weight && formData.height) {
+      const weight = parseFloat(formData.weight);
+      const height = parseFloat(formData.height) / 100;
+      if (weight > 0 && height > 0) {
+        return (weight / Math.pow(height, 2)).toFixed(1);
+      }
+    }
+    return "";
+  };
+
+  const handleSaveAndNext = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     
     try {
-      // Note: In a real app, you would send this to an API
-      // For now, we'll just redirect back to the detail page
-      console.log("Saving student data:", studentData);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push(`/student_detail/${studentId}`);
+      // ส่งข้อมูลพื้นฐานไปบันทึก
+      const response = await fetch("/api/students", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // ไปหน้าสัมภาษณ์ พร้อม studentId ที่เพิ่งสร้าง
+        router.push(`/student_add/interview?studentId=${result.id}`);
+      }
     } catch (error) {
       console.error("Error saving student:", error);
     } finally {
@@ -186,15 +101,30 @@ export default function EditStudentPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
-        <div className="spinner-border text-warning" role="status">
-          <span className="visually-hidden">กำลังโหลด...</span>
-        </div>
-      </div>
-    );
-  }
+  const handleSaveOnly = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    
+    try {
+      // ส่งข้อมูลพื้นฐานไปบันทึก
+      const response = await fetch("/api/students", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        // กลับไปหน้ารายชื่อ
+        router.push("/student");
+      }
+    } catch (error) {
+      console.error("Error saving student:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="min-vh-100 bg-light">
@@ -205,9 +135,6 @@ export default function EditStudentPage() {
             <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
             <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
           </a>
-          <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">แก้ไขข้อมูล: {studentId}</span>
-          </div>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span className="navbar-toggler-icon"></span>
           </button>
@@ -236,72 +163,60 @@ export default function EditStudentPage() {
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
-              <h2 className="text-uppercase fw-bold m-0">
-                <i className="bi bi-pencil-square me-2 text-warning"></i>
-                แก้ไขข้อมูลพื้นฐานผู้เรียน: {studentId}
-              </h2>
               <div>
-                <Link 
-                  href={`/student_detail/${studentId}`}
-                  className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2"
-                >
-                  <i className="bi bi-arrow-left me-2"></i>กลับหน้ารายละเอียด
-                </Link>
-                <button 
-                  type="submit" 
-                  form="editForm"
-                  className="btn btn-warning rounded-0 text-uppercase fw-semibold"
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      กำลังบันทึก...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-save me-2"></i>บันทึกข้อมูล
-                    </>
-                  )}
-                </button>
+                <h2 className="text-uppercase fw-bold m-0">
+                  <i className="bi bi-plus-circle-fill me-2 text-warning"></i>
+                  เพิ่มผู้เรียนใหม่
+                </h2>
+                <div className="mt-2">
+                  <span className="badge bg-primary rounded-0 p-2 me-2">ขั้นตอนที่ 1: ข้อมูลพื้นฐาน</span>
+                  <span className="badge bg-secondary rounded-0 p-2">ขั้นตอนที่ 2: บันทึกการสัมภาษณ์</span>
+                </div>
               </div>
+              <Link href="/student" className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
+                <i className="bi bi-arrow-left me-2"></i>กลับ
+              </Link>
             </div>
           </div>
         </div>
         {/* END: Page Header */}
 
-        <form id="editForm" onSubmit={handleSubmit}>
-          {/* START: Basic Information Card - ข้อมูลพื้นฐานเท่านั้น */}
+        <form>
+          {/* START: Basic Information Card */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-info-circle me-2 text-warning"></i>
-                    ข้อมูลพื้นฐาน
+                    ข้อมูลพื้นฐาน <span className="text-warning small ms-2">(กรอกข้อมูลที่จำเป็น)</span>
                   </h5>
                 </div>
                 <div className="p-4">
                   <div className="row g-3">
-                    {/* รหัสนักศึกษา (แก้ไขไม่ได้) */}
+                    {/* รหัสนักศึกษา */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา</label>
+                      <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
-                        className="form-control rounded-0 bg-light" 
-                        value={studentData.id}
-                        readOnly
+                        name="student_id"
+                        className="form-control rounded-0" 
+                        value={formData.student_id}
+                        onChange={handleInputChange}
+                        placeholder="เช่น 66001"
+                        required
                       />
                     </div>
 
                     {/* คำนำหน้า */}
                     <div className="col-md-2">
-                      <label className="form-label text-uppercase fw-semibold small">คำนำหน้า</label>
+                      <label className="form-label text-uppercase fw-semibold small">คำนำหน้า <span className="text-danger">*</span></label>
                       <select 
                         name="prefix"
                         className="form-select rounded-0"
-                        value={studentData.prefix}
+                        value={formData.prefix}
                         onChange={handleInputChange}
+                        required
                       >
                         <option>นาย</option>
                         <option>นางสาว</option>
@@ -311,12 +226,12 @@ export default function EditStudentPage() {
 
                     {/* ชื่อ */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">ชื่อ</label>
+                      <label className="form-label text-uppercase fw-semibold small">ชื่อ <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
-                        name="firstName"
+                        name="first_name"
                         className="form-control rounded-0"
-                        value={studentData.firstName}
+                        value={formData.first_name}
                         onChange={handleInputChange}
                         required
                       />
@@ -324,12 +239,12 @@ export default function EditStudentPage() {
 
                     {/* นามสกุล */}
                     <div className="col-md-4">
-                      <label className="form-label text-uppercase fw-semibold small">นามสกุล</label>
+                      <label className="form-label text-uppercase fw-semibold small">นามสกุล <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
-                        name="lastName"
+                        name="last_name"
                         className="form-control rounded-0"
-                        value={studentData.lastName}
+                        value={formData.last_name}
                         onChange={handleInputChange}
                         required
                       />
@@ -342,7 +257,7 @@ export default function EditStudentPage() {
                         type="text" 
                         name="nickname"
                         className="form-control rounded-0"
-                        value={studentData.nickname}
+                        value={formData.nickname}
                         onChange={handleInputChange}
                       />
                     </div>
@@ -353,7 +268,7 @@ export default function EditStudentPage() {
                       <select 
                         name="gender"
                         className="form-select rounded-0"
-                        value={studentData.gender}
+                        value={formData.gender}
                         onChange={handleInputChange}
                       >
                         <option>ชาย</option>
@@ -367,21 +282,22 @@ export default function EditStudentPage() {
                       <label className="form-label text-uppercase fw-semibold small">วัน เดือน ปี เกิด</label>
                       <input 
                         type="date" 
-                        name="birthDate"
+                        name="birth_date"
                         className="form-control rounded-0"
-                        value={studentData.birthDate}
+                        value={formData.birth_date}
                         onChange={handleInputChange}
                       />
                     </div>
 
                     {/* ระดับชั้น */}
                     <div className="col-md-2">
-                      <label className="form-label text-uppercase fw-semibold small">ระดับชั้น</label>
+                      <label className="form-label text-uppercase fw-semibold small">ระดับชั้น <span className="text-danger">*</span></label>
                       <select 
                         name="level"
                         className="form-select rounded-0"
-                        value={studentData.level}
+                        value={formData.level}
                         onChange={handleInputChange}
+                        required
                       >
                         <option>ปวช.1</option>
                         <option>ปวช.2</option>
@@ -396,9 +312,9 @@ export default function EditStudentPage() {
                       <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน</label>
                       <input 
                         type="text" 
-                        name="classGroup"
+                        name="class_group"
                         className="form-control rounded-0"
-                        value={studentData.classGroup}
+                        value={formData.class_group}
                         onChange={handleInputChange}
                         placeholder="เช่น ชฟ.1"
                       />
@@ -408,9 +324,9 @@ export default function EditStudentPage() {
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
                       <select 
-                        name="advisorName"
+                        name="advisor_name"
                         className="form-select rounded-0"
-                        value={studentData.advisorName}
+                        value={formData.advisor_name}
                         onChange={handleInputChange}
                       >
                         <option>อาจารย์วิมลรัตน์ ใจดี</option>
@@ -426,7 +342,7 @@ export default function EditStudentPage() {
                         type="tel" 
                         name="phone"
                         className="form-control rounded-0"
-                        value={studentData.phone}
+                        value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="081-234-5678"
                       />
@@ -438,7 +354,7 @@ export default function EditStudentPage() {
                       <select 
                         name="religion"
                         className="form-select rounded-0"
-                        value={studentData.religion}
+                        value={formData.religion}
                         onChange={handleInputChange}
                       >
                         <option>พุทธ</option>
@@ -448,14 +364,14 @@ export default function EditStudentPage() {
                       </select>
                     </div>
 
-                    {/* ที่อยู่ (เต็มบรรทัด) */}
+                    {/* ที่อยู่ */}
                     <div className="col-12">
                       <label className="form-label text-uppercase fw-semibold small">ที่อยู่</label>
                       <textarea 
                         name="address"
                         className="form-control rounded-0" 
                         rows={3}
-                        value={studentData.address}
+                        value={formData.address}
                         onChange={handleInputChange}
                         placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
                       ></textarea>
@@ -468,7 +384,7 @@ export default function EditStudentPage() {
                         type="number" 
                         name="weight"
                         className="form-control rounded-0"
-                        value={studentData.weight}
+                        value={formData.weight}
                         onChange={handleInputChange}
                         step="0.1"
                       />
@@ -481,7 +397,7 @@ export default function EditStudentPage() {
                         type="number" 
                         name="height"
                         className="form-control rounded-0"
-                        value={studentData.height}
+                        value={formData.height}
                         onChange={handleInputChange}
                         step="0.1"
                       />
@@ -493,9 +409,7 @@ export default function EditStudentPage() {
                       <input 
                         type="text" 
                         className="form-control rounded-0 bg-light"
-                        value={studentData.weight && studentData.height ? 
-                          (parseFloat(studentData.weight) / Math.pow(parseFloat(studentData.height)/100, 2)).toFixed(1) 
-                          : ''}
+                        value={calculateBMI()}
                         readOnly
                       />
                     </div>
@@ -504,9 +418,9 @@ export default function EditStudentPage() {
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">หมู่เลือด</label>
                       <select 
-                        name="bloodType"
+                        name="blood_type"
                         className="form-select rounded-0"
-                        value={studentData.bloodType}
+                        value={formData.blood_type}
                         onChange={handleInputChange}
                       >
                         <option>A</option>
@@ -524,26 +438,44 @@ export default function EditStudentPage() {
 
           {/* START: Form Actions */}
           <div className="row mb-4">
-            <div className="col-12 text-center">
-              <Link 
-                href={`/student_detail/${studentId}`}
-                className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
+            <div className="col-12 d-flex justify-content-center gap-3">
+              <Link
+                href="/student"
+                className="btn btn-secondary rounded-0 text-uppercase fw-semibold px-5"
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก
               </Link>
               <button 
-                type="submit" 
-                className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
+                type="button"
+                className="btn btn-outline-primary rounded-0 text-uppercase fw-semibold px-5"
+                onClick={handleSaveOnly}
                 disabled={saving}
               >
                 {saving ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
                     กำลังบันทึก...
                   </>
                 ) : (
                   <>
                     <i className="bi bi-save me-2"></i>บันทึกข้อมูล
+                  </>
+                )}
+              </button>
+              <button 
+                type="button"
+                className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
+                onClick={handleSaveAndNext}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    บันทึกและถัดไป <i className="bi bi-arrow-right ms-2"></i>
                   </>
                 )}
               </button>
@@ -562,15 +494,12 @@ export default function EditStudentPage() {
             </div>
             <div className="col-md-6 text-end text-uppercase small">
               <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>กำลังแก้ไข: {studentId}</span>
+              <span>เพิ่มผู้เรียนใหม่</span>
             </div>
           </div>
         </div>
       </footer>
       {/* END: Footer */}
-
-      {/* Bootstrap JS Bundle */}
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
 }

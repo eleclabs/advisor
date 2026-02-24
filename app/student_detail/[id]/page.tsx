@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
-interface StudentDetail {
+interface StudentBasic {
   id: string;
   name: string;
   status: string;
@@ -21,24 +21,10 @@ interface StudentDetail {
   height: string;
   bmi: string;
   blood_type: string;
-  parent_status: string;
-  living_with: string;
-  housing_type: string;
-  transportation: string;
-  family_income: string;
-  daily_allowance: string;
-  assistance_needs: string;
-  chronic_disease: string;
-  allergies: string;
-  risk_behaviors: string;
-  favorite_subjects: string;
-  weak_subjects: string;
-  hobbies: string;
-  help_guidelines: string;
 }
 
-// Mock detailed student data
-const mockStudentDetails: { [key: string]: StudentDetail } = {
+// Mock basic student data (เฉพาะข้อมูลพื้นฐาน)
+const mockStudentBasics: { [key: string]: StudentBasic } = {
   "66001": {
     id: "66001",
     name: "นายสมชาย ใจดี",
@@ -56,20 +42,6 @@ const mockStudentDetails: { [key: string]: StudentDetail } = {
     height: "175",
     bmi: "21.2",
     blood_type: "O",
-    parent_status: "อยู่ด้วยกัน",
-    living_with: "บิดา-มารดา",
-    housing_type: "บ้านปูนชั้นเดียว",
-    transportation: "รถจักรยานยนต์ส่วนตัว",
-    family_income: "25,000",
-    daily_allowance: "120",
-    assistance_needs: "ทุนการศึกษา",
-    chronic_disease: "ไม่มี",
-    allergies: "ไม่มี",
-    risk_behaviors: "ไม่มี",
-    favorite_subjects: "วิทยาศาสตร์, คณิตศาสตร์",
-    weak_subjects: "ภาษาอังกฤษ",
-    hobbies: "เล่นฟุตบอล",
-    help_guidelines: "สนับสนุนให้ศึกษาต่อในสาขาวิชาที่เกี่ยวข้องกับวิทยาศาสตร์",
   },
   "66002": {
     id: "66002",
@@ -88,20 +60,6 @@ const mockStudentDetails: { [key: string]: StudentDetail } = {
     height: "162",
     bmi: "20.9",
     blood_type: "A",
-    parent_status: "บิดาเสียชีวิต",
-    living_with: "มารดา",
-    housing_type: "บ้านไม้",
-    transportation: "รถเมล์",
-    family_income: "15,000",
-    daily_allowance: "80",
-    assistance_needs: "ทุนการศึกษา, อาหารกลางวัน",
-    chronic_disease: "ไม่มี",
-    allergies: "แพ้นม",
-    risk_behaviors: "ขาด",
-    favorite_subjects: "ศิลปศาสตร์",
-    weak_subjects: "วิชาวิทยาศาสตร์",
-    hobbies: "วาดรูป, ร้องเพลง",
-    help_guidelines: "ติดตามด้านการเงิน มอบทุนการศึกษา เยี่ยมบ้านอย่างสม่ำเสมอ",
   },
   "66003": {
     id: "66003",
@@ -120,20 +78,6 @@ const mockStudentDetails: { [key: string]: StudentDetail } = {
     height: "180",
     bmi: "21.6",
     blood_type: "B",
-    parent_status: "อยู่ด้วยกัน",
-    living_with: "บิดา-มารดา",
-    housing_type: "บ้านปูนสองชั้น",
-    transportation: "รถจักรยาน",
-    family_income: "30,000",
-    daily_allowance: "150",
-    assistance_needs: "ไม่มี",
-    chronic_disease: "เบาหวาน",
-    allergies: "ไม่มี",
-    risk_behaviors: "ติดเล่นเกม",
-    favorite_subjects: "-",
-    weak_subjects: "ทุกวิชา",
-    hobbies: "เล่นเกม",
-    help_guidelines: "ส่งต่อให้ครูโรงเรียนและจิตวิทยาเพื่อประเมินความเสี่ยง",
   },
   "66004": {
     id: "66004",
@@ -152,20 +96,6 @@ const mockStudentDetails: { [key: string]: StudentDetail } = {
     height: "165",
     bmi: "22.0",
     blood_type: "O",
-    parent_status: "อยู่ด้วยกัน",
-    living_with: "บิดา-มารดา",
-    housing_type: "บ้านปูนชั้นเดียว",
-    transportation: "รถจักรยานยนต์",
-    family_income: "35,000",
-    daily_allowance: "200",
-    assistance_needs: "ไม่มี",
-    chronic_disease: "ไม่มี",
-    allergies: "ไม่มี",
-    risk_behaviors: "ไม่มี",
-    favorite_subjects: "ภาษาไทย, ศรุปศิลป์",
-    weak_subjects: "คณิตศาสตร์",
-    hobbies: "เขียนบทความ, อ่านหนังสือ",
-    help_guidelines: "สนับสนุนให้เข้าร่วมกิจกรรมนอกหลักสูตร",
   },
   "66005": {
     id: "66005",
@@ -184,35 +114,21 @@ const mockStudentDetails: { [key: string]: StudentDetail } = {
     height: "178",
     bmi: "21.5",
     blood_type: "AB",
-    parent_status: "อยู่ด้วยกัน",
-    living_with: "บิดา-มารดา",
-    housing_type: "บ้านปูนชั้นเดียว",
-    transportation: "รถจักรยานยนต์",
-    family_income: "28,000",
-    daily_allowance: "140",
-    assistance_needs: "ไม่มี",
-    chronic_disease: "ไม่มี",
-    allergies: "ไม่มี",
-    risk_behaviors: "ไม่มี",
-    favorite_subjects: "เทคโนโลยีสารสนเทศ",
-    weak_subjects: "-",
-    hobbies: "ซ่อมคอมพิวเตอร์, รหัส",
-    help_guidelines: "สนับสนุนให้ศึกษาต่อในสาขา IT",
   },
 };
 
-export default function StudentDetailPage() {
+export default function StudentBasicPage() {
   const router = useRouter();
   const params = useParams();
   const studentId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const [student, setStudent] = useState<StudentDetail | null>(null);
+  const [student, setStudent] = useState<StudentBasic | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!studentId) return;
     
-    // Get student data from mock data
-    const studentData = mockStudentDetails[studentId];
+    // Get student basic data from mock data
+    const studentData = mockStudentBasics[studentId];
     if (studentData) {
       setStudent(studentData);
     }
@@ -298,7 +214,7 @@ export default function StudentDetailPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-person-badge me-2 text-warning"></i>
-                ข้อมูลผู้เรียน: {student.name}
+                ข้อมูลพื้นฐาน: {student.name}
               </h2>
               <div>
                 <span
@@ -313,13 +229,13 @@ export default function StudentDetailPage() {
                   สถานะ: {student.status}
                 </span>
                 <Link
-                  href={`/student_detail/${studentId}/edit`}
-                  className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+                  href={`/student_detail/${studentId}/interview`}
+                  className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
                 >
-                  <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
+                  <i className="bi bi-journal-text me-2"></i>ดูบันทึกการสัมภาษณ์
                 </Link>
                 <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
-                  <i className="bi bi-printer me-2"></i>พิมพ์โปรไฟล์
+                  <i className="bi bi-printer me-2"></i>พิมพ์
                 </button>
               </div>
             </div>
@@ -415,175 +331,30 @@ export default function StudentDetailPage() {
         </div>
         {/* END: Physical Information Row */}
 
-        {/* START: Family Information Card */}
-        <div className="row mb-4">
-          <div className="col-md-6">
-            <div className="border bg-white">
-              <div className="p-3 border-bottom bg-dark">
-                <h5 className="text-uppercase fw-semibold m-0 text-white">
-                  <i className="bi bi-house-heart me-2 text-warning"></i>
-                  ข้อมูลครอบครัว
-                </h5>
-              </div>
-              <div className="p-3">
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">สถานภาพบิดา-มารดา</label>
-                  <p>{student.parent_status}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">พักอาศัยกับใคร</label>
-                  <p>{student.living_with}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">ลักษณะที่อยู่อาศัย</label>
-                  <p>{student.housing_type}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">การเดินทางมาเรียน</label>
-                  <p>{student.transportation}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-6">
-            <div className="border bg-white">
-              <div className="p-3 border-bottom bg-dark">
-                <h5 className="text-uppercase fw-semibold m-0 text-white">
-                  <i className="bi bi-cash-stack me-2 text-warning"></i>
-                  ข้อมูลเศรษฐกิจ
-                </h5>
-              </div>
-              <div className="p-3">
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">รายได้ครอบครัว/เดือน</label>
-                  <p>{student.family_income}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">เงินที่ได้รับมาโรงเรียน/วัน</label>
-                  <p>{student.daily_allowance}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">ความต้องการช่วยเหลือ</label>
-                  <p>{student.assistance_needs}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* END: Family Information Card */}
-
-        {/* START: Health and Risk Card */}
-        <div className="row mb-4">
-          <div className="col-md-6">
-            <div className="border bg-white">
-              <div className="p-3 border-bottom bg-dark">
-                <h5 className="text-uppercase fw-semibold m-0 text-white">
-                  <i className="bi bi-heart-pulse me-2 text-warning"></i>
-                  ข้อมูลสุขภาพ/ปัจจัยเสี่ยง
-                </h5>
-              </div>
-              <div className="p-3">
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">โรคประจำตัว</label>
-                  <p>{student.chronic_disease}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">แพ้อาหาร/ยา</label>
-                  <p>{student.allergies}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">พฤติกรรมเสี่ยง</label>
-                  <p>{student.risk_behaviors}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-6">
-            <div className="border bg-white h-100">
-              <div className="p-3 border-bottom bg-dark">
-                <h5 className="text-uppercase fw-semibold m-0 text-white">
-                  <i className="bi bi-journal-bookmark-fill me-2 text-warning"></i>
-                  ข้อมูลการเรียน/พฤติกรรม
-                </h5>
-              </div>
-              <div className="p-3">
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ชอบ/จุดแข็ง</label>
-                  <p>{student.favorite_subjects || "-"}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ไม่ถนัด/ปัญหา</label>
-                  <p>{student.weak_subjects || "-"}</p>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">งานอดิเรก/ความสนใจพิเศษ</label>
-                  <p>{student.hobbies || "-"}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* END: Health and Risk Card */}
-
-        {/* START: Teacher Recommendations Card */}
-        <div className="row mb-4">
-          <div className="col-12">
-            <div className="border bg-white">
-              <div className="p-3 border-bottom bg-dark">
-                <h5 className="text-uppercase fw-semibold m-0 text-white">
-                  <i className="bi bi-clipboard-check me-2 text-warning"></i>
-                  ความเห็นครูที่ปรึกษา
-                </h5>
-              </div>
-              <div className="p-3">
-                <div className="row g-3">
-                  <div className="col-md-3">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">กลุ่มนักเรียน</label>
-                    <p>
-                      <span className={`badge rounded-0 text-uppercase fw-semibold ${
-                        student.status === "ปกติ" ? "bg-success" :
-                        student.status === "เสี่ยง" ? "bg-warning text-dark" :
-                        "bg-danger"
-                      }`}>
-                        {student.status}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="col-md-9">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">แนวทางการช่วยเหลือ/ส่งต่อ</label>
-                    <p>{student.help_guidelines || "-"}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* END: Teacher Recommendations Card */}
-
         {/* START: Action Buttons */}
-<div className="row mb-4">
-  <div className="col-12 d-flex justify-content-end gap-2">
-    <Link
-      href={`/student_detail/${studentId}/interview`}
-      className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
-    >
-      <i className="bi bi-journal-text me-2"></i>บันทึกการสัมภาษณ์
-    </Link>
-    <Link
-      href={`/student_detail/${studentId}/edit`}
-      className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
-    >
-      <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
-    </Link>
-    <Link
-      href="/student"
-      className="btn btn-dark rounded-0 text-uppercase fw-semibold"
-    >
-      <i className="bi bi-arrow-left me-2"></i>กลับไป
-    </Link>
-  </div>
-</div>
-{/* END: Action Buttons */}
+        <div className="row mb-4">
+          <div className="col-12 d-flex justify-content-end gap-2">
+            <Link
+              href={`/student_detail/${studentId}/interview`}
+              className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
+            >
+              <i className="bi bi-journal-text me-2"></i>ดูบันทึกการสัมภาษณ์
+            </Link>
+            <Link
+              href={`/student_detail/${studentId}/edit`}
+              className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+            >
+              <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูลพื้นฐาน
+            </Link>
+            <Link
+              href="/student"
+              className="btn btn-dark rounded-0 text-uppercase fw-semibold"
+            >
+              <i className="bi bi-arrow-left me-2"></i>กลับไปรายชื่อ
+            </Link>
+          </div>
+        </div>
+        {/* END: Action Buttons */}
       </div>
 
       {/* START: Footer */}

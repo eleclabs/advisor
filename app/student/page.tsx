@@ -228,23 +228,26 @@ export default function StudentListPage() {
         </div>
         {/* END: Search and Filter Section */}
 
-        {/* START: Action Bar */}
-        <div className="row mb-3">
-          <div className="col-12 d-flex justify-content-between align-items-center">
-            <div>
-              <span className="text-muted">แสดง {total_records} รายการ (หน้า {current_page} จาก {total_pages})</span>
-            </div>
-            <div>
-              <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2" data-bs-toggle="modal" data-bs-target="#importModal">
-                <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล (Excel)
-              </button>
-              <button className="btn btn-primary rounded-0 text-uppercase fw-semibold" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* END: Action Bar */}
+      {/* START: Action Bar */}
+<div className="row mb-3">
+  <div className="col-12 d-flex justify-content-between align-items-center">
+    <div>
+      <span className="text-muted">แสดง {total_records} รายการ (หน้า {current_page} จาก {total_pages})</span>
+    </div>
+    <div>
+      <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2" data-bs-toggle="modal" data-bs-target="#importModal">
+        <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล (Excel)
+      </button>
+      <Link
+        href="/student_add"
+        className="btn btn-primary rounded-0 text-uppercase fw-semibold"
+      >
+        <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
+      </Link>
+    </div>
+  </div>
+</div>
+{/* END: Action Bar */}
 
         {/* START: Student Table */}
         <div className="row">
@@ -302,20 +305,20 @@ export default function StudentListPage() {
                           <td>{student.advisorName}</td>
                           <td>
                             <div className="btn-group" role="group">
-                              <Link
-                                href={`/student_detail/${student.id}`}
+                              <button 
                                 className="btn btn-sm btn-outline-primary rounded-0"
+                                onClick={() => router.push(`/student_detail/${student.id}`)}
                                 title="ดูรายละเอียด"
                               >
                                 <i className="bi bi-eye"></i>
-                              </Link>
-                              <Link
-                                href={`/student_detail/${student.id}/edit`}
+                              </button>
+                              <button 
                                 className="btn btn-sm btn-outline-warning rounded-0"
+                                onClick={() => router.push(`/student_detail/${student.id}/edit`)}
                                 title="แก้ไข"
                               >
                                 <i className="bi bi-pencil"></i>
-                              </Link>
+                              </button>
                               <button 
                                 className="btn btn-sm btn-outline-danger rounded-0"
                                 title="ลบ"

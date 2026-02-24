@@ -4,16 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
-interface StudentBasicInfo {
+interface InterviewData {
   id: string;
-  name: string;
-  nickname: string;
-  level: string;
-  class_group: string;
+  student_id: string;
+  student_name: string;
+  student_nickname: string;
+  student_level: string;
+  student_class: string;
   student_number: string;
-}
-
-interface InterviewFormData {
+  
   // ข้อมูลทั่วไป
   semester: string;
   academic_year: string;
@@ -49,100 +48,112 @@ interface InterviewFormData {
   student_group: string;
   help_guidelines: string;
   home_visit_file: string;
+  created_at: string;
+  updated_at: string;
 }
 
-// Mock student basic data (เชื่อมกับ Database เดียวกัน)
-const mockStudentBasics: { [key: string]: StudentBasicInfo } = {
+// Mock interview data for viewing
+const mockInterviewData: { [key: string]: InterviewData } = {
   "66001": {
-    id: "66001",
-    name: "นายสมชาย ใจดี",
-    nickname: "ชาย",
-    level: "ปวช.3",
-    class_group: "ชฟ.1",
+    id: "INT001",
+    student_id: "66001",
+    student_name: "นายสมชาย ใจดี",
+    student_nickname: "ชาย",
+    student_level: "ปวช.3",
+    student_class: "ชฟ.1",
     student_number: "1",
+    
+    semester: "2",
+    academic_year: "2567",
+    parent_name: "นายสมศักดิ์ ใจดี",
+    parent_relationship: "บิดา",
+    parent_phone: "089-765-4321",
+    
+    family_status: ["อยู่ด้วยกัน"],
+    living_with: "บิดา-มารดา",
+    living_with_other: "",
+    housing_type: "บ้านตนเอง",
+    housing_type_other: "",
+    transportation: ["รถส่วนตัว"],
+    
+    strengths: "ชอบวิทยาศาสตร์ คณิตศาสตร์ มีความตั้งใจเรียน",
+    weak_subjects: "ภาษาอังกฤษ",
+    hobbies: "เล่นฟุตบอล",
+    home_behavior: "ช่วยทำงานบ้าน รับผิดชอบตัวเองดี",
+    
+    chronic_disease: "ไม่มี",
+    risk_behaviors: ["ไม่มี"],
+    parent_concerns: "อยากให้เรียนต่อระดับสูง",
+    
+    family_income: "25,000",
+    daily_allowance: "120",
+    assistance_needs: ["ทุนการศึกษา"],
+    
+    student_group: "ปกติ",
+    help_guidelines: "สนับสนุนให้ศึกษาต่อในสาขาวิชาที่เกี่ยวข้องกับวิทยาศาสตร์",
+    home_visit_file: "/uploads/66001_homevisit.pdf",
+    created_at: "2024-02-15 10:30:00",
+    updated_at: "2024-02-15 10:30:00",
   },
   "66002": {
-    id: "66002",
-    name: "นางสาวจิรา สวยใจ",
-    nickname: "จิรา",
-    level: "ปวช.3",
-    class_group: "ชฟ.2",
+    id: "INT002",
+    student_id: "66002",
+    student_name: "นางสาวจิรา สวยใจ",
+    student_nickname: "จิรา",
+    student_level: "ปวช.3",
+    student_class: "ชฟ.2",
     student_number: "15",
-  },
-  "66003": {
-    id: "66003",
-    name: "นายสมเด็จ วิจิตร",
-    nickname: "เด็จ",
-    level: "ปวช.2",
-    class_group: "ชฟ.1",
-    student_number: "8",
-  },
-  "66004": {
-    id: "66004",
-    name: "นางสาวมาศ สุขศรี",
-    nickname: "น้อย",
-    level: "ปวช.3",
-    class_group: "ชฟ.3",
-    student_number: "22",
-  },
-  "66005": {
-    id: "66005",
-    name: "นายกิจ ขยันหนุ่ม",
-    nickname: "หนุ่ม",
-    level: "ปวช.2",
-    class_group: "ชฟ.2",
-    student_number: "5",
+    
+    semester: "2",
+    academic_year: "2567",
+    parent_name: "นางสมหญิง สวยใจ",
+    parent_relationship: "มารดา",
+    parent_phone: "081-234-5678",
+    
+    family_status: ["บิดา/มารดาเสียชีวิต"],
+    living_with: "บุคคลอื่น",
+    living_with_other: "ยาย",
+    housing_type: "บ้านตนเอง",
+    housing_type_other: "",
+    transportation: ["รถเมล์/รถสาธารณะ"],
+    
+    strengths: "ชอบวาดรูป มีความคิดสร้างสรรค์",
+    weak_subjects: "วิทยาศาสตร์",
+    hobbies: "วาดรูป, ร้องเพลง",
+    home_behavior: "ช่วยงานบ้าน ชอบเก็บตัว",
+    
+    chronic_disease: "ไม่มี",
+    allergies: "แพ้นม",
+    risk_behaviors: ["ไม่มี"],
+    parent_concerns: "ฐานะทางบ้าน不太好 ต้องการทุน",
+    
+    family_income: "15,000",
+    daily_allowance: "80",
+    assistance_needs: ["ทุนการศึกษา", "อุปกรณ์การเรียน"],
+    
+    student_group: "เสี่ยง",
+    help_guidelines: "ติดตามด้านการเงิน มอบทุนการศึกษา เยี่ยมบ้านอย่างสม่ำเสมอ",
+    home_visit_file: "/uploads/66002_homevisit.pdf",
+    created_at: "2024-02-16 14:20:00",
+    updated_at: "2024-02-16 14:20:00",
   },
 };
 
-export default function StudentInterviewPage() {
+export default function InterviewViewPage() {
   const router = useRouter();
   const params = useParams();
   const studentId = Array.isArray(params.id) ? params.id[0] : params.id;
   
-  const [student, setStudent] = useState<StudentBasicInfo | null>(null);
+  const [interview, setInterview] = useState<InterviewData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  
-  const [formData, setFormData] = useState<InterviewFormData>({
-    semester: "2",
-    academic_year: "2567",
-    parent_name: "",
-    parent_relationship: "",
-    parent_phone: "",
-    
-    family_status: [],
-    living_with: "",
-    living_with_other: "",
-    housing_type: "",
-    housing_type_other: "",
-    transportation: [],
-    
-    strengths: "",
-    weak_subjects: "",
-    hobbies: "",
-    home_behavior: "",
-    
-    chronic_disease: "",
-    risk_behaviors: [],
-    parent_concerns: "",
-    
-    family_income: "",
-    daily_allowance: "",
-    assistance_needs: [],
-    
-    student_group: "ปกติ",
-    help_guidelines: "",
-    home_visit_file: "",
-  });
 
   useEffect(() => {
     if (!studentId) return;
     
-    // Get student basic data from mock data (เชื่อม Database เดียวกัน)
-    const studentData = mockStudentBasics[studentId];
-    if (studentData) {
-      setStudent(studentData);
+    // Get interview data from mock data
+    const interviewData = mockInterviewData[studentId];
+    if (interviewData) {
+      setInterview(interviewData);
     }
     setLoading(false);
   }, [studentId]);
@@ -161,55 +172,12 @@ export default function StudentInterviewPage() {
     document.head.appendChild(iconLink);
   }, []);
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
-    const { value, checked } = e.target;
-    setFormData(prev => {
-      const currentValues = prev[field as keyof InterviewFormData] as string[] || [];
-      if (checked) {
-        return { ...prev, [field]: [...currentValues, value] };
-      } else {
-        return { ...prev, [field]: currentValues.filter(item => item !== value) };
-      }
-    });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    
-    try {
-      // Calculate student status color based on form data
-      let calculatedStatus = "ปกติ";
-      if (formData.risk_behaviors.length > 0 || formData.student_group === "มีปัญหา") {
-        calculatedStatus = "มีปัญหา";
-      } else if (formData.student_group === "เสี่ยง" || formData.family_status.includes("หย่าร้าง")) {
-        calculatedStatus = "เสี่ยง";
-      }
-      
-      // ส่งข้อมูลไปบันทึก (เชื่อมกับ API)
-      const response = await fetch(`/api/student/${studentId}/interview`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          student_status: calculatedStatus,
-        }),
-      });
-
-      if (response.ok) {
-        router.push(`/student_detail/${studentId}`);
-      }
-    } catch (error) {
-      console.error("Error saving interview:", error);
-    } finally {
-      setSaving(false);
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case "ปกติ": return "success";
+      case "เสี่ยง": return "warning";
+      case "มีปัญหา": return "danger";
+      default: return "secondary";
     }
   };
 
@@ -223,25 +191,29 @@ export default function StudentInterviewPage() {
     );
   }
 
-  if (!student) {
+  if (!interview) {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <div className="alert alert-danger mb-0">
-          <p className="mb-0">ไม่พบข้อมูลนักเรียน</p>
-          <a href="/student" className="btn btn-sm btn-dark mt-3">
-            <i className="bi bi-arrow-left me-2"></i>กลับไป
-          </a>
+        <div className="alert alert-warning mb-0 text-center">
+          <i className="bi bi-exclamation-triangle-fill fs-1 d-block mb-3"></i>
+          <h5>ไม่พบข้อมูลการสัมภาษณ์</h5>
+          <p className="mb-3">ยังไม่มีบันทึกการสัมภาษณ์สำหรับนักเรียนคนนี้</p>
+          <Link
+            href={`/student_detail/${studentId}/interview/edit`}
+            className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+          >
+            <i className="bi bi-plus-circle me-2"></i>เพิ่มบันทึกการสัมภาษณ์
+          </Link>
+          <Link
+            href={`/student_detail/${studentId}`}
+            className="btn btn-dark rounded-0 text-uppercase fw-semibold"
+          >
+            <i className="bi bi-arrow-left me-2"></i>กลับไปข้อมูลพื้นฐาน
+          </Link>
         </div>
       </div>
     );
   }
-
-  // Calculate status color for summary
-  const getStatusColor = () => {
-    if (formData.risk_behaviors.length > 0 || formData.student_group === "มีปัญหา") return "danger";
-    if (formData.student_group === "เสี่ยง" || formData.family_status.includes("หย่าร้าง")) return "warning";
-    return "success";
-  };
 
   return (
     <div className="min-vh-100 bg-light">
@@ -283,731 +255,224 @@ export default function StudentInterviewPage() {
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
-              <h2 className="text-uppercase fw-bold m-0">
-                <i className="bi bi-journal-text me-2 text-warning"></i>
-                บันทึกการสัมภาษณ์นักเรียนและผู้ปกครอง
-              </h2>
               <div>
-                <span 
-                  className={`badge bg-${getStatusColor()} rounded-0 text-uppercase fw-semibold p-2`}
-                  id="statusPreview"
+                <h2 className="text-uppercase fw-bold m-0">
+                  <i className="bi bi-journal-text me-2 text-warning"></i>
+                  บันทึกการสัมภาษณ์: {interview.student_name}
+                </h2>
+                <p className="text-muted mb-0 mt-1">
+                  <i className="bi bi-clock me-1"></i>บันทึกเมื่อ: {interview.created_at} | แก้ไขล่าสุด: {interview.updated_at}
+                </p>
+              </div>
+              <div>
+                <span
+                  className={`badge bg-${getStatusColor(interview.student_group)} rounded-0 text-uppercase fw-semibold p-2 me-2`}
                 >
-                  สรุปสถานะ: {formData.student_group}
+                  {interview.student_group}
                 </span>
+                <Link
+                  href={`/student_detail/${studentId}/interview/edit`}
+                  className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+                >
+                  <i className="bi bi-pencil me-2"></i>แก้ไขบันทึก
+                </Link>
+                <Link
+                  href={`/student_detail/${studentId}`}
+                  className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold"
+                >
+                  <i className="bi bi-arrow-left me-2"></i>กลับข้อมูลพื้นฐาน
+                </Link>
               </div>
             </div>
           </div>
         </div>
         {/* END: Page Header */}
 
-        <form onSubmit={handleSubmit}>
-          {/* START: Student Basic Info (จาก Database เดิม แสดงอัตโนมัติ) */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
-                  <h5 className="text-uppercase fw-semibold m-0 text-white">
-                    <i className="bi bi-person-badge me-2 text-warning"></i>
-                    ข้อมูลนักเรียน (จากระบบ)
-                  </h5>
+        {/* START: Header Info */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="border bg-white p-3">
+              <div className="row">
+                <div className="col-md-2">
+                  <span className="text-uppercase fw-semibold small">ภาคเรียนที่/ปีการศึกษา:</span>
+                  <p className="fw-bold mb-0">{interview.semester}/{interview.academic_year}</p>
                 </div>
-                <div className="p-3 bg-light">
-                  <div className="row">
-                    <div className="col-md-8">
-                      <div className="row">
-                        <div className="col-md-6 mb-2">
-                          <span className="text-uppercase fw-semibold small">ชื่อ-นามสกุล:</span>
-                          <span className="ms-2 fw-bold">{student.name}</span>
-                        </div>
-                        <div className="col-md-3 mb-2">
-                          <span className="text-uppercase fw-semibold small">ชื่อเล่น:</span>
-                          <span className="ms-2">{student.nickname}</span>
-                        </div>
-                        <div className="col-md-3 mb-2">
-                          <span className="text-uppercase fw-semibold small">ชั้น:</span>
-                          <span className="ms-2">{student.level}</span>
-                        </div>
-                        <div className="col-md-6 mb-2">
-                          <span className="text-uppercase fw-semibold small">เลขที่:</span>
-                          <span className="ms-2">{student.student_number}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-md-4 text-end">
-                      <span className="badge bg-dark rounded-0 p-2">
-                        <i className="bi bi-database me-1"></i>ข้อมูลจากระบบฐานข้อมูลกลาง
+                <div className="col-md-3">
+                  <span className="text-uppercase fw-semibold small">ผู้ปกครองที่ให้ข้อมูล:</span>
+                  <p className="fw-bold mb-0">{interview.parent_name} ({interview.parent_relationship})</p>
+                </div>
+                <div className="col-md-2">
+                  <span className="text-uppercase fw-semibold small">เบอร์ติดต่อ:</span>
+                  <p className="mb-0">{interview.parent_phone}</p>
+                </div>
+                <div className="col-md-2">
+                  <span className="text-uppercase fw-semibold small">ระดับชั้น/กลุ่ม:</span>
+                  <p className="mb-0">{interview.student_level}/{interview.student_class}</p>
+                </div>
+                <div className="col-md-2">
+                  <span className="text-uppercase fw-semibold small">เลขที่:</span>
+                  <p className="mb-0">{interview.student_number}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* END: Header Info */}
+
+        {/* START: Family Information */}
+        <div className="row mb-4">
+          <div className="col-md-6">
+            <div className="border bg-white h-100">
+              <div className="p-3 border-bottom bg-dark">
+                <h5 className="text-uppercase fw-semibold m-0 text-white">
+                  <i className="bi bi-house-heart me-2 text-warning"></i>
+                  ข้อมูลครอบครัวและการเป็นอยู่
+                </h5>
+              </div>
+              <div className="p-3">
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">สถานภาพบิดา-มารดา</label>
+                  <p>{interview.family_status.join(", ")}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">พักอาศัยกับ</label>
+                  <p>{interview.living_with} {interview.living_with_other && `(${interview.living_with_other})`}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">ลักษณะที่อยู่อาศัย</label>
+                  <p>{interview.housing_type} {interview.housing_type_other && `(${interview.housing_type_other})`}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">การเดินทางมาโรงเรียน</label>
+                  <p>{interview.transportation.join(", ")}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="border bg-white h-100">
+              <div className="p-3 border-bottom bg-dark">
+                <h5 className="text-uppercase fw-semibold m-0 text-white">
+                  <i className="bi bi-cash-stack me-2 text-warning"></i>
+                  ข้อมูลเศรษฐกิจ
+                </h5>
+              </div>
+              <div className="p-3">
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">รายได้ครอบครัว/เดือน</label>
+                  <p>{interview.family_income} บาท</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">เงินมาโรงเรียน/วัน</label>
+                  <p>{interview.daily_allowance} บาท</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">ความต้องการช่วยเหลือ</label>
+                  <p>{interview.assistance_needs.join(", ")}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* END: Family Information */}
+
+        {/* START: Learning and Health */}
+        <div className="row mb-4">
+          <div className="col-md-6">
+            <div className="border bg-white h-100">
+              <div className="p-3 border-bottom bg-dark">
+                <h5 className="text-uppercase fw-semibold m-0 text-white">
+                  <i className="bi bi-journal-bookmark-fill me-2 text-warning"></i>
+                  ด้านการเรียนและพฤติกรรม
+                </h5>
+              </div>
+              <div className="p-3">
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ชอบ / จุดแข็ง</label>
+                  <p>{interview.strengths || "-"}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ไม่ถนัด / ปัญหาการเรียน</label>
+                  <p>{interview.weak_subjects || "-"}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">งานอดิเรก/ความสนใจพิเศษ</label>
+                  <p>{interview.hobbies || "-"}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">พฤติกรรมที่บ้าน</label>
+                  <p>{interview.home_behavior || "-"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6">
+            <div className="border bg-white h-100">
+              <div className="p-3 border-bottom bg-dark">
+                <h5 className="text-uppercase fw-semibold m-0 text-white">
+                  <i className="bi bi-heart-pulse me-2 text-warning"></i>
+                  ด้านสุขภาพและปัจจัยเสี่ยง
+                </h5>
+              </div>
+              <div className="p-3">
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">โรคประจำตัว/แพ้อาหาร</label>
+                  <p>{interview.chronic_disease || "-"}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">พฤติกรรมเสี่ยงที่ควรเฝ้าระวัง</label>
+                  <p>{interview.risk_behaviors.join(", ")}</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label text-uppercase fw-semibold small text-muted">ความกังวลใจของผู้ปกครอง</label>
+                  <p>{interview.parent_concerns || "-"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* END: Learning and Health */}
+
+        {/* START: Teacher Recommendations */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="border bg-white">
+              <div className="p-3 border-bottom bg-dark">
+                <h5 className="text-uppercase fw-semibold m-0 text-white">
+                  <i className="bi bi-clipboard-check me-2 text-warning"></i>
+                  สรุปความเห็นของครูที่ปรึกษา
+                </h5>
+              </div>
+              <div className="p-3">
+                <div className="row g-3">
+                  <div className="col-md-2">
+                    <label className="form-label text-uppercase fw-semibold small text-muted">กลุ่มนักเรียน</label>
+                    <p>
+                      <span className={`badge bg-${getStatusColor(interview.student_group)} rounded-0 p-2`}>
+                        {interview.student_group}
                       </span>
-                    </div>
+                    </p>
+                  </div>
+                  <div className="col-md-10">
+                    <label className="form-label text-uppercase fw-semibold small text-muted">แนวทางการช่วยเหลือ/ส่งต่อ</label>
+                    <p>{interview.help_guidelines}</p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-          {/* END: Student Basic Info */}
-
-          {/* START: ภาคเรียน/ปีการศึกษา */}
-          <div className="row mb-4">
-            <div className="col-md-3">
-              <div className="border bg-white p-3">
-                <label className="form-label text-uppercase fw-semibold small">ภาคเรียนที่</label>
-                <select 
-                  name="semester"
-                  className="form-select rounded-0"
-                  value={formData.semester}
-                  onChange={handleInputChange}
-                >
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                </select>
-              </div>
-            </div>
-            <div className="col-md-3">
-              <div className="border bg-white p-3">
-                <label className="form-label text-uppercase fw-semibold small">ปีการศึกษา</label>
-                <select 
-                  name="academic_year"
-                  className="form-select rounded-0"
-                  value={formData.academic_year}
-                  onChange={handleInputChange}
-                >
-                  <option value="2568">2568</option>
-                  <option value="2567">2567</option>
-                  <option value="2566">2566</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          {/* END: ภาคเรียน/ปีการศึกษา */}
-
-          {/* START: 1. ข้อมูลทั่วไป */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
-                  <h5 className="text-uppercase fw-semibold m-0 text-white">
-                    <i className="bi bi-person-lines-fill me-2 text-warning"></i>
-                    1. ข้อมูลทั่วไป
-                  </h5>
-                </div>
-                <div className="p-3">
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label text-uppercase fw-semibold small">ชื่อ-นามสกุล (ผู้ปกครองที่ให้ข้อมูล)</label>
-                      <input 
-                        type="text" 
-                        name="parent_name"
-                        className="form-control rounded-0"
-                        value={formData.parent_name}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">ความสัมพันธ์</label>
-                      <input 
-                        type="text" 
-                        name="parent_relationship"
-                        className="form-control rounded-0"
-                        value={formData.parent_relationship}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">เบอร์โทรศัพท์ติดต่อ</label>
-                      <input 
-                        type="text" 
-                        name="parent_phone"
-                        className="form-control rounded-0"
-                        value={formData.parent_phone}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* END: 1. ข้อมูลทั่วไป */}
-
-          {/* START: 2. สถานภาพครอบครัวและการเป็นอยู่ */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
-                  <h5 className="text-uppercase fw-semibold m-0 text-white">
-                    <i className="bi bi-house-heart me-2 text-warning"></i>
-                    2. สถานภาพครอบครัวและการเป็นอยู่
-                  </h5>
-                </div>
-                <div className="p-3">
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">สถานภาพบิดา-มารดา</label>
-                    <div className="row">
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="อยู่ด้วยกัน"
-                            checked={formData.family_status.includes("อยู่ด้วยกัน")}
-                            onChange={(e) => handleCheckboxChange(e, "family_status")}
-                          />
-                          <label className="form-check-label">อยู่ด้วยกัน</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="แยกกันอยู่"
-                            checked={formData.family_status.includes("แยกกันอยู่")}
-                            onChange={(e) => handleCheckboxChange(e, "family_status")}
-                          />
-                          <label className="form-check-label">แยกกันอยู่</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="หย่าร้าง"
-                            checked={formData.family_status.includes("หย่าร้าง")}
-                            onChange={(e) => handleCheckboxChange(e, "family_status")}
-                          />
-                          <label className="form-check-label">หย่าร้าง</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="บิดา/มารดาเสียชีวิต"
-                            checked={formData.family_status.includes("บิดา/มารดาเสียชีวิต")}
-                            onChange={(e) => handleCheckboxChange(e, "family_status")}
-                          />
-                          <label className="form-check-label">บิดา/มารดาเสียชีวิต</label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">นักเรียนพักอาศัยกับ</label>
-                    <div className="row">
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="radio" 
-                            name="living_with"
-                            className="form-check-input rounded-0" 
-                            value="บิดา-มารดา"
-                            checked={formData.living_with === "บิดา-มารดา"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">บิดา-มารดา</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="radio" 
-                            name="living_with"
-                            className="form-check-input rounded-0" 
-                            value="บุคคลอื่น"
-                            checked={formData.living_with === "บุคคลอื่น"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">บุคคลอื่น</label>
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <input 
-                          type="text" 
-                          className="form-control rounded-0" 
-                          placeholder="ระบุ"
-                          value={formData.living_with_other}
-                          onChange={(e) => setFormData(prev => ({ ...prev, living_with_other: e.target.value }))}
-                          disabled={formData.living_with !== "บุคคลอื่น"}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">ลักษณะที่อยู่อาศัย</label>
-                    <div className="row">
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="radio" 
-                            name="housing_type"
-                            className="form-check-input rounded-0" 
-                            value="บ้านตนเอง"
-                            checked={formData.housing_type === "บ้านตนเอง"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">บ้านตนเอง</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="radio" 
-                            name="housing_type"
-                            className="form-check-input rounded-0" 
-                            value="บ้านเช่า"
-                            checked={formData.housing_type === "บ้านเช่า"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">บ้านเช่า</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="radio" 
-                            name="housing_type"
-                            className="form-check-input rounded-0" 
-                            value="หอพัก"
-                            checked={formData.housing_type === "หอพัก"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">หอพัก</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="radio" 
-                            name="housing_type"
-                            className="form-check-input rounded-0" 
-                            value="อื่นๆ"
-                            checked={formData.housing_type === "อื่นๆ"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">อื่นๆ</label>
-                        </div>
-                      </div>
-                      <div className="col-md-6 mt-2">
-                        <input 
-                          type="text" 
-                          className="form-control rounded-0" 
-                          placeholder="ระบุ"
-                          value={formData.housing_type_other}
-                          onChange={(e) => setFormData(prev => ({ ...prev, housing_type_other: e.target.value }))}
-                          disabled={formData.housing_type !== "อื่นๆ"}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">การเดินทางมาโรงเรียน</label>
-                    <div className="row">
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="รถส่วนตัว"
-                            checked={formData.transportation.includes("รถส่วนตัว")}
-                            onChange={(e) => handleCheckboxChange(e, "transportation")}
-                          />
-                          <label className="form-check-label">รถส่วนตัว</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="รถรับส่ง"
-                            checked={formData.transportation.includes("รถรับส่ง")}
-                            onChange={(e) => handleCheckboxChange(e, "transportation")}
-                          />
-                          <label className="form-check-label">รถรับส่ง</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="รถเมล์/รถสาธารณะ"
-                            checked={formData.transportation.includes("รถเมล์/รถสาธารณะ")}
-                            onChange={(e) => handleCheckboxChange(e, "transportation")}
-                          />
-                          <label className="form-check-label">รถเมล์/รถสาธารณะ</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="เดิน"
-                            checked={formData.transportation.includes("เดิน")}
-                            onChange={(e) => handleCheckboxChange(e, "transportation")}
-                          />
-                          <label className="form-check-label">เดิน</label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* END: 2. สถานภาพครอบครัวและการเป็นอยู่ */}
-
-          {/* START: 3. ด้านการเรียนและพฤติกรรม */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
-                  <h5 className="text-uppercase fw-semibold m-0 text-white">
-                    <i className="bi bi-journal-bookmark-fill me-2 text-warning"></i>
-                    3. ด้านการเรียนและพฤติกรรม (มุมมองนักเรียน/ผู้ปกครอง)
-                  </h5>
-                </div>
-                <div className="p-3">
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">วิชาที่ชอบ / จุดแข็ง</label>
-                    <textarea 
-                      name="strengths"
-                      className="form-control rounded-0" 
-                      rows={2}
-                      value={formData.strengths}
-                      onChange={handleInputChange}
-                    ></textarea>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">วิชาที่ไม่ถนัด / ปัญหาการเรียน</label>
-                    <textarea 
-                      name="weak_subjects"
-                      className="form-control rounded-0" 
-                      rows={2}
-                      value={formData.weak_subjects}
-                      onChange={handleInputChange}
-                    ></textarea>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">งานอดิเรก/ความสนใจพิเศษ</label>
-                    <textarea 
-                      name="hobbies"
-                      className="form-control rounded-0" 
-                      rows={2}
-                      value={formData.hobbies}
-                      onChange={handleInputChange}
-                    ></textarea>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">พฤติกรรมที่บ้าน (เช่น ช่วยทำงานบ้าน, ชอบเก็บตัว, ติดเกม, รับผิดชอบตัวเองได้ดี)</label>
-                    <textarea 
-                      name="home_behavior"
-                      className="form-control rounded-0" 
-                      rows={3}
-                      value={formData.home_behavior}
-                      onChange={handleInputChange}
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* END: 3. ด้านการเรียนและพฤติกรรม */}
-
-          {/* START: 4. ด้านสุขภาพและปัจจัยเสี่ยง */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
-                  <h5 className="text-uppercase fw-semibold m-0 text-white">
-                    <i className="bi bi-heart-pulse me-2 text-warning"></i>
-                    4. ด้านสุขภาพและปัจจัยเสี่ยง
-                  </h5>
-                </div>
-                <div className="p-3">
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">โรคประจำตัว/แพ้อาหาร</label>
-                    <textarea 
-                      name="chronic_disease"
-                      className="form-control rounded-0" 
-                      rows={2}
-                      value={formData.chronic_disease}
-                      onChange={handleInputChange}
-                    ></textarea>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">พฤติกรรมเสี่ยงที่ควรเฝ้าระวัง</label>
-                    <div className="row">
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="การใช้สารเสพติด/บุหรี่"
-                            checked={formData.risk_behaviors.includes("การใช้สารเสพติด/บุหรี่")}
-                            onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
-                          />
-                          <label className="form-check-label">การใช้สารเสพติด/บุหรี่</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="การใช้ความรุนแรง"
-                            checked={formData.risk_behaviors.includes("การใช้ความรุนแรง")}
-                            onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
-                          />
-                          <label className="form-check-label">การใช้ความรุนแรง</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="สภาวะทางอารมณ์/ซึมเศร้า"
-                            checked={formData.risk_behaviors.includes("สภาวะทางอารมณ์/ซึมเศร้า")}
-                            onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
-                          />
-                          <label className="form-check-label">สภาวะทางอารมณ์/ซึมเศร้า</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="ไม่มี"
-                            checked={formData.risk_behaviors.includes("ไม่มี")}
-                            onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
-                          />
-                          <label className="form-check-label">ไม่มี</label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">ความกังวลใจของผู้ปกครองที่มีต่อนักเรียน</label>
-                    <textarea 
-                      name="parent_concerns"
-                      className="form-control rounded-0" 
-                      rows={3}
-                      value={formData.parent_concerns}
-                      onChange={handleInputChange}
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* END: 4. ด้านสุขภาพและปัจจัยเสี่ยง */}
-
-          {/* START: 5. ด้านเศรษฐกิจ */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
-                  <h5 className="text-uppercase fw-semibold m-0 text-white">
-                    <i className="bi bi-cash-stack me-2 text-warning"></i>
-                    5. ด้านเศรษฐกิจ (การเงิน)
-                  </h5>
-                </div>
-                <div className="p-3">
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label text-uppercase fw-semibold small">รายได้เฉลี่ยต่อเดือนของครอบครัว (บาท)</label>
-                      <input 
-                        type="text" 
-                        name="family_income"
-                        className="form-control rounded-0"
-                        value={formData.family_income}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-uppercase fw-semibold small">เงินมาโรงเรียนต่อวัน (บาท)</label>
-                      <input 
-                        type="text" 
-                        name="daily_allowance"
-                        className="form-control rounded-0"
-                        value={formData.daily_allowance}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
-
+                {interview.home_visit_file && (
                   <div className="mt-3">
-                    <label className="form-label text-uppercase fw-semibold small">ความต้องการความช่วยเหลือเพิ่มเติม</label>
-                    <div className="row">
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="ทุนการศึกษา"
-                            checked={formData.assistance_needs.includes("ทุนการศึกษา")}
-                            onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
-                          />
-                          <label className="form-check-label">ทุนการศึกษา</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="อุปกรณ์การเรียน"
-                            checked={formData.assistance_needs.includes("อุปกรณ์การเรียน")}
-                            onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
-                          />
-                          <label className="form-check-label">อุปกรณ์การเรียน</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="ชุดนักเรียน"
-                            checked={formData.assistance_needs.includes("ชุดนักเรียน")}
-                            onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
-                          />
-                          <label className="form-check-label">ชุดนักเรียน</label>
-                        </div>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="อื่นๆ"
-                            checked={formData.assistance_needs.includes("อื่นๆ")}
-                            onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
-                          />
-                          <label className="form-check-label">อื่นๆ</label>
-                        </div>
-                      </div>
+                    <label className="form-label text-uppercase fw-semibold small text-muted">แบบเยี่ยมบ้าน</label>
+                    <div>
+                      <a href={interview.home_visit_file} target="_blank" className="btn btn-sm btn-outline-primary rounded-0">
+                        <i className="bi bi-file-earmark-pdf me-2"></i>ดูไฟล์แนบ
+                      </a>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* END: 5. ด้านเศรษฐกิจ */}
-
-          {/* START: 6. สรุปความเห็นของครูที่ปรึกษา */}
-          <div className="row mb-4">
-            <div className="col-12">
-              <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
-                  <h5 className="text-uppercase fw-semibold m-0 text-white">
-                    <i className="bi bi-clipboard-check me-2 text-warning"></i>
-                    6. สรุปความเห็นของครูที่ปรึกษา
-                  </h5>
-                </div>
-                <div className="p-3">
-                  <div className="row g-3">
-                    <div className="col-md-4">
-                      <label className="form-label text-uppercase fw-semibold small">กลุ่มนักเรียน</label>
-                      <select 
-                        name="student_group"
-                        className="form-select rounded-0"
-                        value={formData.student_group}
-                        onChange={handleInputChange}
-                      >
-                        <option value="ปกติ">กลุ่มปกติ</option>
-                        <option value="เสี่ยง">กลุ่มเสี่ยง</option>
-                        <option value="มีปัญหา">กลุ่มมีปัญหา</option>
-                      </select>
-                    </div>
-                    <div className="col-md-8">
-                      <label className="form-label text-uppercase fw-semibold small">แนวทางการช่วยเหลือ/ส่งต่อ</label>
-                      <textarea 
-                        name="help_guidelines"
-                        className="form-control rounded-0" 
-                        rows={3}
-                        value={formData.help_guidelines}
-                        onChange={handleInputChange}
-                      ></textarea>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <label className="form-label text-uppercase fw-semibold small">แบบเยี่ยมบ้าน (แนบไฟล์/ภาพได้)</label>
-                    <input 
-                      type="file" 
-                      className="form-control rounded-0" 
-                      accept=".jpg,.jpeg,.png,.pdf"
-                    />
-                    <div className="mt-2 text-muted small">
-                      <i className="bi bi-info-circle me-1"></i>
-                      รองรับไฟล์ .jpg, .png, .pdf ขนาดไม่เกิน 10MB
-                    </div>
-                  </div>
-
-                  <div className="mt-3 p-3 border rounded-0" id="statusSummary" style={{ backgroundColor: getStatusColor() === 'success' ? '#d4edda' : getStatusColor() === 'warning' ? '#fff3cd' : '#f8d7da' }}>
-                    <div className="d-flex align-items-center">
-                      <i className={`bi bi-${getStatusColor() === 'success' ? 'check-circle' : getStatusColor() === 'warning' ? 'exclamation-triangle' : 'exclamation-octagon'} fs-1 me-3`}></i>
-                      <div>
-                        <h5 className="fw-bold mb-1">
-                          ระบบสรุปผล: 
-                          <span className={`ms-2 badge bg-${getStatusColor()} rounded-0 p-2`}>
-                            {formData.student_group}
-                          </span>
-                        </h5>
-                        <p className="mb-0">
-                          {getStatusColor() === 'success' && 'นักเรียนอยู่ในเกณฑ์ปกติ เหมาะสมกับการดูแลทั่วไป'}
-                          {getStatusColor() === 'warning' && 'นักเรียนอยู่ในกลุ่มเสี่ยง ควรได้รับการดูแลและติดตามอย่างใกล้ชิด'}
-                          {getStatusColor() === 'danger' && 'นักเรียนอยู่ในกลุ่มมีปัญหา จำเป็นต้องได้รับการช่วยเหลือและส่งต่อทันที'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* END: 6. สรุปความเห็นของครูที่ปรึกษา */}
-
-          {/* START: Form Actions */}
-          <div className="row mb-4">
-            <div className="col-12 text-center">
-              <Link
-                href={`/student_detail/${studentId}`}
-                className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
-              >
-                <i className="bi bi-x-circle me-2"></i>ยกเลิก
-              </Link>
-              <button 
-                type="submit" 
-                className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    กำลังบันทึก...
-                  </>
-                ) : (
-                  <>
-                    <i className="bi bi-save me-2"></i>บันทึกข้อมูล
-                  </>
                 )}
-              </button>
+              </div>
             </div>
           </div>
-          {/* END: Form Actions */}
-        </form>
+        </div>
+        {/* END: Teacher Recommendations */}
       </div>
 
       {/* START: Footer */}
@@ -1019,7 +484,7 @@ export default function StudentInterviewPage() {
             </div>
             <div className="col-md-6 text-end text-uppercase small">
               <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>บันทึกการสัมภาษณ์: {studentId}</span>
+              <span>ดูบันทึกการสัมภาษณ์: {studentId}</span>
             </div>
           </div>
         </div>
