@@ -332,29 +332,41 @@ export default function StudentBasicPage() {
         {/* END: Physical Information Row */}
 
         {/* START: Action Buttons */}
-        <div className="row mb-4">
-          <div className="col-12 d-flex justify-content-end gap-2">
-            <Link
-              href={`/student_detail/${studentId}/interview`}
-              className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
-            >
-              <i className="bi bi-journal-text me-2"></i>ดูบันทึกการสัมภาษณ์
-            </Link>
-            <Link
-              href={`/student_detail/${studentId}/edit`}
-              className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
-            >
-              <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูลพื้นฐาน
-            </Link>
-            <Link
-              href="/student"
-              className="btn btn-dark rounded-0 text-uppercase fw-semibold"
-            >
-              <i className="bi bi-arrow-left me-2"></i>กลับไปรายชื่อ
-            </Link>
-          </div>
-        </div>
-        {/* END: Action Buttons */}
+<div className="row mb-4">
+  <div className="col-12 d-flex justify-content-end gap-2">
+    <Link
+      href={`/student_detail/${studentId}/assessment/sdq`}
+      className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
+    >
+      <i className="bi bi-clipboard-data me-2"></i>SDQ
+    </Link>
+    <Link
+      href={`/student_detail/${studentId}/assessment/dass21`}
+      className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
+    >
+      <i className="bi bi-clipboard-heart me-2"></i>DASS-21
+    </Link>
+    <Link
+      href={`/student_detail/${studentId}/interview`}
+      className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
+    >
+      <i className="bi bi-journal-text me-2"></i>บันทึกการสัมภาษณ์
+    </Link>
+    <Link
+      href={`/student_detail/${studentId}/edit`}
+      className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+    >
+      <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
+    </Link>
+    <Link
+      href="/student"
+      className="btn btn-dark rounded-0 text-uppercase fw-semibold"
+    >
+      <i className="bi bi-arrow-left me-2"></i>กลับไป
+    </Link>
+  </div>
+</div>
+{/* END: Action Buttons */}
       </div>
 
       {/* START: Footer */}

@@ -13,18 +13,46 @@ export default function CreateHomeroomPlanPage() {
     semester: "1",
     academicYear: "2568",
     week: "",
-    time: "",
-    title: "",
+    time: "20-30",
+    topic: "",
     objectives: ["", ""],
-    disciplineManagement: "",
-    studentDevelopment: "",
-    individualCare: "",
-    evaluation: {
-      observation: false,
-      worksheet: false,
-      participation: false
-    },
-    materials: null as File | null
+    
+    // ช่วงที่ 1: การจัดการระเบียบและวินัย
+    checkAttendance: "",
+    checkUniform: "",
+    announceNews: "",
+    
+    // ช่วงที่ 2: กิจกรรมพัฒนาผู้เรียน
+    warmup: "",
+    mainActivity: "",
+    summary: "",
+    
+    // ช่วงที่ 3: การดูแลรายบุคคล
+    trackProblems: "",
+    individualCounsel: "",
+    
+    // การประเมินผล
+    evalObservation: false,
+    evalWorksheet: false,
+    evalParticipation: false,
+    
+    // บันทึกหลังกิจกรรม
+    teacherNote: "",
+    problems: "",
+    specialTrack: "",
+    sessionNote: "",
+    
+    // สื่อ/เอกสาร
+    materials: null as File | null,
+    materialsNote: "",
+    
+    // ข้อเสนอแนะ
+    suggestions: "",
+    
+    // ติดตามผลรายบุคคล
+    individualFollowup: "",
+    
+    status: "draft"
   });
 
   const teacher_name = "อาจารย์วิมลรัตน์";
@@ -46,21 +74,15 @@ export default function CreateHomeroomPlanPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: checked }));
+  };
+
   const handleObjectiveChange = (index: number, value: string) => {
     const newObjectives = [...formData.objectives];
     newObjectives[index] = value;
     setFormData(prev => ({ ...prev, objectives: newObjectives }));
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      evaluation: {
-        ...prev.evaluation,
-        [name]: checked
-      }
-    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,18 +94,27 @@ export default function CreateHomeroomPlanPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
+      console.log("Saving plan:", formData);
       await new Promise(resolve => setTimeout(resolve, 1000));
       router.push("/student_learn");
     } catch (error) {
-      console.error("Error saving plan:", error);
+      console.error("Error:", error);
       setLoading(false);
     }
   };
 
+  const topicOptions = [
+    "การจัดการความเครียด",
+    "มารยาทในที่ทำงาน",
+    "การวางแผนการเงิน",
+    "การเตรียมตัวสอบ",
+    "อื่นๆ"
+  ];
+
   return (
     <div className="min-vh-100 bg-light">
+      {/* Navbar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="#">
@@ -95,18 +126,10 @@ export default function CreateHomeroomPlanPage() {
           </button>
           <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul className="navbar-nav">
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/committees">คณะกรรมการ</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3 active" href="/student_learn">ISP</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/referrals">ส่งต่อ</a>
-              </li>
+              <li className="nav-item"><a className="nav-link text-white px-3" href="/student">รายชื่อผู้เรียน</a></li>
+              <li className="nav-item"><a className="nav-link text-white px-3" href="/committees">คณะกรรมการ</a></li>
+              <li className="nav-item"><a className="nav-link text-white px-3 active" href="/student_learn">โฮมรูม</a></li>
+              <li className="nav-item"><a className="nav-link text-white px-3" href="/referrals">ส่งต่อ</a></li>
             </ul>
           </div>
         </div>
@@ -115,329 +138,233 @@ export default function CreateHomeroomPlanPage() {
       <div className="container-fluid py-4">
         <div className="row mb-4">
           <div className="col-12">
-            <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
+            <div className="border-bottom border-3 border-warning pb-2">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-plus-circle-fill me-2 text-warning"></i>
-                สร้างแผนกิจกรรมโฮมรูม
+                แผนการจัดกิจกรรมโฮมรูม
               </h2>
-              <div>
-                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name}</span>
-              </div>
             </div>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
+          {/* Header Info */}
+          <div className="row g-3 mb-4">
+            <div className="col-md-3">
+              <label className="form-label fw-semibold">ระดับชั้น</label>
+              <select className="form-select rounded-0" name="level" value={formData.level} onChange={handleInputChange} required>
+                <option value="">เลือกระดับชั้น</option>
+                <option value="ปวช.1">ปวช.1</option>
+                <option value="ปวช.2">ปวช.2</option>
+                <option value="ปวช.3">ปวช.3</option>
+                <option value="ปวส.1">ปวส.1</option>
+                <option value="ปวส.2">ปวส.2</option>
+              </select>
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-semibold">ภาคเรียน</label>
+              <select className="form-select rounded-0" name="semester" value={formData.semester} onChange={handleInputChange}>
+                <option value="1">ภาคเรียนที่ 1</option><option value="2">ภาคเรียนที่ 2</option>
+              </select>
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-semibold">ปีการศึกษา</label>
+              <select className="form-select rounded-0" name="academicYear" value={formData.academicYear} onChange={handleInputChange}>
+                <option value="2568">2568</option><option value="2567">2567</option><option value="2566">2566</option>
+              </select>
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-semibold">สัปดาห์ที่</label>
+              <input type="number" className="form-control rounded-0" name="week" value={formData.week} onChange={handleInputChange} required />
+            </div>
+            <div className="col-md-3">
+              <label className="form-label fw-semibold">เวลา (นาที)</label>
+              <input type="text" className="form-control rounded-0" name="time" value={formData.time} onChange={handleInputChange} required />
+            </div>
+          </div>
+
+          {/* Topic */}
+          <div className="card rounded-0 border-0 shadow-sm mb-4">
+            <div className="card-header bg-dark text-white">
+              <h5 className="m-0"><i className="bi bi-chat-text me-2 text-warning"></i>1. หัวข้อหลักประจำสัปดาห์</h5>
+            </div>
+            <div className="card-body">
+              <select className="form-select rounded-0 mb-3" value={formData.topic} onChange={(e)=>setFormData({...formData, topic: e.target.value})}>
+                <option value="">เลือกหัวข้อ</option>
+                {topicOptions.map(t=><option key={t} value={t}>{t}</option>)}
+              </select>
+              <input type="text" className="form-control rounded-0" placeholder="หรือระบุหัวข้ออื่นๆ" value={formData.topic} onChange={(e)=>setFormData({...formData, topic: e.target.value})} />
+            </div>
+          </div>
+
+          {/* Objectives */}
+          <div className="card rounded-0 border-0 shadow-sm mb-4">
+            <div className="card-header bg-dark text-white">
+              <h5 className="m-0"><i className="bi bi-bullseye me-2 text-warning"></i>2. วัตถุประสงค์</h5>
+            </div>
+            <div className="card-body">
+              <div className="mb-3">
+                <label className="form-label">เพื่อให้ผู้เรียน</label>
+                <input type="text" className="form-control rounded-0 mb-2" placeholder="วัตถุประสงค์ข้อที่ 1" 
+                  value={formData.objectives[0]} onChange={(e)=>handleObjectiveChange(0, e.target.value)} required />
+                <input type="text" className="form-control rounded-0" placeholder="วัตถุประสงค์ข้อที่ 2" 
+                  value={formData.objectives[1]} onChange={(e)=>handleObjectiveChange(1, e.target.value)} required />
+              </div>
+            </div>
+          </div>
+
+          {/* Activities */}
+          <div className="card rounded-0 border-0 shadow-sm mb-4">
+            <div className="card-header bg-dark text-white">
+              <h5 className="m-0"><i className="bi bi-list-check me-2 text-warning"></i>3. ขั้นตอนการดำเนินกิจกรรม</h5>
+            </div>
+            <div className="card-body">
+              <h6 className="fw-bold bg-warning text-dark p-2">ช่วงที่ 1: การจัดการระเบียบและวินัย (5-10 นาที)</h6>
+              <div className="mb-3">
+                <label className="form-label">เช็คชื่อ:</label>
+                <input type="text" className="form-control rounded-0 mb-2" name="checkAttendance" value={formData.checkAttendance} onChange={handleInputChange} placeholder="ตรวจสอบสถิติการมาเรียน การลา ความทันเวลา" />
+                <label className="form-label">ตรวจระเบียบ:</label>
+                <input type="text" className="form-control rounded-0 mb-2" name="checkUniform" value={formData.checkUniform} onChange={handleInputChange} placeholder="ความเรียบร้อยของเครื่องแต่งกายและอุปกรณ์" />
+                <label className="form-label">แจ้งข่าวสาร:</label>
+                <input type="text" className="form-control rounded-0" name="announceNews" value={formData.announceNews} onChange={handleInputChange} placeholder="ประชาสัมพันธ์กิจกรรมหรือประกาศสำคัญ" />
+              </div>
+
+              <h6 className="fw-bold bg-warning text-dark p-2">ช่วงที่ 2: กิจกรรมพัฒนาผู้เรียน (15 นาที)</h6>
+              <div className="mb-3">
+                <label className="form-label">กิจกรรมนำ:</label>
+                <input type="text" className="form-control rounded-0 mb-2" name="warmup" value={formData.warmup} onChange={handleInputChange} />
+                <label className="form-label">กิจกรรมหลัก:</label>
+                <textarea className="form-control rounded-0 mb-2" rows={3} name="mainActivity" value={formData.mainActivity} onChange={handleInputChange} />
+                <label className="form-label">การสรุป:</label>
+                <input type="text" className="form-control rounded-0" name="summary" value={formData.summary} onChange={handleInputChange} />
+              </div>
+
+              <h6 className="fw-bold bg-warning text-dark p-2">ช่วงที่ 3: การดูแลรายบุคคล (5 นาที)</h6>
+              <div>
+                <label className="form-label">ติดตามนักเรียนที่มีปัญหา:</label>
+                <input type="text" className="form-control rounded-0 mb-2" name="trackProblems" value={formData.trackProblems} onChange={handleInputChange} placeholder="ขาดเรียนบ่อย ผลการเรียนลดลง" />
+                <label className="form-label">เปิดโอกาสให้นักเรียนปรึกษา:</label>
+                <input type="text" className="form-control rounded-0" name="individualCounsel" value={formData.individualCounsel} onChange={handleInputChange} />
+              </div>
+            </div>
+          </div>
+
+          {/* Evaluation */}
+          <div className="card rounded-0 border-0 shadow-sm mb-4">
+            <div className="card-header bg-dark text-white">
+              <h5 className="m-0"><i className="bi bi-clipboard-check me-2 text-warning"></i>5. การประเมินผล</h5>
+            </div>
+            <div className="card-body">
+              <div className="form-check mb-2">
+                <input className="form-check-input rounded-0" type="checkbox" name="evalObservation" checked={formData.evalObservation} onChange={handleCheckboxChange} id="obs" />
+                <label className="form-check-label" htmlFor="obs">การสังเกตพฤติกรรม</label>
+              </div>
+              <div className="form-check mb-2">
+                <input className="form-check-input rounded-0" type="checkbox" name="evalWorksheet" checked={formData.evalWorksheet} onChange={handleCheckboxChange} id="ws" />
+                <label className="form-check-label" htmlFor="ws">การทำใบงาน/แบบทดสอบ</label>
+              </div>
+              <div className="form-check mb-2">
+                <input className="form-check-input rounded-0" type="checkbox" name="evalParticipation" checked={formData.evalParticipation} onChange={handleCheckboxChange} id="part" />
+                <label className="form-check-label" htmlFor="part">การมีส่วนร่วมในกิจกรรม</label>
+              </div>
+            </div>
+          </div>
+
+          {/* Teacher's Note */}
+          <div className="card rounded-0 border-0 shadow-sm mb-4">
+            <div className="card-header bg-dark text-white">
+              <h5 className="m-0"><i className="bi bi-journal-text me-2 text-warning"></i>6. บันทึกหลังกิจกรรม</h5>
+            </div>
+            <div className="card-body">
+              <div className="mb-3">
+                <label className="form-label">ผลการจัดกิจกรรม:</label>
+                <textarea className="form-control rounded-0" rows={2} name="teacherNote" value={formData.teacherNote} onChange={handleInputChange} />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">ปัญหา/อุปสรรคที่พบ:</label>
+                <textarea className="form-control rounded-0" rows={2} name="problems" value={formData.problems} onChange={handleInputChange} />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">นักเรียนที่ต้องติดตามเป็นพิเศษ:</label>
+                <input type="text" className="form-control rounded-0" name="specialTrack" value={formData.specialTrack} onChange={handleInputChange} />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">บันทึกการจัดกิจกรรม (รายครั้ง):</label>
+                <textarea className="form-control rounded-0" rows={2} name="sessionNote" value={formData.sessionNote} onChange={handleInputChange} />
+              </div>
+            </div>
+          </div>
+
+          {/* Materials */}
+          <div className="card rounded-0 border-0 shadow-sm mb-4">
+            <div className="card-header bg-dark text-white">
+              <h5 className="m-0"><i className="bi bi-paperclip me-2 text-warning"></i>สื่อและวัสดุอุปกรณ์</h5>
+            </div>
+            <div className="card-body">
+              <div className="mb-3">
+                <label className="form-label">แนบไฟล์:</label>
+                <input type="file" className="form-control rounded-0" onChange={handleFileChange} />
+                <small className="text-muted">ใบงาน, สื่อวิดีโอ, คู่มือประเมิน SDQ</small>
+              </div>
+              <div>
+                <label className="form-label">หมายเหตุ:</label>
+                <input type="text" className="form-control rounded-0" name="materialsNote" value={formData.materialsNote} onChange={handleInputChange} placeholder="เช่น ใช้แอปพลิเคชันเช็คชื่อ" />
+              </div>
+            </div>
+          </div>
+
+          {/* Suggestions & Follow-up */}
           <div className="row">
-            <div className="col-md-12">
-              {/* Basic Information */}
+            <div className="col-md-6">
               <div className="card rounded-0 border-0 shadow-sm mb-4">
-                <div className="card-header bg-dark text-white rounded-0">
-                  <h5 className="card-title text-uppercase fw-semibold m-0">
-                    <i className="bi bi-info-circle me-2 text-warning"></i>
-                    ข้อมูลพื้นฐาน
-                  </h5>
+                <div className="card-header bg-dark text-white">
+                  <h5 className="m-0"><i className="bi bi-chat-dots me-2 text-warning"></i>ข้อเสนอแนะ</h5>
                 </div>
                 <div className="card-body">
-                  <div className="row g-3">
-                    <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">ระดับชั้น</label>
-                      <select 
-                        className="form-select rounded-0"
-                        name="level"
-                        value={formData.level}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="">เลือกระดับชั้น</option>
-                        <option value="ปวช.1">ปวช.1</option>
-                        <option value="ปวช.2">ปวช.2</option>
-                        <option value="ปวช.3">ปวช.3</option>
-                        <option value="ปวส.1">ปวส.1</option>
-                        <option value="ปวส.2">ปวส.2</option>
-                      </select>
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">ภาคเรียนที่</label>
-                      <select 
-                        className="form-select rounded-0"
-                        name="semester"
-                        value={formData.semester}
-                        onChange={handleInputChange}
-                      >
-                        <option value="1">ภาคเรียนที่ 1</option>
-                        <option value="2">ภาคเรียนที่ 2</option>
-                      </select>
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">ปีการศึกษา</label>
-                      <select 
-                        className="form-select rounded-0"
-                        name="academicYear"
-                        value={formData.academicYear}
-                        onChange={handleInputChange}
-                      >
-                        <option value="2568">2568</option>
-                        <option value="2567">2567</option>
-                        <option value="2566">2566</option>
-                      </select>
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">สัปดาห์ที่</label>
-                      <input 
-                        type="text" 
-                        className="form-control rounded-0" 
-                        name="week"
-                        value={formData.week}
-                        onChange={handleInputChange}
-                        placeholder="เช่น 1"
-                        required
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <label className="form-label text-uppercase fw-semibold small">เวลา</label>
-                      <input 
-                        type="text" 
-                        className="form-control rounded-0" 
-                        name="time"
-                        value={formData.time}
-                        onChange={handleInputChange}
-                        placeholder="เช่น 20-30 นาที"
-                        required
-                      />
-                    </div>
-                    <div className="col-md-8">
-                      <label className="form-label text-uppercase fw-semibold small">หัวข้อหลักประจำสัปดาห์</label>
-                      <input 
-                        type="text" 
-                        className="form-control rounded-0" 
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        placeholder="กรอกหัวข้อหลัก"
-                        required
-                      />
-                    </div>
-                  </div>
+                  <textarea className="form-control rounded-0" rows={3} name="suggestions" value={formData.suggestions} onChange={handleInputChange} />
                 </div>
               </div>
-
-              {/* Objectives */}
+            </div>
+            <div className="col-md-6">
               <div className="card rounded-0 border-0 shadow-sm mb-4">
-                <div className="card-header bg-dark text-white rounded-0">
-                  <h5 className="card-title text-uppercase fw-semibold m-0">
-                    <i className="bi bi-bullseye me-2 text-warning"></i>
-                    วัตถุประสงค์
-                  </h5>
+                <div className="card-header bg-dark text-white">
+                  <h5 className="m-0"><i className="bi bi-person-badge me-2 text-warning"></i>ติดตามผลรายบุคคล</h5>
                 </div>
                 <div className="card-body">
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label text-uppercase fw-semibold small">วัตถุประสงค์ข้อที่ 1</label>
-                      <textarea 
-                        className="form-control rounded-0" 
-                        rows={2}
-                        value={formData.objectives[0]}
-                        onChange={(e) => handleObjectiveChange(0, e.target.value)}
-                        placeholder="กรอกวัตถุประสงค์ข้อที่ 1"
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-uppercase fw-semibold small">วัตถุประสงค์ข้อที่ 2</label>
-                      <textarea 
-                        className="form-control rounded-0" 
-                        rows={2}
-                        value={formData.objectives[1]}
-                        onChange={(e) => handleObjectiveChange(1, e.target.value)}
-                        placeholder="กรอกวัตถุประสงค์ข้อที่ 2"
-                        required
-                      ></textarea>
-                    </div>
-                  </div>
+                  <textarea className="form-control rounded-0" rows={3} name="individualFollowup" value={formData.individualFollowup} onChange={handleInputChange} placeholder="รายชื่อนักเรียนที่ต้องติดตามเป็นพิเศษ..." />
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Activity Steps */}
-              <div className="card rounded-0 border-0 shadow-sm mb-4">
-                <div className="card-header bg-dark text-white rounded-0">
-                  <h5 className="card-title text-uppercase fw-semibold m-0">
-                    <i className="bi bi-list-check me-2 text-warning"></i>
-                    ขั้นตอนการดำเนินกิจกรรม
-                  </h5>
-                </div>
-                <div className="card-body">
-                  <div className="row g-4">
-                    <div className="col-md-12">
-                      <label className="form-label text-uppercase fw-semibold small">
-                        <span className="bg-warning text-dark px-2 py-1 me-2">ช่วงที่ 1</span>
-                        การจัดการระเบียบและวินัย
-                      </label>
-                      <textarea 
-                        className="form-control rounded-0" 
-                        rows={3}
-                        name="disciplineManagement"
-                        value={formData.disciplineManagement}
-                        onChange={handleInputChange}
-                        placeholder="เช็คชื่อ, ตรวจระเบียบ, แจ้งข่าวสาร"
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="col-md-12">
-                      <label className="form-label text-uppercase fw-semibold small">
-                        <span className="bg-warning text-dark px-2 py-1 me-2">ช่วงที่ 2</span>
-                        กิจกรรมพัฒนาผู้เรียน
-                      </label>
-                      <textarea 
-                        className="form-control rounded-0" 
-                        rows={4}
-                        name="studentDevelopment"
-                        value={formData.studentDevelopment}
-                        onChange={handleInputChange}
-                        placeholder="กิจกรรมนำ, กิจกรรมหลัก, การสรุป"
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="col-md-12">
-                      <label className="form-label text-uppercase fw-semibold small">
-                        <span className="bg-warning text-dark px-2 py-1 me-2">ช่วงที่ 3</span>
-                        การดูแลรายบุคคล
-                      </label>
-                      <textarea 
-                        className="form-control rounded-0" 
-                        rows={3}
-                        name="individualCare"
-                        value={formData.individualCare}
-                        onChange={handleInputChange}
-                        placeholder="ติดตามนักเรียน, เปิดโอกาสปรึกษา"
-                        required
-                      ></textarea>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Evaluation */}
-              <div className="card rounded-0 border-0 shadow-sm mb-4">
-                <div className="card-header bg-dark text-white rounded-0">
-                  <h5 className="card-title text-uppercase fw-semibold m-0">
-                    <i className="bi bi-clipboard-check me-2 text-warning"></i>
-                    การประเมินผล
-                  </h5>
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-md-12">
-                      <div className="form-check mb-2">
-                        <input 
-                          className="form-check-input rounded-0" 
-                          type="checkbox" 
-                          name="observation"
-                          checked={formData.evaluation.observation}
-                          onChange={handleCheckboxChange}
-                          id="checkObservation"
-                        />
-                        <label className="form-check-label" htmlFor="checkObservation">
-                          การสังเกตพฤติกรรม
-                        </label>
-                      </div>
-                      <div className="form-check mb-2">
-                        <input 
-                          className="form-check-input rounded-0" 
-                          type="checkbox" 
-                          name="worksheet"
-                          checked={formData.evaluation.worksheet}
-                          onChange={handleCheckboxChange}
-                          id="checkWorksheet"
-                        />
-                        <label className="form-check-label" htmlFor="checkWorksheet">
-                          ทำใบงาน
-                        </label>
-                      </div>
-                      <div className="form-check mb-2">
-                        <input 
-                          className="form-check-input rounded-0" 
-                          type="checkbox" 
-                          name="participation"
-                          checked={formData.evaluation.participation}
-                          onChange={handleCheckboxChange}
-                          id="checkParticipation"
-                        />
-                        <label className="form-check-label" htmlFor="checkParticipation">
-                          การมีส่วนร่วม
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Materials */}
-              <div className="card rounded-0 border-0 shadow-sm mb-4">
-                <div className="card-header bg-dark text-white rounded-0">
-                  <h5 className="card-title text-uppercase fw-semibold m-0">
-                    <i className="bi bi-paperclip me-2 text-warning"></i>
-                    สื่อและวัสดุอุปกรณ์
-                  </h5>
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-md-12">
-                      <input 
-                        type="file" 
-                        className="form-control rounded-0" 
-                        onChange={handleFileChange}
-                      />
-                      <small className="text-muted">ไฟล์ที่รองรับ: .pdf, .doc, .docx, .ppt, .pptx</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Actions */}
-              <div className="row mb-4">
-                <div className="col-12 d-flex justify-content-center gap-3">
-                  <Link
-                    href="/student_learn"
-                    className="btn btn-secondary rounded-0 text-uppercase fw-semibold px-5"
-                  >
-                    ยกเลิก
-                  </Link>
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary rounded-0 text-uppercase fw-semibold px-5"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        กำลังบันทึก...
-                      </>
-                    ) : (
-                      'บันทึกแผนกิจกรรม'
-                    )}
-                  </button>
-                </div>
-              </div>
+          {/* Status & Submit */}
+          <div className="row mb-4">
+            <div className="col-md-4">
+              <label className="form-label fw-semibold">สถานะ</label>
+              <select className="form-select rounded-0" name="status" value={formData.status} onChange={handleInputChange}>
+                <option value="draft">ร่าง</option>
+                <option value="published">เผยแพร่</option>
+              </select>
+            </div>
+            <div className="col-md-8 d-flex align-items-end justify-content-end gap-2">
+              <Link href="/student_learn" className="btn btn-secondary rounded-0 px-5">ยกเลิก</Link>
+              <button type="submit" className="btn btn-primary rounded-0 px-5" disabled={loading}>
+                {loading ? <><span className="spinner-border spinner-border-sm me-2"></span>กำลังบันทึก...</> : 'บันทึกแผนกิจกรรม'}
+              </button>
             </div>
           </div>
         </form>
       </div>
 
+      {/* Footer */}
       <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
         <div className="container-fluid">
           <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>เข้าสู่ระบบ: {teacher_name}</span>
-            </div>
+            <div className="col-md-6 small"><i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล</div>
+            <div className="col-md-6 text-end small"><span className="me-3">เวอร์ชัน 2.0.0</span><span>เข้าสู่ระบบ: {teacher_name}</span></div>
           </div>
         </div>
       </footer>
-
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
