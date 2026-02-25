@@ -5,167 +5,142 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
 interface StudentData {
+  _id: string;
   id: string;
   prefix: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   nickname: string;
   gender: string;
-  birthDate: string;
+  birth_date: string;
   level: string;
-  classGroup: string;
-  advisorName: string;
-  phone: string;
+  class_group: string;
+  class_number: string;  // ✅ เพิ่มเลขที่
+  advisor_name: string;
+  phone_number: string;
   religion: string;
   address: string;
   weight: string;
   height: string;
-  bloodType: string;
+  blood_type: string;
+  bmi?: string;
+  status?: string;
 }
-
-// Mock detailed student data
-const mockStudentDetails: { [key: string]: StudentData } = {
-  "66001": {
-    id: "66001",
-    prefix: "นาย",
-    firstName: "สมชาย",
-    lastName: "ใจดี",
-    nickname: "ชาย",
-    gender: "ชาย",
-    birthDate: "2005-01-01",
-    level: "ปวช.3",
-    classGroup: "ชฟ.1",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "081-234-5678",
-    religion: "พุทธ",
-    address: "123 ม.1 ต.ในเมือง อ.เมือง จ.ขอนแก่น",
-    weight: "65",
-    height: "175",
-    bloodType: "O",
-  },
-  "66002": {
-    id: "66002",
-    prefix: "นางสาว",
-    firstName: "จิรา",
-    lastName: "สวยใจ",
-    nickname: "จิรา",
-    gender: "หญิง",
-    birthDate: "2006-05-15",
-    level: "ปวช.3",
-    classGroup: "ชฟ.2",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "089-876-5432",
-    religion: "พุทธ",
-    address: "456 ถ.ประชาสำมงค์ อ.เมือง จ.ขอนแก่น",
-    weight: "55",
-    height: "162",
-    bloodType: "A",
-  },
-  "66003": {
-    id: "66003",
-    prefix: "นาย",
-    firstName: "สมเด็จ",
-    lastName: "วิจิตร",
-    nickname: "เด็จ",
-    gender: "ชาย",
-    birthDate: "2006-08-22",
-    level: "ปวช.2",
-    classGroup: "ชฟ.1",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "091-234-5678",
-    religion: "พุทธ",
-    address: "789 ม.3 ต.อีสาน อ.เมือง จ.ขอนแก่น",
-    weight: "70",
-    height: "180",
-    bloodType: "B",
-  },
-  "66004": {
-    id: "66004",
-    prefix: "นางสาว",
-    firstName: "มาศ",
-    lastName: "สุขศรี",
-    nickname: "น้อย",
-    gender: "หญิง",
-    birthDate: "2005-12-10",
-    level: "ปวช.3",
-    classGroup: "ชฟ.3",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "086-543-2109",
-    religion: "พุทธ",
-    address: "321 ถ.วิทยาสมบูรณ์ อ.เมือง จ.ขอนแก่น",
-    weight: "60",
-    height: "165",
-    bloodType: "O",
-  },
-  "66005": {
-    id: "66005",
-    prefix: "นาย",
-    firstName: "กิจ",
-    lastName: "ขยันหนุ่ม",
-    nickname: "หนุ่ม",
-    gender: "ชาย",
-    birthDate: "2006-03-05",
-    level: "ปวช.2",
-    classGroup: "ชฟ.2",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "084-765-4321",
-    religion: "พุทธ",
-    address: "654 ม.2 ต.ชุมชน อ.เมือง จ.ขอนแก่น",
-    weight: "68",
-    height: "178",
-    bloodType: "AB",
-  },
-};
 
 export default function EditStudentPage() {
   const router = useRouter();
   const params = useParams();
-  const studentId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const studentDocId = params?.id as string;
   
+  console.log("📝 Student _id from params:", studentDocId);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [studentData, setStudentData] = useState<StudentData>({
-    id: studentId,
-    prefix: "นาย",
-    firstName: "",
-    lastName: "",
+    _id: studentDocId || "",
+    id: "",
+    prefix: "",
+    first_name: "",
+    last_name: "",
     nickname: "",
-    gender: "ชาย",
-    birthDate: "",
-    level: "ปวช.1",
-    classGroup: "",
-    advisorName: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "",
-    religion: "พุทธ",
+    gender: "",
+    birth_date: "",
+    level: "",
+    class_group: "",
+    class_number: "",  // ✅ เพิ่มเลขที่
+    advisor_name: "",
+    phone_number: "",
+    religion: "",
     address: "",
     weight: "",
     height: "",
-    bloodType: "B",
+    blood_type: "",
   });
 
   useEffect(() => {
-    // Load Bootstrap CSS
     const bootstrapLink = document.createElement("link");
     bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
     bootstrapLink.rel = "stylesheet";
     document.head.appendChild(bootstrapLink);
 
-    // Load Bootstrap Icons
     const iconLink = document.createElement("link");
     iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
     iconLink.rel = "stylesheet";
     document.head.appendChild(iconLink);
+  }, []);
 
-    // Load student data from mock data
-    if (studentId && mockStudentDetails[studentId]) {
-      setStudentData(mockStudentDetails[studentId]);
-    }
-    setLoading(false);
-  }, [studentId]);
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (!studentDocId) {
+        setError("ไม่พบรหัสนักศึกษา");
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        console.log("🔍 Fetching student for edit with _id:", studentDocId);
+        
+        const response = await fetch("/api/student");
+        const result = await response.json();
+        
+        let studentsData = [];
+        if (result.success && Array.isArray(result.data)) {
+          studentsData = result.data;
+        }
+        
+        const foundStudent = studentsData.find((s: any) => s._id === studentDocId);
+        
+        if (foundStudent) {
+          setStudentData({
+            _id: foundStudent._id,
+            id: foundStudent.id || "",
+            prefix: foundStudent.prefix || "",
+            first_name: foundStudent.first_name || "",
+            last_name: foundStudent.last_name || "",
+            nickname: foundStudent.nickname || "",
+            gender: foundStudent.gender || "",
+            birth_date: foundStudent.birth_date || "",
+            level: foundStudent.level || "",
+            class_group: foundStudent.class_group || "",
+            class_number: foundStudent.class_number || "",  // ✅ เพิ่มเลขที่
+            advisor_name: foundStudent.advisor_name || "",
+            phone_number: foundStudent.phone_number || "",
+            religion: foundStudent.religion || "",
+            address: foundStudent.address || "",
+            weight: foundStudent.weight || "",
+            height: foundStudent.height || "",
+            blood_type: foundStudent.blood_type || "",
+          });
+        } else {
+          setError("ไม่พบข้อมูลนักเรียน");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        setError("เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentData();
+  }, [studentDocId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setStudentData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const calculateBMI = () => {
+    if (studentData.weight && studentData.height) {
+      const weight = parseFloat(studentData.weight);
+      const height = parseFloat(studentData.height) / 100;
+      if (weight > 0 && height > 0) {
+        return (weight / Math.pow(height, 2)).toFixed(1);
+      }
+    }
+    return "";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -173,14 +148,58 @@ export default function EditStudentPage() {
     setSaving(true);
     
     try {
-      // Note: In a real app, you would send this to an API
-      // For now, we'll just redirect back to the detail page
-      console.log("Saving student data:", studentData);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push(`/student_detail/${studentId}`);
+      const bmiValue = calculateBMI();
+      
+      const originalStudentId = studentData.id;
+      const newStudentId = (e.target as any).id.value;
+      const idChanged = originalStudentId !== newStudentId;
+      
+      if (idChanged) {
+        const checkResponse = await fetch("/api/student");
+        const checkResult = await checkResponse.json();
+        
+        let studentsData = [];
+        if (checkResult.success && Array.isArray(checkResult.data)) {
+          studentsData = checkResult.data;
+        }
+        
+        const existingStudent = studentsData.find((s: any) => 
+          s.id === newStudentId && s._id !== studentDocId
+        );
+        
+        if (existingStudent) {
+          alert("รหัสนักศึกษานี้มีอยู่ในระบบแล้ว");
+          setSaving(false);
+          return;
+        }
+      }
+
+      const formData = new FormData();
+      Object.entries(studentData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+      formData.append("bmi", bmiValue);
+      formData.append("status", "ปกติ");
+
+      console.log("📤 Updating with _id:", studentDocId);
+
+      const response = await fetch(`/api/student/${studentDocId}`, {
+        method: 'PUT',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        router.push(`/student_detail/${studentDocId}`);
+      } else {
+        alert(result.message || "เกิดข้อผิดพลาด");
+      }
     } catch (error) {
-      console.error("Error saving student:", error);
+      console.error("Error:", error);
+      alert("เกิดข้อผิดพลาด");
     } finally {
       setSaving(false);
     }
@@ -196,9 +215,21 @@ export default function EditStudentPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-vh-100 bg-light d-flex align-items-center justify-content-center">
+        <div className="alert alert-danger">
+          <p>{error}</p>
+          <Link href="/student" className="btn btn-dark">
+            <i className="bi bi-arrow-left me-2"></i>กลับไปหน้ารายชื่อ
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-vh-100 bg-light">
-      {/* START: Navigation Bar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="/student">
@@ -206,7 +237,7 @@ export default function EditStudentPage() {
             <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
           </a>
           <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">แก้ไขข้อมูล: {studentId}</span>
+            <span className="badge bg-warning text-dark rounded-0 p-2">แก้ไขข้อมูล: {studentData.id}</span>
           </div>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span className="navbar-toggler-icon"></span>
@@ -229,49 +260,28 @@ export default function EditStudentPage() {
           </div>
         </div>
       </nav>
-      {/* END: Navigation Bar */}
 
       <div className="container-fluid py-4">
-        {/* START: Page Header */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-pencil-square me-2 text-warning"></i>
-                แก้ไขข้อมูลพื้นฐานผู้เรียน: {studentId}
+                แก้ไขข้อมูล: {studentData.first_name} {studentData.last_name}
               </h2>
               <div>
                 <Link 
-                  href={`/student_detail/${studentId}`}
+                  href={`/student_detail/${studentDocId}`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2"
                 >
-                  <i className="bi bi-arrow-left me-2"></i>กลับหน้ารายละเอียด
+                  <i className="bi bi-arrow-left me-2"></i>กลับ
                 </Link>
-                <button 
-                  type="submit" 
-                  form="editForm"
-                  className="btn btn-warning rounded-0 text-uppercase fw-semibold"
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      กำลังบันทึก...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-save me-2"></i>บันทึกข้อมูล
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           </div>
         </div>
-        {/* END: Page Header */}
 
         <form id="editForm" onSubmit={handleSubmit}>
-          {/* START: Basic Information Card - ข้อมูลพื้นฐานเท่านั้น */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
@@ -283,18 +293,21 @@ export default function EditStudentPage() {
                 </div>
                 <div className="p-4">
                   <div className="row g-3">
-                    {/* รหัสนักศึกษา (แก้ไขไม่ได้) */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา</label>
+                      <label className="form-label text-uppercase fw-semibold small">
+                        รหัสนักศึกษา <span className="text-danger">*</span>
+                      </label>
                       <input 
                         type="text" 
-                        className="form-control rounded-0 bg-light" 
+                        name="id"
+                        className="form-control rounded-0" 
                         value={studentData.id}
-                        readOnly
+                        onChange={handleInputChange}
+                        placeholder="เช่น 66001"
+                        required
                       />
                     </div>
 
-                    {/* คำนำหน้า */}
                     <div className="col-md-2">
                       <label className="form-label text-uppercase fw-semibold small">คำนำหน้า</label>
                       <select 
@@ -303,39 +316,37 @@ export default function EditStudentPage() {
                         value={studentData.prefix}
                         onChange={handleInputChange}
                       >
-                        <option>นาย</option>
-                        <option>นางสาว</option>
-                        <option>นาง</option>
+                        <option value="">เลือกคำนำหน้า</option>
+                        <option value="นาย">นาย</option>
+                        <option value="นางสาว">นางสาว</option>
+                        <option value="นาง">นาง</option>
                       </select>
                     </div>
 
-                    {/* ชื่อ */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">ชื่อ</label>
                       <input 
                         type="text" 
-                        name="firstName"
+                        name="first_name"
                         className="form-control rounded-0"
-                        value={studentData.firstName}
+                        value={studentData.first_name}
                         onChange={handleInputChange}
                         required
                       />
                     </div>
 
-                    {/* นามสกุล */}
                     <div className="col-md-4">
                       <label className="form-label text-uppercase fw-semibold small">นามสกุล</label>
                       <input 
                         type="text" 
-                        name="lastName"
+                        name="last_name"
                         className="form-control rounded-0"
-                        value={studentData.lastName}
+                        value={studentData.last_name}
                         onChange={handleInputChange}
                         required
                       />
                     </div>
 
-                    {/* ชื่อเล่น */}
                     <div className="col-md-2">
                       <label className="form-label text-uppercase fw-semibold small">ชื่อเล่น</label>
                       <input 
@@ -347,7 +358,6 @@ export default function EditStudentPage() {
                       />
                     </div>
 
-                    {/* เพศ */}
                     <div className="col-md-2">
                       <label className="form-label text-uppercase fw-semibold small">เพศ</label>
                       <select 
@@ -356,25 +366,24 @@ export default function EditStudentPage() {
                         value={studentData.gender}
                         onChange={handleInputChange}
                       >
-                        <option>ชาย</option>
-                        <option>หญิง</option>
-                        <option>ไม่ระบุ</option>
+                        <option value="">เลือกเพศ</option>
+                        <option value="ชาย">ชาย</option>
+                        <option value="หญิง">หญิง</option>
+                        <option value="ไม่ระบุ">ไม่ระบุ</option>
                       </select>
                     </div>
 
-                    {/* วันเกิด */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">วัน เดือน ปี เกิด</label>
+                      <label className="form-label text-uppercase fw-semibold small">วันเกิด</label>
                       <input 
                         type="date" 
-                        name="birthDate"
+                        name="birth_date"
                         className="form-control rounded-0"
-                        value={studentData.birthDate}
+                        value={studentData.birth_date}
                         onChange={handleInputChange}
                       />
                     </div>
 
-                    {/* ระดับชั้น */}
                     <div className="col-md-2">
                       <label className="form-label text-uppercase fw-semibold small">ระดับชั้น</label>
                       <select 
@@ -383,56 +392,64 @@ export default function EditStudentPage() {
                         value={studentData.level}
                         onChange={handleInputChange}
                       >
-                        <option>ปวช.1</option>
-                        <option>ปวช.2</option>
-                        <option>ปวช.3</option>
-                        <option>ปวส.1</option>
-                        <option>ปวส.2</option>
+                        <option value="">เลือกระดับชั้น</option>
+                        <option value="ปวช.1">ปวช.1</option>
+                        <option value="ปวช.2">ปวช.2</option>
+                        <option value="ปวช.3">ปวช.3</option>
+                        <option value="ปวส.1">ปวส.1</option>
+                        <option value="ปวส.2">ปวส.2</option>
                       </select>
                     </div>
 
-                    {/* กลุ่มเรียน */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน</label>
                       <input 
                         type="text" 
-                        name="classGroup"
+                        name="class_group"
                         className="form-control rounded-0"
-                        value={studentData.classGroup}
+                        value={studentData.class_group}
                         onChange={handleInputChange}
                         placeholder="เช่น ชฟ.1"
                       />
                     </div>
 
-                    {/* ครูที่ปรึกษา */}
+                    {/* ✅ เลขที่ - เพิ่มใหม่ */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
-                      <select 
-                        name="advisorName"
-                        className="form-select rounded-0"
-                        value={studentData.advisorName}
+                      <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
+                      <input 
+                        type="text" 
+                        name="class_number"
+                        className="form-control rounded-0"
+                        value={studentData.class_number}
                         onChange={handleInputChange}
-                      >
-                        <option>อาจารย์วิมลรัตน์ ใจดี</option>
-                        <option>อาจารย์สมศักดิ์ รู้แจ้ง</option>
-                        <option>อาจารย์วิชัย นักพัฒนา</option>
-                      </select>
+                        placeholder="เช่น 1, 2, 3"
+                      />
                     </div>
 
-                    {/* เบอร์มือถือ */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
+                      <input 
+                        type="text" 
+                        name="advisor_name"
+                        className="form-control rounded-0"
+                        value={studentData.advisor_name}
+                        onChange={handleInputChange}
+                        placeholder="ชื่ออาจารย์ที่ปรึกษา"
+                      />
+                    </div>
+
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">เบอร์มือถือ</label>
                       <input 
                         type="tel" 
-                        name="phone"
+                        name="phone_number"
                         className="form-control rounded-0"
-                        value={studentData.phone}
+                        value={studentData.phone_number}
                         onChange={handleInputChange}
                         placeholder="081-234-5678"
                       />
                     </div>
 
-                    {/* ศาสนา */}
                     <div className="col-md-2">
                       <label className="form-label text-uppercase fw-semibold small">ศาสนา</label>
                       <select 
@@ -441,14 +458,14 @@ export default function EditStudentPage() {
                         value={studentData.religion}
                         onChange={handleInputChange}
                       >
-                        <option>พุทธ</option>
-                        <option>อิสลาม</option>
-                        <option>คริสต์</option>
-                        <option>อื่นๆ</option>
+                        <option value="">เลือกศาสนา</option>
+                        <option value="พุทธ">พุทธ</option>
+                        <option value="อิสลาม">อิสลาม</option>
+                        <option value="คริสต์">คริสต์</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
                       </select>
                     </div>
 
-                    {/* ที่อยู่ (เต็มบรรทัด) */}
                     <div className="col-12">
                       <label className="form-label text-uppercase fw-semibold small">ที่อยู่</label>
                       <textarea 
@@ -458,10 +475,9 @@ export default function EditStudentPage() {
                         value={studentData.address}
                         onChange={handleInputChange}
                         placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
-                      ></textarea>
+                      />
                     </div>
 
-                    {/* น้ำหนัก */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">น้ำหนัก (กก.)</label>
                       <input 
@@ -474,7 +490,6 @@ export default function EditStudentPage() {
                       />
                     </div>
 
-                    {/* ส่วนสูง */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">ส่วนสูง (ซม.)</label>
                       <input 
@@ -487,32 +502,29 @@ export default function EditStudentPage() {
                       />
                     </div>
 
-                    {/* BMI (คำนวณอัตโนมัติ) */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">BMI</label>
                       <input 
                         type="text" 
                         className="form-control rounded-0 bg-light"
-                        value={studentData.weight && studentData.height ? 
-                          (parseFloat(studentData.weight) / Math.pow(parseFloat(studentData.height)/100, 2)).toFixed(1) 
-                          : ''}
+                        value={calculateBMI()}
                         readOnly
                       />
                     </div>
 
-                    {/* หมู่เลือด */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">หมู่เลือด</label>
                       <select 
-                        name="bloodType"
+                        name="blood_type"
                         className="form-select rounded-0"
-                        value={studentData.bloodType}
+                        value={studentData.blood_type}
                         onChange={handleInputChange}
                       >
-                        <option>A</option>
-                        <option>B</option>
-                        <option>AB</option>
-                        <option>O</option>
+                        <option value="">เลือกหมู่เลือด</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="AB">AB</option>
+                        <option value="O">O</option>
                       </select>
                     </div>
                   </div>
@@ -520,13 +532,11 @@ export default function EditStudentPage() {
               </div>
             </div>
           </div>
-          {/* END: Basic Information Card */}
 
-          {/* START: Form Actions */}
           <div className="row mb-4">
             <div className="col-12 text-center">
               <Link 
-                href={`/student_detail/${studentId}`}
+                href={`/student_detail/${studentDocId}`}
                 className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก
@@ -538,7 +548,7 @@ export default function EditStudentPage() {
               >
                 {saving ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    <span className="spinner-border spinner-border-sm me-2"></span>
                     กำลังบันทึก...
                   </>
                 ) : (
@@ -549,11 +559,9 @@ export default function EditStudentPage() {
               </button>
             </div>
           </div>
-          {/* END: Form Actions */}
         </form>
       </div>
 
-      {/* START: Footer */}
       <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
         <div className="container-fluid">
           <div className="row">
@@ -562,15 +570,11 @@ export default function EditStudentPage() {
             </div>
             <div className="col-md-6 text-end text-uppercase small">
               <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>กำลังแก้ไข: {studentId}</span>
+              <span>แก้ไขข้อมูล</span>
             </div>
           </div>
         </div>
       </footer>
-      {/* END: Footer */}
-
-      {/* Bootstrap JS Bundle */}
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
 }

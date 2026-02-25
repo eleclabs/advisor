@@ -5,23 +5,26 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
 interface StudentBasicInfo {
+  _id: string;
   id: string;
-  name: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  name?: string;
   nickname: string;
   level: string;
   class_group: string;
-  student_number: string;
+  student_number?: string;
 }
 
 interface InterviewFormData {
-  // ข้อมูลทั่วไป
+  student_id: string;
   semester: string;
   academic_year: string;
   parent_name: string;
   parent_relationship: string;
   parent_phone: string;
   
-  // สถานภาพครอบครัว
   family_status: string[];
   living_with: string;
   living_with_other: string;
@@ -29,102 +32,38 @@ interface InterviewFormData {
   housing_type_other: string;
   transportation: string[];
   
-  // ด้านการเรียน
   strengths: string;
   weak_subjects: string;
   hobbies: string;
   home_behavior: string;
   
-  // ด้านสุขภาพ
   chronic_disease: string;
   risk_behaviors: string[];
   parent_concerns: string;
   
-  // ด้านเศรษฐกิจ
   family_income: string;
   daily_allowance: string;
   assistance_needs: string[];
   
-  // สรุปความเห็น
   student_group: string;
   help_guidelines: string;
   home_visit_file: string;
 }
 
-// Mock student basic data (เชื่อมกับ Database เดียวกัน)
-const mockStudentBasics: { [key: string]: StudentBasicInfo } = {
-  "66001": {
-    id: "66001",
-    name: "นายสมชาย ใจดี",
-    nickname: "ชาย",
-    level: "ปวช.3",
-    class_group: "ชฟ.1",
-    student_number: "1",
-  },
-  "66002": {
-    id: "66002",
-    name: "นางสาวจิรา สวยใจ",
-    nickname: "จิรา",
-    level: "ปวช.3",
-    class_group: "ชฟ.2",
-    student_number: "15",
-  },
-  "66003": {
-    id: "66003",
-    name: "นายสมเด็จ วิจิตร",
-    nickname: "เด็จ",
-    level: "ปวช.2",
-    class_group: "ชฟ.1",
-    student_number: "8",
-  },
-};
-
-// Mock existing interview data for editing
-const mockInterviewData: { [key: string]: InterviewFormData } = {
-  "66001": {
-    semester: "2",
-    academic_year: "2567",
-    parent_name: "นายสมศักดิ์ ใจดี",
-    parent_relationship: "บิดา",
-    parent_phone: "089-765-4321",
-    
-    family_status: ["อยู่ด้วยกัน"],
-    living_with: "บิดา-มารดา",
-    living_with_other: "",
-    housing_type: "บ้านตนเอง",
-    housing_type_other: "",
-    transportation: ["รถส่วนตัว"],
-    
-    strengths: "ชอบวิทยาศาสตร์ คณิตศาสตร์ มีความตั้งใจเรียน",
-    weak_subjects: "ภาษาอังกฤษ",
-    hobbies: "เล่นฟุตบอล",
-    home_behavior: "ช่วยทำงานบ้าน รับผิดชอบตัวเองดี",
-    
-    chronic_disease: "ไม่มี",
-    risk_behaviors: ["ไม่มี"],
-    parent_concerns: "อยากให้เรียนต่อระดับสูง",
-    
-    family_income: "25,000",
-    daily_allowance: "120",
-    assistance_needs: ["ทุนการศึกษา"],
-    
-    student_group: "ปกติ",
-    help_guidelines: "สนับสนุนให้ศึกษาต่อในสาขาวิชาที่เกี่ยวข้องกับวิทยาศาสตร์",
-    home_visit_file: "",
-  },
-};
-
 export default function InterviewEditPage() {
   const router = useRouter();
   const params = useParams();
-  const studentId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const studentDocId = params?.id as string;  // รับ _id จาก URL
   
+  console.log("📝 Student _id from params:", studentDocId);
+
   const [student, setStudent] = useState<StudentBasicInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   
   const [formData, setFormData] = useState<InterviewFormData>({
+    student_id: "",
     semester: "2",
     academic_year: "2567",
     parent_name: "",
@@ -157,37 +96,73 @@ export default function InterviewEditPage() {
   });
 
   useEffect(() => {
-    if (!studentId) return;
-    
-    // Get student basic data
-    const studentData = mockStudentBasics[studentId];
-    if (studentData) {
-      setStudent(studentData);
-    }
-    
-    // Check if there's existing interview data (edit mode)
-    const existingData = mockInterviewData[studentId];
-    if (existingData) {
-      setFormData(existingData);
-      setIsEditMode(true);
-    }
-    
-    setLoading(false);
-  }, [studentId]);
-
-  useEffect(() => {
     // Load Bootstrap CSS
     const bootstrapLink = document.createElement("link");
     bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
     bootstrapLink.rel = "stylesheet";
     document.head.appendChild(bootstrapLink);
 
-    // Load Bootstrap Icons
     const iconLink = document.createElement("link");
     iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
     iconLink.rel = "stylesheet";
     document.head.appendChild(iconLink);
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!studentDocId) return;
+      
+      try {
+        setLoading(true);
+        
+        // ดึงข้อมูลนักเรียน
+        const studentRes = await fetch("/api/student");
+        const studentResult = await studentRes.json();
+        
+        let studentsData = [];
+        if (studentResult.success && Array.isArray(studentResult.data)) {
+          studentsData = studentResult.data;
+        }
+        
+        const foundStudent = studentsData.find((s: any) => s._id === studentDocId);
+        
+        if (foundStudent) {
+          setStudent({
+            _id: foundStudent._id,
+            id: foundStudent.id || "",
+            prefix: foundStudent.prefix || "",
+            first_name: foundStudent.first_name || "",
+            last_name: foundStudent.last_name || "",
+            name: `${foundStudent.prefix || ''}${foundStudent.first_name || ''} ${foundStudent.last_name || ''}`.trim(),
+            nickname: foundStudent.nickname || "",
+            level: foundStudent.level || "",
+            class_group: foundStudent.class_group || "",
+          });
+          
+          setFormData(prev => ({
+            ...prev,
+            student_id: foundStudent.id || ""
+          }));
+        }
+        
+        // ดึงข้อมูลสัมภาษณ์ (ถ้ามี)
+        const interviewRes = await fetch(`/api/interview/${studentDocId}`);
+        const interviewResult = await interviewRes.json();
+        
+        if (interviewResult.success && interviewResult.data) {
+          setFormData(interviewResult.data);
+          setIsEditMode(true);
+        }
+        
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [studentDocId]);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     const { value, checked } = e.target;
@@ -211,27 +186,31 @@ export default function InterviewEditPage() {
     setSaving(true);
     
     try {
-      // Calculate student status color based on form data
-      let calculatedStatus = "ปกติ";
-      if (formData.risk_behaviors.length > 0 || formData.student_group === "มีปัญหา") {
-        calculatedStatus = "มีปัญหา";
-      } else if (formData.student_group === "เสี่ยง" || formData.family_status.includes("หย่าร้าง")) {
-        calculatedStatus = "เสี่ยง";
-      }
-      
-      // ส่งข้อมูลไปบันทึก (เชื่อมกับ API)
-      console.log("Saving interview data:", {
+      const submitData = {
         ...formData,
-        student_status: calculatedStatus,
+        student_doc_id: studentDocId, // ส่ง _id ไปด้วย
+      };
+      
+      console.log("Saving interview data:", submitData);
+      
+      const response = await fetch(`/api/interview/${studentDocId}`, {
+        method: isEditMode ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
       });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await response.json();
       
-      // Redirect to view page
-      router.push(`/student_detail/${studentId}/interview`);
+      if (response.ok && result.success) {
+        router.push(`/student_detail/${studentDocId}/interview`);
+      } else {
+        alert(result.message || "เกิดข้อผิดพลาด");
+      }
     } catch (error) {
       console.error("Error saving interview:", error);
+      alert("เกิดข้อผิดพลาด");
     } finally {
       setSaving(false);
     }
@@ -268,7 +247,7 @@ export default function InterviewEditPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* START: Navigation Bar */}
+      {/* Navigation Bar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="/student">
@@ -276,7 +255,7 @@ export default function InterviewEditPage() {
             <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
           </a>
           <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {studentId}</span>
+            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {student.id}</span>
           </div>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span className="navbar-toggler-icon"></span>
@@ -299,10 +278,9 @@ export default function InterviewEditPage() {
           </div>
         </div>
       </nav>
-      {/* END: Navigation Bar */}
 
       <div className="container-fluid py-4">
-        {/* START: Page Header */}
+        {/* Page Header */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
@@ -317,7 +295,7 @@ export default function InterviewEditPage() {
                   สรุปสถานะ: {formData.student_group}
                 </span>
                 <Link
-                  href={`/student_detail/${studentId}/interview`}
+                  href={`/student_detail/${studentDocId}/interview`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold"
                 >
                   <i className="bi bi-x-circle me-2"></i>ยกเลิก
@@ -326,17 +304,16 @@ export default function InterviewEditPage() {
             </div>
           </div>
         </div>
-        {/* END: Page Header */}
 
         <form onSubmit={handleSubmit}>
-          {/* START: Student Basic Info */}
+          {/* Student Basic Info */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-person-badge me-2 text-warning"></i>
-                    ข้อมูลนักเรียน (จากระบบ)
+                    ข้อมูลนักเรียน
                   </h5>
                 </div>
                 <div className="p-3 bg-light">
@@ -356,24 +333,18 @@ export default function InterviewEditPage() {
                           <span className="ms-2">{student.level}</span>
                         </div>
                         <div className="col-md-6 mb-2">
-                          <span className="text-uppercase fw-semibold small">กลุ่มเรียน/เลขที่:</span>
-                          <span className="ms-2">{student.class_group} / {student.student_number}</span>
+                          <span className="text-uppercase fw-semibold small">กลุ่มเรียน:</span>
+                          <span className="ms-2">{student.class_group || "-"}</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="col-md-4 text-end">
-                      <span className="badge bg-dark rounded-0 p-2">
-                        <i className="bi bi-database me-1"></i>ข้อมูลจากระบบฐานข้อมูลกลาง
-                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          {/* END: Student Basic Info */}
 
-          {/* START: Header Form */}
+          {/* Header Form */}
           <div className="row mb-4">
             <div className="col-md-3">
               <div className="border bg-white p-3">
@@ -450,9 +421,8 @@ export default function InterviewEditPage() {
               </div>
             </div>
           </div>
-          {/* END: Header Form */}
 
-          {/* START: 2. สถานภาพครอบครัวและการเป็นอยู่ */}
+          {/* Family Status */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
@@ -684,16 +654,15 @@ export default function InterviewEditPage() {
               </div>
             </div>
           </div>
-          {/* END: 2. สถานภาพครอบครัวและการเป็นอยู่ */}
 
-          {/* START: 3. ด้านการเรียนและพฤติกรรม */}
+          {/* Learning and Behavior */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-journal-bookmark-fill me-2 text-warning"></i>
-                    3. ด้านการเรียนและพฤติกรรม (มุมมองนักเรียน/ผู้ปกครอง)
+                    3. ด้านการเรียนและพฤติกรรม
                   </h5>
                 </div>
                 <div className="p-3">
@@ -742,9 +711,8 @@ export default function InterviewEditPage() {
               </div>
             </div>
           </div>
-          {/* END: 3. ด้านการเรียนและพฤติกรรม */}
 
-          {/* START: 4. ด้านสุขภาพและปัจจัยเสี่ยง */}
+          {/* Health and Risks */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
@@ -834,16 +802,15 @@ export default function InterviewEditPage() {
               </div>
             </div>
           </div>
-          {/* END: 4. ด้านสุขภาพและปัจจัยเสี่ยง */}
 
-          {/* START: 5. ด้านเศรษฐกิจ */}
+          {/* Economics */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-cash-stack me-2 text-warning"></i>
-                    5. ด้านเศรษฐกิจ (การเงิน)
+                    5. ด้านเศรษฐกิจ
                   </h5>
                 </div>
                 <div className="p-3">
@@ -927,9 +894,8 @@ export default function InterviewEditPage() {
               </div>
             </div>
           </div>
-          {/* END: 5. ด้านเศรษฐกิจ */}
 
-          {/* START: 6. สรุปความเห็นของครูที่ปรึกษา */}
+          {/* Teacher Summary */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
@@ -1002,13 +968,12 @@ export default function InterviewEditPage() {
               </div>
             </div>
           </div>
-          {/* END: 6. สรุปความเห็นของครูที่ปรึกษา */}
 
-          {/* START: Form Actions */}
+          {/* Form Actions */}
           <div className="row mb-4">
             <div className="col-12 text-center">
               <Link
-                href={`/student_detail/${studentId}/interview`}
+                href={`/student_detail/${studentDocId}/interview`}
                 className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก
@@ -1031,11 +996,10 @@ export default function InterviewEditPage() {
               </button>
             </div>
           </div>
-          {/* END: Form Actions */}
         </form>
       </div>
 
-      {/* START: Footer */}
+      {/* Footer */}
       <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
         <div className="container-fluid">
           <div className="row">
@@ -1044,12 +1008,11 @@ export default function InterviewEditPage() {
             </div>
             <div className="col-md-6 text-end text-uppercase small">
               <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>{isEditMode ? "แก้ไข" : "เพิ่ม"}บันทึกการสัมภาษณ์: {studentId}</span>
+              <span>{isEditMode ? "แก้ไข" : "เพิ่ม"}บันทึกการสัมภาษณ์</span>
             </div>
           </div>
         </div>
       </footer>
-      {/* END: Footer */}
     </div>
   );
 }

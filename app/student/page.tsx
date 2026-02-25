@@ -5,38 +5,71 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface Student {
+  _id: string;
   id: string;
-  name: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  name?: string;
   level: string;
   status: string;
-  advisorName: string;
+  advisor_name: string;
+  class_group: string;
+  phone_number: string;
 }
 
 export default function StudentListPage() {
   const router = useRouter();
-  const [students, setStudents] = useState<Student[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
-  const [search_keyword, setSearchKeyword] = useState("");
+  const [student, setStudent] = useState<Student[]>([]);
+  const [filteredStudent, setFilteredStudent] = useState<Student[]>([]);
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedYear, setSelectedYear] = useState("2568");
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const teacher_name = "อาจารย์วิมลรัตน์";
+  const teacher_name = "อาจารย์วิมลรัตน์ ใจดี";
   const academic_year = "2568";
 
-  // Load students data
+  // Load student data
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await fetch("/api/students");
+        setLoading(true);
+        const response = await fetch("/api/student");
         const result = await response.json();
-        setStudents(result.data);
-        setFilteredStudents(result.data);
-        setLoading(false);
+        
+        console.log("API Response:", result);
+        
+        let studentsData = [];
+        if (result.success && Array.isArray(result.data)) {
+          studentsData = result.data;
+        } else if (Array.isArray(result)) {
+          studentsData = result;
+        }
+        
+        const formattedData = studentsData.map((s: any) => ({
+          _id: s._id,
+          id: s.id || s._id,
+          prefix: s.prefix || "",
+          first_name: s.first_name || "",
+          last_name: s.last_name || "",
+          name: s.first_name && s.last_name ? `${s.prefix || ''}${s.first_name} ${s.last_name}` : s.name || "",
+          level: s.level || "",
+          status: s.status || "ปกติ",
+          advisor_name: s.advisor_name || "",
+          class_group: s.class_group || "",
+          phone_number: s.phone_number || ""
+        }));
+        
+        setStudent(formattedData);
+        setFilteredStudent(formattedData);
       } catch (error) {
         console.error("Error fetching students:", error);
+      } finally {
         setLoading(false);
       }
     };
@@ -46,83 +79,83 @@ export default function StudentListPage() {
 
   // Search and filter students
   useEffect(() => {
-    let filtered = students;
+    let filtered = [...student];
 
-    if (search_keyword) {
+    if (searchKeyword) {
       filtered = filtered.filter(
-        (student) =>
-          student.name.toLowerCase().includes(search_keyword.toLowerCase()) ||
-          student.id.includes(search_keyword)
+        (s) =>
+          (s.name?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+           s.first_name?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+           s.last_name?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+           s.id?.toLowerCase().includes(searchKeyword.toLowerCase()))
       );
     }
 
     if (selectedLevel) {
-      filtered = filtered.filter((student) => student.level === selectedLevel);
+      filtered = filtered.filter((s) => s.level === selectedLevel);
     }
 
     if (selectedStatus) {
-      filtered = filtered.filter((student) => student.status === selectedStatus);
+      filtered = filtered.filter((s) => s.status === selectedStatus);
     }
 
-    setFilteredStudents(filtered);
-  }, [search_keyword, selectedLevel, selectedStatus, students]);
-
-  useEffect(() => {
-    // Load Bootstrap CSS
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    // Load Bootstrap Icons
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
-  }, []);
+    setFilteredStudent(filtered);
+    setCurrentPage(1);
+  }, [searchKeyword, selectedLevel, selectedStatus, student]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     
     try {
-      // Soft Delete API call
-      const response = await fetch(`/api/students/${deleteId}`, {
+      const response = await fetch(`/api/student/${deleteId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ softDelete: true })
       });
 
       if (response.ok) {
-        // Remove from local state
-        setStudents(students.filter(s => s.id !== deleteId));
-        setFilteredStudents(filteredStudents.filter(s => s.id !== deleteId));
+        setStudent(prev => prev.filter(s => s._id !== deleteId));
         
-        // Close modal
         const modal = document.getElementById('deleteModal');
         if (modal) {
-          const bsModal = bootstrap.Modal.getInstance(modal);
-          bsModal.hide();
+          const bsModal = (window as any).bootstrap?.Modal.getInstance(modal);
+          if (bsModal) {
+            bsModal.hide();
+          }
         }
         setDeleteId(null);
+      } else {
+        alert("ไม่สามารถลบข้อมูลได้");
       }
     } catch (error) {
       console.error("Error deleting student:", error);
+      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
     }
   };
 
-  const total_records = filteredStudents.length;
-  const itemsPerPage = 10;
-  const total_pages = Math.ceil(total_records / itemsPerPage);
-  const current_page = 1;
+  // Pagination
+  const totalRecords = filteredStudent.length;
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentStudents = filteredStudent.slice(startIndex, endIndex);
+
+  const getStatusBadgeClass = (status: string) => {
+    switch(status?.toLowerCase()) {
+      case 'ปกติ': return 'bg-success';
+      case 'เสี่ยง': return 'bg-warning text-dark';
+      case 'มีปัญหา': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
+  };
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* START: Navigation Bar */}
+      {/* Navigation Bar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
+          <a className="navbar-brand fw-bold text-uppercase" href="/student">
             <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
             <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
           </a>
@@ -147,10 +180,9 @@ export default function StudentListPage() {
           </div>
         </div>
       </nav>
-      {/* END: Navigation Bar */}
 
       <div className="container-fluid py-4">
-        {/* START: Page Header */}
+        {/* Page Header */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
@@ -165,9 +197,8 @@ export default function StudentListPage() {
             </div>
           </div>
         </div>
-        {/* END: Page Header */}
 
-        {/* START: Search and Filter Section */}
+        {/* Search and Filter Section */}
         <div className="row g-3 mb-4">
           <div className="col-md-5">
             <div className="input-group">
@@ -177,8 +208,8 @@ export default function StudentListPage() {
               <input 
                 type="text" 
                 className="form-control rounded-0" 
-                placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา, ชั้น..."
-                value={search_keyword}
+                placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา..."
+                value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
               />
             </div>
@@ -189,7 +220,7 @@ export default function StudentListPage() {
               value={selectedLevel}
               onChange={(e) => setSelectedLevel(e.target.value)}
             >
-              <option value="">ระดับชั้น</option>
+              <option value="">ระดับชั้นทั้งหมด</option>
               <option value="ปวช.1">ปวช.1</option>
               <option value="ปวช.2">ปวช.2</option>
               <option value="ปวช.3">ปวช.3</option>
@@ -203,7 +234,7 @@ export default function StudentListPage() {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
             >
-              <option value="">สถานะ</option>
+              <option value="">สถานะทั้งหมด</option>
               <option value="ปกติ">ปกติ</option>
               <option value="เสี่ยง">เสี่ยง</option>
               <option value="มีปัญหา">มีปัญหา</option>
@@ -226,30 +257,31 @@ export default function StudentListPage() {
             </button>
           </div>
         </div>
-        {/* END: Search and Filter Section */}
 
-      {/* START: Action Bar */}
-<div className="row mb-3">
-  <div className="col-12 d-flex justify-content-between align-items-center">
-    <div>
-      <span className="text-muted">แสดง {total_records} รายการ (หน้า {current_page} จาก {total_pages})</span>
-    </div>
-    <div>
-      <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2" data-bs-toggle="modal" data-bs-target="#importModal">
-        <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล (Excel)
-      </button>
-      <Link
-        href="/student_add"
-        className="btn btn-primary rounded-0 text-uppercase fw-semibold"
-      >
-        <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
-      </Link>
-    </div>
-  </div>
-</div>
-{/* END: Action Bar */}
+        {/* Action Bar */}
+        <div className="row mb-3">
+          <div className="col-12 d-flex justify-content-between align-items-center">
+            <div>
+              <span className="text-muted">
+                แสดง {filteredStudent.length} รายการ 
+                {filteredStudent.length > 0 && ` (หน้า ${currentPage} จาก ${totalPages || 1})`}
+              </span>
+            </div>
+            <div>
+              <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล
+              </button>
+              <Link
+                href="/student_add"
+                className="btn btn-primary rounded-0 text-uppercase fw-semibold"
+              >
+                <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
+              </Link>
+            </div>
+          </div>
+        </div>
 
-        {/* START: Student Table */}
+        {/* Student Table */}
         <div className="row">
           <div className="col-12">
             {loading ? (
@@ -263,59 +295,59 @@ export default function StudentListPage() {
                 <table className="table table-bordered table-hover bg-white">
                   <thead className="bg-dark text-white">
                     <tr>
-                      <th className="text-uppercase fw-semibold">ลำดับ</th>
+                      <th className="text-center" width="50">ลำดับ</th>
                       <th className="text-uppercase fw-semibold">รหัสนักศึกษา</th>
                       <th className="text-uppercase fw-semibold">ชื่อ-นามสกุล</th>
                       <th className="text-uppercase fw-semibold">ระดับชั้น</th>
+                      <th className="text-uppercase fw-semibold">กลุ่ม</th>
                       <th className="text-uppercase fw-semibold">สถานะ</th>
                       <th className="text-uppercase fw-semibold">ครูที่ปรึกษา</th>
-                      <th className="text-uppercase fw-semibold">จัดการ</th>
+                      <th className="text-uppercase fw-semibold text-center">จัดการ</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredStudents.length > 0 ? (
-                      filteredStudents.map((student, index) => (
-                        <tr key={student.id}>
-                          <td>{index + 1}</td>
+                    {currentStudents.length > 0 ? (
+                      currentStudents.map((student, index) => (
+                        <tr key={student._id}>
+                          <td className="text-center">{startIndex + index + 1}</td>
                           <td className="fw-semibold">{student.id}</td>
                           <td>
-                            <a 
-                              href={`/student_detail/${student.id}`}
-                              className="text-decoration-none"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                router.push(`/student_detail/${student.id}`);
-                              }}
-                            >
-                              {student.name}
-                            </a>
+                            {student._id ? (
+                              <Link 
+                                href={`/student_detail/${student._id}`}
+                                className="text-decoration-none text-primary"
+                              >
+                                {student.name || `${student.prefix || ''}${student.first_name} ${student.last_name}`}
+                              </Link>
+                            ) : (
+                              <span>{student.name || `${student.prefix || ''}${student.first_name} ${student.last_name}`}</span>
+                            )}
                           </td>
                           <td>{student.level}</td>
+                          <td>{student.class_group || '-'}</td>
                           <td>
                             <span 
-                              className={`badge rounded-0 text-uppercase fw-semibold ${
-                                student.status === 'ปกติ' ? 'bg-success' :
-                                student.status === 'เสี่ยง' ? 'bg-warning text-dark' :
-                                'bg-danger'
-                              }`}
+                              className={`badge rounded-0 text-uppercase fw-semibold ${getStatusBadgeClass(student.status)}`}
                             >
-                              {student.status}
+                              {student.status || 'ปกติ'}
                             </span>
                           </td>
-                          <td>{student.advisorName}</td>
-                          <td>
+                          <td>{student.advisor_name || '-'}</td>
+                          <td className="text-center">
                             <div className="btn-group" role="group">
                               <button 
                                 className="btn btn-sm btn-outline-primary rounded-0"
-                                onClick={() => router.push(`/student_detail/${student.id}`)}
+                                onClick={() => student._id && router.push(`/student_detail/${student._id}`)}
                                 title="ดูรายละเอียด"
+                                disabled={!student._id}
                               >
                                 <i className="bi bi-eye"></i>
                               </button>
                               <button 
                                 className="btn btn-sm btn-outline-warning rounded-0"
-                                onClick={() => router.push(`/student_detail/${student.id}/edit`)}
+                                onClick={() => student._id && router.push(`/student_detail/${student._id}/edit`)}
                                 title="แก้ไข"
+                                disabled={!student._id}
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
@@ -324,7 +356,8 @@ export default function StudentListPage() {
                                 title="ลบ"
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteModal"
-                                onClick={() => setDeleteId(student.id)}
+                                onClick={() => student._id && setDeleteId(student._id)}
+                                disabled={!student._id}
                               >
                                 <i className="bi bi-trash"></i>
                               </button>
@@ -334,8 +367,10 @@ export default function StudentListPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="text-center text-muted py-3">
-                          ไม่พบข้อมูลนักเรียน
+                        <td colSpan={8} className="text-center text-muted py-4">
+                          {searchKeyword || selectedLevel || selectedStatus 
+                            ? "ไม่พบข้อมูลที่ค้นหา" 
+                            : "ไม่มีข้อมูลนักเรียน"}
                         </td>
                       </tr>
                     )}
@@ -345,36 +380,47 @@ export default function StudentListPage() {
             )}
           </div>
         </div>
-        {/* END: Student Table */}
 
-        {/* START: Pagination */}
-        <div className="row mt-3">
-          <div className="col-12 d-flex justify-content-center">
-            <nav aria-label="Page navigation">
-              <ul className="pagination rounded-0">
-                <li className={`page-item ${current_page === 1 ? 'disabled' : ''}`}>
-                  <a className="page-link rounded-0" href="#" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                  </a>
-                </li>
-                {Array.from({ length: total_pages }, (_, i) => i + 1).map(page => (
-                  <li key={page} className={`page-item ${page === current_page ? 'active' : ''}`}>
-                    <a className="page-link rounded-0" href="#">{page}</a>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="row mt-3">
+            <div className="col-12 d-flex justify-content-center">
+              <nav aria-label="Page navigation">
+                <ul className="pagination rounded-0">
+                  <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link rounded-0" 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    >
+                      <span aria-hidden="true">&laquo;</span>
+                    </button>
                   </li>
-                ))}
-                <li className={`page-item ${current_page === total_pages ? 'disabled' : ''}`}>
-                  <a className="page-link rounded-0" href="#" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-              </ul>
-            </nav>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <li key={page} className={`page-item ${page === currentPage ? 'active' : ''}`}>
+                      <button 
+                        className="page-link rounded-0"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    </li>
+                  ))}
+                  <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link rounded-0"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    >
+                      <span aria-hidden="true">&raquo;</span>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
           </div>
-        </div>
-        {/* END: Pagination */}
+        )}
       </div>
 
-      {/* START: Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <div className="modal fade" id="deleteModal" tabIndex={-1} aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content rounded-0">
@@ -386,7 +432,7 @@ export default function StudentListPage() {
             </div>
             <div className="modal-body">
               <p>คุณต้องการลบข้อมูลผู้เรียนนี้ใช่หรือไม่?</p>
-              <p className="text-danger small">การลบข้อมูลนี้จะส่งผลต่อประวัติการดูแลและข้อมูลที่เกี่ยวข้องทั้งหมด (Soft Delete)</p>
+              <p className="text-danger small">การลบข้อมูลนี้จะไม่สามารถกู้คืนได้</p>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary rounded-0 text-uppercase fw-semibold" data-bs-dismiss="modal">ยกเลิก</button>
@@ -395,9 +441,8 @@ export default function StudentListPage() {
           </div>
         </div>
       </div>
-      {/* END: Delete Confirmation Modal */}
 
-      {/* START: Import Modal */}
+      {/* Import Modal */}
       <div className="modal fade" id="importModal" tabIndex={-1} aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content rounded-0">
@@ -421,93 +466,6 @@ export default function StudentListPage() {
           </div>
         </div>
       </div>
-      {/* END: Import Modal */}
-
-      {/* START: Add Student Modal */}
-      <div className="modal fade" id="addStudentModal" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-lg">
-          <div className="modal-content rounded-0">
-            <div className="modal-header bg-dark text-white">
-              <h5 className="modal-title text-uppercase fw-semibold">
-                <i className="bi bi-plus-circle-fill text-warning me-2"></i>เพิ่มผู้เรียนใหม่
-              </h5>
-              <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div className="modal-body">
-              <form>
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา</label>
-                    <input type="text" className="form-control rounded-0" placeholder="เช่น 66001" />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label text-uppercase fw-semibold small">คำนำหน้า</label>
-                    <select className="form-select rounded-0">
-                      <option>นาย</option>
-                      <option>นางสาว</option>
-                      <option>นาง</option>
-                    </select>
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label text-uppercase fw-semibold small">ชื่อ</label>
-                    <input type="text" className="form-control rounded-0" placeholder="ชื่อ" />
-                  </div>
-                  <div className="col-md-6">
-                    <label className="form-label text-uppercase fw-semibold small">นามสกุล</label>
-                    <input type="text" className="form-control rounded-0" placeholder="นามสกุล" />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="form-label text-uppercase fw-semibold small">ระดับชั้น</label>
-                    <select className="form-select rounded-0">
-                      <option>ปวช.1</option>
-                      <option>ปวช.2</option>
-                      <option>ปวช.3</option>
-                      <option>ปวส.1</option>
-                      <option>ปวส.2</option>
-                    </select>
-                  </div>
-                  <div className="col-md-4">
-                    <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน</label>
-                    <input type="text" className="form-control rounded-0" placeholder="เช่น 1" />
-                  </div>
-                  <div className="col-md-4">
-                    <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
-                    <select className="form-select rounded-0">
-                      <option value="1">อาจารย์วิมลรัตน์ ใจดี</option>
-                      <option value="2">อาจารย์สมศักดิ์ รู้แจ้ง</option>
-                      <option value="3">อาจารย์วิชัย นักพัฒนา</option>
-                    </select>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary rounded-0 text-uppercase fw-semibold" data-bs-dismiss="modal">ยกเลิก</button>
-              <button type="button" className="btn btn-primary rounded-0 text-uppercase fw-semibold">บันทึกข้อมูล</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* END: Add Student Modal */}
-
-      {/* START: Footer */}
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>เข้าสู่ระบบ: {teacher_name}</span>
-            </div>
-          </div>
-        </div>
-      </footer>
-      {/* END: Footer */}
-
-      {/* Bootstrap JS Bundle */}
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
 }

@@ -5,14 +5,19 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
 interface StudentBasic {
+  _id: string;
   id: string;
-  name: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  name?: string;
   status: string;
   nickname: string;
   gender: string;
   birth_date: string;
   level: string;
   class_group: string;
+  class_number: string;  // ✅ เพิ่มเลขที่
   advisor_name: string;
   phone_number: string;
   religion: string;
@@ -21,133 +26,107 @@ interface StudentBasic {
   height: string;
   bmi: string;
   blood_type: string;
+  image?: string;
+  email?: string;
 }
-
-// Mock basic student data (เฉพาะข้อมูลพื้นฐาน)
-const mockStudentBasics: { [key: string]: StudentBasic } = {
-  "66001": {
-    id: "66001",
-    name: "นายสมชาย ใจดี",
-    status: "ปกติ",
-    nickname: "ชาย",
-    gender: "ชาย",
-    birth_date: "01/01/2548",
-    level: "ปวช.3",
-    class_group: "ชฟ.1",
-    advisor_name: "อาจารย์วิมลรัตน์",
-    phone_number: "081-234-5678",
-    religion: "พุทธ",
-    address: "123 ม.1 ต.ในเมือง อ.เมือง จ.ขอนแก่น",
-    weight: "65",
-    height: "175",
-    bmi: "21.2",
-    blood_type: "O",
-  },
-  "66002": {
-    id: "66002",
-    name: "นางสาวจิรา สวยใจ",
-    status: "เสี่ยง",
-    nickname: "จิรา",
-    gender: "หญิง",
-    birth_date: "15/05/2549",
-    level: "ปวช.3",
-    class_group: "ชฟ.2",
-    advisor_name: "อาจารย์วิมลรัตน์",
-    phone_number: "089-876-5432",
-    religion: "พุทธ",
-    address: "456 ถ.ประชาสำมงค์ อ.เมือง จ.ขอนแก่น",
-    weight: "55",
-    height: "162",
-    bmi: "20.9",
-    blood_type: "A",
-  },
-  "66003": {
-    id: "66003",
-    name: "นายสมเด็จ วิจิตร",
-    status: "มีปัญหา",
-    nickname: "เด็จ",
-    gender: "ชาย",
-    birth_date: "22/08/2549",
-    level: "ปวช.2",
-    class_group: "ชฟ.1",
-    advisor_name: "อาจารย์วิมลรัตน์",
-    phone_number: "091-234-5678",
-    religion: "พุทธ",
-    address: "789 ม.3 ต.อีสาน อ.เมือง จ.ขอนแก่น",
-    weight: "70",
-    height: "180",
-    bmi: "21.6",
-    blood_type: "B",
-  },
-  "66004": {
-    id: "66004",
-    name: "นางสาวมาศ สุขศรี",
-    status: "ปกติ",
-    nickname: "น้อย",
-    gender: "หญิง",
-    birth_date: "10/12/2548",
-    level: "ปวช.3",
-    class_group: "ชฟ.3",
-    advisor_name: "อาจารย์วิมลรัตน์",
-    phone_number: "086-543-2109",
-    religion: "พุทธ",
-    address: "321 ถ.วิทยาสมบูรณ์ อ.เมือง จ.ขอนแก่น",
-    weight: "60",
-    height: "165",
-    bmi: "22.0",
-    blood_type: "O",
-  },
-  "66005": {
-    id: "66005",
-    name: "นายกิจ ขยันหนุ่ม",
-    status: "ปกติ",
-    nickname: "หนุ่ม",
-    gender: "ชาย",
-    birth_date: "05/03/2549",
-    level: "ปวช.2",
-    class_group: "ชฟ.2",
-    advisor_name: "อาจารย์วิมลรัตน์",
-    phone_number: "084-765-4321",
-    religion: "พุทธ",
-    address: "654 ม.2 ต.ชุมชน อ.เมือง จ.ขอนแก่น",
-    weight: "68",
-    height: "178",
-    bmi: "21.5",
-    blood_type: "AB",
-  },
-};
 
 export default function StudentBasicPage() {
   const router = useRouter();
   const params = useParams();
-  const studentId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const studentDocId = params?.id as string;
+  
+  console.log("📝 Student _id from params:", studentDocId);
+
   const [student, setStudent] = useState<StudentBasic | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!studentId) return;
-    
-    // Get student basic data from mock data
-    const studentData = mockStudentBasics[studentId];
-    if (studentData) {
-      setStudent(studentData);
-    }
-    setLoading(false);
-  }, [studentId]);
-
-  useEffect(() => {
-    // Load Bootstrap CSS
     const bootstrapLink = document.createElement("link");
     bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
     bootstrapLink.rel = "stylesheet";
     document.head.appendChild(bootstrapLink);
 
-    // Load Bootstrap Icons
     const iconLink = document.createElement("link");
     iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
     iconLink.rel = "stylesheet";
     document.head.appendChild(iconLink);
   }, []);
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (!studentDocId) {
+        setError("ไม่พบรหัสนักศึกษา");
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        console.log("🔍 Fetching student with _id:", studentDocId);
+        
+        const response = await fetch("/api/student");
+        const result = await response.json();
+        
+        let studentsData = [];
+        if (result.success && Array.isArray(result.data)) {
+          studentsData = result.data;
+        }
+        
+        const foundStudent = studentsData.find((s: any) => s._id === studentDocId);
+        
+        if (foundStudent) {
+          console.log("📥 Found student data:", foundStudent); // ✅ ดูว่ามี class_number มั้ย
+          
+          const formattedData: StudentBasic = {
+            _id: foundStudent._id,
+            id: foundStudent.id || "",
+            prefix: foundStudent.prefix || "",
+            first_name: foundStudent.first_name || "",
+            last_name: foundStudent.last_name || "",
+            name: `${foundStudent.prefix || ''}${foundStudent.first_name || ''} ${foundStudent.last_name || ''}`.trim(),
+            status: foundStudent.status || "ปกติ",
+            nickname: foundStudent.nickname || "",
+            gender: foundStudent.gender || "",
+            birth_date: foundStudent.birth_date || "",
+            level: foundStudent.level || "",
+            class_group: foundStudent.class_group || "",
+            class_number: foundStudent.class_number || "",  // ✅ เพิ่มเลขที่
+            advisor_name: foundStudent.advisor_name || "",
+            phone_number: foundStudent.phone_number || "",
+            religion: foundStudent.religion || "",
+            address: foundStudent.address || "",
+            weight: foundStudent.weight || "",
+            height: foundStudent.height || "",
+            bmi: foundStudent.bmi || "",
+            blood_type: foundStudent.blood_type || "",
+            image: foundStudent.image || "",
+            email: foundStudent.email || "",
+          };
+          setStudent(formattedData);
+        } else {
+          setError("ไม่พบข้อมูลนักเรียน");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        setError("เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentData();
+  }, [studentDocId]);
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "-";
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('th-TH');
+    } catch {
+      return dateStr;
+    }
+  };
 
   if (loading) {
     return (
@@ -159,14 +138,22 @@ export default function StudentBasicPage() {
     );
   }
 
-  if (!student) {
+  if (error || !student) {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <div className="alert alert-danger mb-0">
-          <p className="mb-0">ไม่พบข้อมูลนักเรียน</p>
-          <a href="/student" className="btn btn-sm btn-dark mt-3">
-            <i className="bi bi-arrow-left me-2"></i>กลับไป
-          </a>
+        <div className="alert alert-danger mb-0" style={{ minWidth: '300px' }}>
+          <p className="mb-0">{error || "ไม่พบข้อมูลนักเรียน"}</p>
+          <div className="mt-3 d-flex gap-2">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="btn btn-sm btn-warning"
+            >
+              <i className="bi bi-arrow-repeat me-2"></i>ลองอีกครั้ง
+            </button>
+            <Link href="/student" className="btn btn-sm btn-dark">
+              <i className="bi bi-arrow-left me-2"></i>กลับไป
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -174,7 +161,6 @@ export default function StudentBasicPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* START: Navigation Bar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="/student">
@@ -182,7 +168,7 @@ export default function StudentBasicPage() {
             <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
           </a>
           <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {studentId}</span>
+            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {student.id}</span>
           </div>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span className="navbar-toggler-icon"></span>
@@ -205,10 +191,8 @@ export default function StudentBasicPage() {
           </div>
         </div>
       </nav>
-      {/* END: Navigation Bar */}
 
       <div className="container-fluid py-4">
-        {/* START: Page Header */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
@@ -229,7 +213,7 @@ export default function StudentBasicPage() {
                   สถานะ: {student.status}
                 </span>
                 <Link
-                  href={`/student_detail/${studentId}/interview`}
+                  href={`/student_detail/${student._id}/interview`}
                   className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
                 >
                   <i className="bi bi-journal-text me-2"></i>ดูบันทึกการสัมภาษณ์
@@ -241,9 +225,7 @@ export default function StudentBasicPage() {
             </div>
           </div>
         </div>
-        {/* END: Page Header */}
 
-        {/* START: Basic Information Card */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border bg-white">
@@ -265,111 +247,113 @@ export default function StudentBasicPage() {
                   </div>
                   <div className="col-md-2">
                     <label className="form-label text-uppercase fw-semibold small text-muted">ชื่อเล่น</label>
-                    <p>{student.nickname}</p>
+                    <p>{student.nickname || "-"}</p>
                   </div>
                   <div className="col-md-2">
                     <label className="form-label text-uppercase fw-semibold small text-muted">เพศ</label>
-                    <p>{student.gender}</p>
+                    <p>{student.gender || "-"}</p>
                   </div>
                   <div className="col-md-2">
                     <label className="form-label text-uppercase fw-semibold small text-muted">วันเกิด</label>
-                    <p>{student.birth_date}</p>
+                    <p>{formatDate(student.birth_date)}</p>
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">ระดับชั้น/กลุ่ม</label>
-                    <p>{student.level}/{student.class_group}</p>
+                    <label className="form-label text-uppercase fw-semibold small text-muted">ระดับชั้น</label>
+                    <p>{student.level}</p>
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label text-uppercase fw-semibold small text-muted">กลุ่มเรียน</label>
+                    <p>{student.class_group || "-"}</p>
+                  </div>
+                  <div className="col-md-3">
+                    <label className="form-label text-uppercase fw-semibold small text-muted">เลขที่</label>  {/* ✅ เพิ่มเลขที่ */}
+                    <p className="fw-bold">{student.class_number || "-"}</p>
                   </div>
                   <div className="col-md-3">
                     <label className="form-label text-uppercase fw-semibold small text-muted">ครูที่ปรึกษา</label>
-                    <p>{student.advisor_name}</p>
+                    <p>{student.advisor_name || "-"}</p>
                   </div>
                   <div className="col-md-3">
                     <label className="form-label text-uppercase fw-semibold small text-muted">เบอร์โทรศัพท์</label>
-                    <p>{student.phone_number}</p>
+                    <p>{student.phone_number || "-"}</p>
                   </div>
                   <div className="col-md-3">
                     <label className="form-label text-uppercase fw-semibold small text-muted">ศาสนา</label>
-                    <p>{student.religion}</p>
+                    <p>{student.religion || "-"}</p>
                   </div>
                   <div className="col-12">
                     <label className="form-label text-uppercase fw-semibold small text-muted">ที่อยู่</label>
-                    <p>{student.address}</p>
+                    <p>{student.address || "-"}</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        {/* END: Basic Information Card */}
 
-        {/* START: Physical Information Row */}
         <div className="row g-3 mb-4">
           <div className="col-md-3">
             <div className="border bg-white p-3">
               <label className="form-label text-uppercase fw-semibold small text-muted">น้ำหนัก</label>
-              <p className="fw-bold h3">{student.weight} กก.</p>
+              <p className="fw-bold h3">{student.weight || "0"} กก.</p>
             </div>
           </div>
           <div className="col-md-3">
             <div className="border bg-white p-3">
               <label className="form-label text-uppercase fw-semibold small text-muted">ส่วนสูง</label>
-              <p className="fw-bold h3">{student.height} ซม.</p>
+              <p className="fw-bold h3">{student.height || "0"} ซม.</p>
             </div>
           </div>
           <div className="col-md-3">
             <div className="border bg-white p-3">
               <label className="form-label text-uppercase fw-semibold small text-muted">BMI</label>
-              <p className="fw-bold h3">{student.bmi}</p>
+              <p className="fw-bold h3">{student.bmi || "0"}</p>
             </div>
           </div>
           <div className="col-md-3">
             <div className="border bg-white p-3">
               <label className="form-label text-uppercase fw-semibold small text-muted">หมู่เลือด</label>
-              <p className="fw-bold h3">{student.blood_type}</p>
+              <p className="fw-bold h3">{student.blood_type || "-"}</p>
             </div>
           </div>
         </div>
-        {/* END: Physical Information Row */}
 
-        {/* START: Action Buttons */}
-<div className="row mb-4">
-  <div className="col-12 d-flex justify-content-end gap-2">
-    <Link
-      href={`/student_detail/${studentId}/assessment/sdq`}
-      className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
-    >
-      <i className="bi bi-clipboard-data me-2"></i>SDQ
-    </Link>
-    <Link
-      href={`/student_detail/${studentId}/assessment/dass21`}
-      className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
-    >
-      <i className="bi bi-clipboard-heart me-2"></i>DASS-21
-    </Link>
-    <Link
-      href={`/student_detail/${studentId}/interview`}
-      className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
-    >
-      <i className="bi bi-journal-text me-2"></i>บันทึกการสัมภาษณ์
-    </Link>
-    <Link
-      href={`/student_detail/${studentId}/edit`}
-      className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
-    >
-      <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
-    </Link>
-    <Link
-      href="/student"
-      className="btn btn-dark rounded-0 text-uppercase fw-semibold"
-    >
-      <i className="bi bi-arrow-left me-2"></i>กลับไป
-    </Link>
-  </div>
-</div>
-{/* END: Action Buttons */}
+        <div className="row mb-4">
+          <div className="col-12 d-flex justify-content-end gap-2">
+            <Link
+              href={`/student_detail/${student._id}/assessment/sdq`}
+              className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
+            >
+              <i className="bi bi-clipboard-data me-2"></i>SDQ
+            </Link>
+            <Link
+              href={`/student_detail/${student._id}/assessment/dass21`}
+              className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
+            >
+              <i className="bi bi-clipboard-heart me-2"></i>DASS-21
+            </Link>
+            <Link
+              href={`/student_detail/${student._id}/interview`}
+              className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
+            >
+              <i className="bi bi-journal-text me-2"></i>บันทึกการสัมภาษณ์
+            </Link>
+            <Link
+              href={`/student_detail/${student._id}/edit`}
+              className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+            >
+              <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
+            </Link>
+            <Link
+              href="/student"
+              className="btn btn-dark rounded-0 text-uppercase fw-semibold"
+            >
+              <i className="bi bi-arrow-left me-2"></i>กลับไป
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {/* START: Footer */}
       <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
         <div className="container-fluid">
           <div className="row">

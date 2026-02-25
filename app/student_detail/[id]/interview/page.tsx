@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
 interface InterviewData {
-  id: string;
+  _id: string;
   student_id: string;
   student_name: string;
   student_nickname: string;
@@ -13,14 +13,12 @@ interface InterviewData {
   student_class: string;
   student_number: string;
   
-  // ข้อมูลทั่วไป
   semester: string;
   academic_year: string;
   parent_name: string;
   parent_relationship: string;
   parent_phone: string;
   
-  // สถานภาพครอบครัว
   family_status: string[];
   living_with: string;
   living_with_other: string;
@@ -28,23 +26,19 @@ interface InterviewData {
   housing_type_other: string;
   transportation: string[];
   
-  // ด้านการเรียน
   strengths: string;
   weak_subjects: string;
   hobbies: string;
   home_behavior: string;
   
-  // ด้านสุขภาพ
   chronic_disease: string;
   risk_behaviors: string[];
   parent_concerns: string;
   
-  // ด้านเศรษฐกิจ
   family_income: string;
   daily_allowance: string;
   assistance_needs: string[];
   
-  // สรุปความเห็น
   student_group: string;
   help_guidelines: string;
   home_visit_file: string;
@@ -52,111 +46,16 @@ interface InterviewData {
   updated_at: string;
 }
 
-// Mock interview data for viewing
-const mockInterviewData: { [key: string]: InterviewData } = {
-  "66001": {
-    id: "INT001",
-    student_id: "66001",
-    student_name: "นายสมชาย ใจดี",
-    student_nickname: "ชาย",
-    student_level: "ปวช.3",
-    student_class: "ชฟ.1",
-    student_number: "1",
-    
-    semester: "2",
-    academic_year: "2567",
-    parent_name: "นายสมศักดิ์ ใจดี",
-    parent_relationship: "บิดา",
-    parent_phone: "089-765-4321",
-    
-    family_status: ["อยู่ด้วยกัน"],
-    living_with: "บิดา-มารดา",
-    living_with_other: "",
-    housing_type: "บ้านตนเอง",
-    housing_type_other: "",
-    transportation: ["รถส่วนตัว"],
-    
-    strengths: "ชอบวิทยาศาสตร์ คณิตศาสตร์ มีความตั้งใจเรียน",
-    weak_subjects: "ภาษาอังกฤษ",
-    hobbies: "เล่นฟุตบอล",
-    home_behavior: "ช่วยทำงานบ้าน รับผิดชอบตัวเองดี",
-    
-    chronic_disease: "ไม่มี",
-    risk_behaviors: ["ไม่มี"],
-    parent_concerns: "อยากให้เรียนต่อระดับสูง",
-    
-    family_income: "25,000",
-    daily_allowance: "120",
-    assistance_needs: ["ทุนการศึกษา"],
-    
-    student_group: "ปกติ",
-    help_guidelines: "สนับสนุนให้ศึกษาต่อในสาขาวิชาที่เกี่ยวข้องกับวิทยาศาสตร์",
-    home_visit_file: "/uploads/66001_homevisit.pdf",
-    created_at: "2024-02-15 10:30:00",
-    updated_at: "2024-02-15 10:30:00",
-  },
-  "66002": {
-    id: "INT002",
-    student_id: "66002",
-    student_name: "นางสาวจิรา สวยใจ",
-    student_nickname: "จิรา",
-    student_level: "ปวช.3",
-    student_class: "ชฟ.2",
-    student_number: "15",
-    
-    semester: "2",
-    academic_year: "2567",
-    parent_name: "นางสมหญิง สวยใจ",
-    parent_relationship: "มารดา",
-    parent_phone: "081-234-5678",
-    
-    family_status: ["บิดา/มารดาเสียชีวิต"],
-    living_with: "บุคคลอื่น",
-    living_with_other: "ยาย",
-    housing_type: "บ้านตนเอง",
-    housing_type_other: "",
-    transportation: ["รถเมล์/รถสาธารณะ"],
-    
-    strengths: "ชอบวาดรูป มีความคิดสร้างสรรค์",
-    weak_subjects: "วิทยาศาสตร์",
-    hobbies: "วาดรูป, ร้องเพลง",
-    home_behavior: "ช่วยงานบ้าน ชอบเก็บตัว",
-    
-    chronic_disease: "ไม่มี",
-    allergies: "แพ้นม",
-    risk_behaviors: ["ไม่มี"],
-    parent_concerns: "ฐานะทางบ้าน不太好 ต้องการทุน",
-    
-    family_income: "15,000",
-    daily_allowance: "80",
-    assistance_needs: ["ทุนการศึกษา", "อุปกรณ์การเรียน"],
-    
-    student_group: "เสี่ยง",
-    help_guidelines: "ติดตามด้านการเงิน มอบทุนการศึกษา เยี่ยมบ้านอย่างสม่ำเสมอ",
-    home_visit_file: "/uploads/66002_homevisit.pdf",
-    created_at: "2024-02-16 14:20:00",
-    updated_at: "2024-02-16 14:20:00",
-  },
-};
-
 export default function InterviewViewPage() {
   const router = useRouter();
   const params = useParams();
-  const studentId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const studentDocId = params?.id as string;  // รับ _id จาก URL
   
+  console.log("📝 Student _id from params:", studentDocId);
+
   const [interview, setInterview] = useState<InterviewData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!studentId) return;
-    
-    // Get interview data from mock data
-    const interviewData = mockInterviewData[studentId];
-    if (interviewData) {
-      setInterview(interviewData);
-    }
-    setLoading(false);
-  }, [studentId]);
+  const [studentBasic, setStudentBasic] = useState<any>(null);
 
   useEffect(() => {
     // Load Bootstrap CSS
@@ -165,12 +64,48 @@ export default function InterviewViewPage() {
     bootstrapLink.rel = "stylesheet";
     document.head.appendChild(bootstrapLink);
 
-    // Load Bootstrap Icons
     const iconLink = document.createElement("link");
     iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
     iconLink.rel = "stylesheet";
     document.head.appendChild(iconLink);
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!studentDocId) return;
+      
+      try {
+        setLoading(true);
+        
+        // ดึงข้อมูลนักเรียน
+        const studentRes = await fetch("/api/student");
+        const studentResult = await studentRes.json();
+        
+        let studentsData = [];
+        if (studentResult.success && Array.isArray(studentResult.data)) {
+          studentsData = studentResult.data;
+        }
+        
+        const foundStudent = studentsData.find((s: any) => s._id === studentDocId);
+        setStudentBasic(foundStudent);
+        
+        // ดึงข้อมูลสัมภาษณ์ (ถ้ามี)
+        const interviewRes = await fetch(`/api/interview/${studentDocId}`);
+        const interviewResult = await interviewRes.json();
+        
+        if (interviewResult.success && interviewResult.data) {
+          setInterview(interviewResult.data);
+        }
+        
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [studentDocId]);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -199,13 +134,13 @@ export default function InterviewViewPage() {
           <h5>ไม่พบข้อมูลการสัมภาษณ์</h5>
           <p className="mb-3">ยังไม่มีบันทึกการสัมภาษณ์สำหรับนักเรียนคนนี้</p>
           <Link
-            href={`/student_detail/${studentId}/interview/edit`}
+            href={`/student_detail/${studentDocId}/interview/edit`}
             className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
           >
             <i className="bi bi-plus-circle me-2"></i>เพิ่มบันทึกการสัมภาษณ์
           </Link>
           <Link
-            href={`/student_detail/${studentId}`}
+            href={`/student_detail/${studentDocId}`}
             className="btn btn-dark rounded-0 text-uppercase fw-semibold"
           >
             <i className="bi bi-arrow-left me-2"></i>กลับไปข้อมูลพื้นฐาน
@@ -217,7 +152,7 @@ export default function InterviewViewPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* START: Navigation Bar */}
+      {/* Navigation Bar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="/student">
@@ -225,7 +160,7 @@ export default function InterviewViewPage() {
             <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
           </a>
           <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {studentId}</span>
+            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {interview.student_id}</span>
           </div>
           <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span className="navbar-toggler-icon"></span>
@@ -248,10 +183,9 @@ export default function InterviewViewPage() {
           </div>
         </div>
       </nav>
-      {/* END: Navigation Bar */}
 
       <div className="container-fluid py-4">
-        {/* START: Page Header */}
+        {/* Page Header */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
@@ -271,13 +205,13 @@ export default function InterviewViewPage() {
                   {interview.student_group}
                 </span>
                 <Link
-                  href={`/student_detail/${studentId}/interview/edit`}
+                  href={`/student_detail/${studentDocId}/interview/edit`}
                   className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
                 >
                   <i className="bi bi-pencil me-2"></i>แก้ไขบันทึก
                 </Link>
                 <Link
-                  href={`/student_detail/${studentId}`}
+                  href={`/student_detail/${studentDocId}`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold"
                 >
                   <i className="bi bi-arrow-left me-2"></i>กลับข้อมูลพื้นฐาน
@@ -286,9 +220,8 @@ export default function InterviewViewPage() {
             </div>
           </div>
         </div>
-        {/* END: Page Header */}
 
-        {/* START: Header Info */}
+        {/* Header Info */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border bg-white p-3">
@@ -317,9 +250,8 @@ export default function InterviewViewPage() {
             </div>
           </div>
         </div>
-        {/* END: Header Info */}
 
-        {/* START: Family Information */}
+        {/* Family Information */}
         <div className="row mb-4">
           <div className="col-md-6">
             <div className="border bg-white h-100">
@@ -374,9 +306,8 @@ export default function InterviewViewPage() {
             </div>
           </div>
         </div>
-        {/* END: Family Information */}
 
-        {/* START: Learning and Health */}
+        {/* Learning and Health */}
         <div className="row mb-4">
           <div className="col-md-6">
             <div className="border bg-white h-100">
@@ -431,9 +362,8 @@ export default function InterviewViewPage() {
             </div>
           </div>
         </div>
-        {/* END: Learning and Health */}
 
-        {/* START: Teacher Recommendations */}
+        {/* Teacher Recommendations */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border bg-white">
@@ -472,10 +402,9 @@ export default function InterviewViewPage() {
             </div>
           </div>
         </div>
-        {/* END: Teacher Recommendations */}
       </div>
 
-      {/* START: Footer */}
+      {/* Footer */}
       <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
         <div className="container-fluid">
           <div className="row">
@@ -484,12 +413,11 @@ export default function InterviewViewPage() {
             </div>
             <div className="col-md-6 text-end text-uppercase small">
               <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>ดูบันทึกการสัมภาษณ์: {studentId}</span>
+              <span>ดูบันทึกการสัมภาษณ์</span>
             </div>
           </div>
         </div>
       </footer>
-      {/* END: Footer */}
     </div>
   );
 }

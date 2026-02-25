@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface BasicInfoFormData {
-  student_id: string;
+  id: string;
   prefix: string;
   first_name: string;
   last_name: string;
@@ -14,8 +14,9 @@ interface BasicInfoFormData {
   birth_date: string;
   level: string;
   class_group: string;
+  class_number: string;  // ✅ เลขที่
   advisor_name: string;
-  phone: string;
+  phone_number: string;
   religion: string;
   address: string;
   weight: string;
@@ -26,7 +27,7 @@ interface BasicInfoFormData {
 export default function StudentAddBasicPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<BasicInfoFormData>({
-    student_id: "",
+    id: "",
     prefix: "นาย",
     first_name: "",
     last_name: "",
@@ -35,8 +36,9 @@ export default function StudentAddBasicPage() {
     birth_date: "",
     level: "ปวช.1",
     class_group: "",
-    advisor_name: "อาจารย์วิมลรัตน์ ใจดี",
-    phone: "",
+    class_number: "",  // ✅ เลขที่
+    advisor_name: "",
+    phone_number: "",
     religion: "พุทธ",
     address: "",
     weight: "",
@@ -46,13 +48,11 @@ export default function StudentAddBasicPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Load Bootstrap CSS
     const bootstrapLink = document.createElement("link");
     bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
     bootstrapLink.rel = "stylesheet";
     document.head.appendChild(bootstrapLink);
 
-    // Load Bootstrap Icons
     const iconLink = document.createElement("link");
     iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
     iconLink.rel = "stylesheet";
@@ -75,52 +75,55 @@ export default function StudentAddBasicPage() {
     return "";
   };
 
-  const handleSaveAndNext = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent, gotoNext: boolean = false) => {
     e.preventDefault();
     setSaving(true);
     
     try {
-      // ส่งข้อมูลพื้นฐานไปบันทึก
-      const response = await fetch("/api/students", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      const bmiValue = calculateBMI();
+      
+      // ✅ Debug ข้อมูลก่อนส่ง
+      console.log("📤 Data to send:", {
+        id: formData.id,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        class_number: formData.class_number,
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        // ไปหน้าสัมภาษณ์ พร้อม studentId ที่เพิ่งสร้าง
-        router.push(`/student_add/interview?studentId=${result.id}`);
+      const formDataToSend = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formDataToSend.append(key, String(value));
+          console.log(`📤 Appending ${key}:`, value);
+        }
+      });
+      formDataToSend.append("bmi", bmiValue);
+
+      console.log("📦 FormData entries:");
+      for (let pair of formDataToSend.entries()) {
+        console.log(`   ${pair[0]}: ${pair[1]}`);
+      }
+
+      const response = await fetch("/api/student", {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      const result = await response.json();
+      console.log("📥 Response:", result);
+
+      if (response.ok && result.success) {
+        if (gotoNext) {
+          router.push(`/student_add/interview?studentId=${result.data.id}`);
+        } else {
+          router.push("/student");
+        }
+      } else {
+        alert(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       }
     } catch (error) {
       console.error("Error saving student:", error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSaveOnly = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    
-    try {
-      // ส่งข้อมูลพื้นฐานไปบันทึก
-      const response = await fetch("/api/students", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        // กลับไปหน้ารายชื่อ
-        router.push("/student");
-      }
-    } catch (error) {
-      console.error("Error saving student:", error);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
     } finally {
       setSaving(false);
     }
@@ -128,7 +131,7 @@ export default function StudentAddBasicPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* START: Navigation Bar */}
+      {/* Navigation Bar */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="/student">
@@ -156,10 +159,9 @@ export default function StudentAddBasicPage() {
           </div>
         </div>
       </nav>
-      {/* END: Navigation Bar */}
 
       <div className="container-fluid py-4">
-        {/* START: Page Header */}
+        {/* Page Header */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
@@ -179,10 +181,9 @@ export default function StudentAddBasicPage() {
             </div>
           </div>
         </div>
-        {/* END: Page Header */}
 
         <form>
-          {/* START: Basic Information Card */}
+          {/* Basic Information Card */}
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
@@ -199,9 +200,9 @@ export default function StudentAddBasicPage() {
                       <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
-                        name="student_id"
+                        name="id"
                         className="form-control rounded-0" 
-                        value={formData.student_id}
+                        value={formData.id}
                         onChange={handleInputChange}
                         placeholder="เช่น 66001"
                         required
@@ -279,7 +280,7 @@ export default function StudentAddBasicPage() {
 
                     {/* วันเกิด */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">วัน เดือน ปี เกิด</label>
+                      <label className="form-label text-uppercase fw-semibold small">วันเกิด</label>
                       <input 
                         type="date" 
                         name="birth_date"
@@ -320,19 +321,30 @@ export default function StudentAddBasicPage() {
                       />
                     </div>
 
+                    {/* เลขที่ */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
+                      <input 
+                        type="text" 
+                        name="class_number"
+                        className="form-control rounded-0"
+                        value={formData.class_number}
+                        onChange={handleInputChange}
+                        placeholder="เช่น 1, 2, 3"
+                      />
+                    </div>
+
                     {/* ครูที่ปรึกษา */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
-                      <select 
+                      <input 
+                        type="text" 
                         name="advisor_name"
-                        className="form-select rounded-0"
+                        className="form-control rounded-0"
                         value={formData.advisor_name}
                         onChange={handleInputChange}
-                      >
-                        <option>อาจารย์วิมลรัตน์ ใจดี</option>
-                        <option>อาจารย์สมศักดิ์ รู้แจ้ง</option>
-                        <option>อาจารย์วิชัย นักพัฒนา</option>
-                      </select>
+                        placeholder="ชื่ออาจารย์ที่ปรึกษา"
+                      />
                     </div>
 
                     {/* เบอร์มือถือ */}
@@ -340,9 +352,9 @@ export default function StudentAddBasicPage() {
                       <label className="form-label text-uppercase fw-semibold small">เบอร์มือถือ</label>
                       <input 
                         type="tel" 
-                        name="phone"
+                        name="phone_number"
                         className="form-control rounded-0"
-                        value={formData.phone}
+                        value={formData.phone_number}
                         onChange={handleInputChange}
                         placeholder="081-234-5678"
                       />
@@ -374,7 +386,7 @@ export default function StudentAddBasicPage() {
                         value={formData.address}
                         onChange={handleInputChange}
                         placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
-                      ></textarea>
+                      />
                     </div>
 
                     {/* น้ำหนัก */}
@@ -403,7 +415,7 @@ export default function StudentAddBasicPage() {
                       />
                     </div>
 
-                    {/* BMI (คำนวณอัตโนมัติ) */}
+                    {/* BMI */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">BMI</label>
                       <input 
@@ -434,9 +446,8 @@ export default function StudentAddBasicPage() {
               </div>
             </div>
           </div>
-          {/* END: Basic Information Card */}
 
-          {/* START: Form Actions */}
+          {/* Form Actions */}
           <div className="row mb-4">
             <div className="col-12 d-flex justify-content-center gap-3">
               <Link
@@ -448,7 +459,7 @@ export default function StudentAddBasicPage() {
               <button 
                 type="button"
                 className="btn btn-outline-primary rounded-0 text-uppercase fw-semibold px-5"
-                onClick={handleSaveOnly}
+                onClick={(e) => handleSave(e, false)}
                 disabled={saving}
               >
                 {saving ? (
@@ -465,7 +476,7 @@ export default function StudentAddBasicPage() {
               <button 
                 type="button"
                 className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
-                onClick={handleSaveAndNext}
+                onClick={(e) => handleSave(e, true)}
                 disabled={saving}
               >
                 {saving ? (
@@ -481,11 +492,10 @@ export default function StudentAddBasicPage() {
               </button>
             </div>
           </div>
-          {/* END: Form Actions */}
         </form>
       </div>
 
-      {/* START: Footer */}
+      {/* Footer */}
       <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
         <div className="container-fluid">
           <div className="row">
@@ -499,7 +509,6 @@ export default function StudentAddBasicPage() {
           </div>
         </div>
       </footer>
-      {/* END: Footer */}
     </div>
   );
 }

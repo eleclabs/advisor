@@ -3,31 +3,46 @@ import { connectDB } from "@/lib/mongodb";
 import Profile from "@/models/Profile";
 import cloudinary from "@/lib/cloudinary";
 
+// ================= POST =================
 export async function POST(req: NextRequest) {
   await connectDB();
 
   const formData = await req.formData();
 
-  const name = formData.get("name");
-  const email = formData.get("email");
-  const file = formData.get("image") as File;
+  const name = formData.get("name") as string | null;
+  const email = formData.get("email") as string | null;
+  const file = formData.get("image");
+
+  // 🔒 validate text fields
+  if (!name || !email) {
+    return NextResponse.json(
+      { error: "Name and email are required" },
+      { status: 400 }
+    );
+  }
+
+  // 🔒 validate file (กันพัง 100%)
+  if (!(file instanceof File)) {
+    return NextResponse.json(
+      { error: "Image file is required" },
+      { status: 400 }
+    );
+  }
 
   // convert file -> buffer
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+  const buffer = Buffer.from(await file.arrayBuffer());
 
   // upload to cloudinary
-  const upload = await new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_stream(
-      { folder: "profiles" },
-      (err, result) => {
+  const upload = await new Promise<any>((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream({ folder: "profiles" }, (err, result) => {
         if (err) reject(err);
         else resolve(result);
-      }
-    ).end(buffer);
+      })
+      .end(buffer);
   });
 
-  const imageUrl = (upload as any).secure_url;
+  const imageUrl = upload.secure_url;
 
   const profile = await Profile.create({
     name,
@@ -35,11 +50,10 @@ export async function POST(req: NextRequest) {
     image: imageUrl,
   });
 
-  return NextResponse.json(profile);
+  return NextResponse.json(profile, { status: 201 });
 }
 
-
-// ✅ GET profiles
+// ================= GET =================
 export async function GET() {
   await connectDB();
 
@@ -47,4 +61,3 @@ export async function GET() {
 
   return NextResponse.json(profiles);
 }
-
