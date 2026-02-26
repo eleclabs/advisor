@@ -20,17 +20,12 @@ interface Activity {
   student_id?: string;
   student_name?: string;
   index?: number;
-}
-
-interface Student {
-  student_id: string;
-  student_name: string;
+  participants?: { student_id: string, student_name: string, joined: boolean }[];
 }
 
 export default function ActivityPage() {
   const router = useRouter();
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [formData, setFormData] = useState({
@@ -48,7 +43,6 @@ export default function ActivityPage() {
 
   useEffect(() => {
     fetchActivities();
-    fetchStudents();
   }, []);
 
   const fetchActivities = async () => {
@@ -56,30 +50,29 @@ export default function ActivityPage() {
       setFetching(true);
       const res = await fetch("/api/problem/activity");
       const data = await res.json();
-      console.log("Activities fetched:", data);
-      setActivities(data.data || []);
+      
+      // จัดกลุ่มกิจกรรมตามชื่อ
+      const groupedActivities = data.data.reduce((acc: any, act: Activity) => {
+        const key = act.name;
+        if (!acc[key]) {
+          acc[key] = {
+            ...act,
+            participants: []
+          };
+        }
+        acc[key].participants.push({
+          student_id: act.student_id,
+          student_name: act.student_name,
+          joined: act.joined
+        });
+        return acc;
+      }, {});
+      
+      setActivities(Object.values(groupedActivities));
     } catch (error) {
       console.error("Error fetching activities:", error);
     } finally {
       setFetching(false);
-    }
-  };
-
-  const fetchStudents = async () => {
-    try {
-      const res = await fetch("/api/problem");
-      const data = await res.json();
-      console.log("Students fetched:", data);
-      
-      // แปลงข้อมูลให้อยู่ในรูปแบบที่ต้องการ
-      const studentList = (data.data || []).map((p: any) => ({
-        student_id: p.student_id,
-        student_name: p.student_name
-      }));
-      
-      setStudents(studentList);
-    } catch (error) {
-      console.error("Error fetching students:", error);
     }
   };
 
@@ -135,6 +128,26 @@ export default function ActivityPage() {
         ? prev.student_ids.filter(id => id !== studentId)
         : [...prev.student_ids, studentId]
     }));
+  };
+
+  const toggleParticipant = async (activity: Activity, studentId: string, currentJoined: boolean) => {
+    try {
+      // หา activity จริงที่มี student_id ตรง
+      const res = await fetch(`/api/problem/activity?student_id=${studentId}&index=${activity.index}`);
+      const data = await res.json();
+      
+      if (data.success) {
+        await fetch(`/api/problem/activity?student_id=${studentId}&index=${activity.index}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ joined: !currentJoined })
+        });
+        
+        fetchActivities(); // โหลดใหม่
+      }
+    } catch (error) {
+      console.error("Error updating participant:", error);
+    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -271,24 +284,8 @@ export default function ActivityPage() {
                 <div className="mb-4">
                   <label className="form-label fw-bold">เลือกนักเรียนที่เข้าร่วม</label>
                   <div className="border rounded-0 p-3 bg-light" style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                    {students.length === 0 ? (
-                      <p className="text-muted text-center py-3">ไม่มีข้อมูลนักเรียน</p>
-                    ) : (
-                      students.map((s) => (
-                        <div className="form-check mb-2" key={s.student_id}>
-                          <input
-                            type="checkbox"
-                            className="form-check-input rounded-0"
-                            id={s.student_id}
-                            checked={formData.student_ids.includes(s.student_id)}
-                            onChange={() => handleStudentSelect(s.student_id)}
-                          />
-                          <label className="form-check-label" htmlFor={s.student_id}>
-                            {s.student_name} <small className="text-muted">({s.student_id})</small>
-                          </label>
-                        </div>
-                      ))
-                    )}
+                    {/* จะแสดงรายชื่อนักเรียนจาก API อื่น */}
+                    <p className="text-muted text-center py-3">กำลังโหลดข้อมูลนักเรียน...</p>
                   </div>
                   {formData.student_ids.length > 0 && (
                     <small className="text-success mt-1 d-block">
@@ -319,13 +316,13 @@ export default function ActivityPage() {
           </div>
         </div>
 
-        {/* รายการกิจกรรม */}
+        {/* รายการกิจกรรมพร้อมผู้เข้าร่วม */}
         <div className="col-lg-7 mb-4">
           <div className="card rounded-0 border-0 shadow-sm">
             <div className="card-header bg-dark text-white rounded-0">
               <h5 className="mb-0">
                 <i className="bi bi-list-check me-2 text-warning"></i>
-                รายการกิจกรรมทั้งหมด ({activities.length})
+                รายการกิจกรรม
               </h5>
             </div>
             <div className="card-body p-0">
@@ -341,54 +338,63 @@ export default function ActivityPage() {
                   <p className="text-muted mb-0">ยังไม่มีกิจกรรม</p>
                 </div>
               ) : (
-                <div className="list-group list-group-flush">
+                <div className="accordion" id="activityAccordion">
                   {activities.map((act, idx) => (
-                    <div key={idx} className="list-group-item p-3">
-                      <div className="d-flex justify-content-between align-items-start">
-                        <div className="flex-grow-1">
-                          <div className="d-flex align-items-center mb-2">
-                            <h6 className="fw-bold mb-0 me-2">{act.name}</h6>
-                            <span className={`badge rounded-0 ${act.joined ? 'bg-success' : 'bg-secondary'}`}>
-                              {act.joined ? 'เข้าร่วมแล้ว' : 'รอเข้าร่วม'}
+                    <div className="accordion-item border-0" key={idx}>
+                      <h2 className="accordion-header" id={`heading${idx}`}>
+                        <button
+                          className="accordion-button collapsed bg-light"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target={`#collapse${idx}`}
+                        >
+                          <div className="d-flex justify-content-between w-100 me-3">
+                            <span className="fw-bold">{act.name}</span>
+                            <span className="badge bg-warning text-dark">
+                              {act.participants?.filter(p => p.joined).length || 0} / {act.participants?.length || 0} คน
                             </span>
                           </div>
+                        </button>
+                      </h2>
+                      <div
+                        id={`collapse${idx}`}
+                        className="accordion-collapse collapse"
+                        data-bs-parent="#activityAccordion"
+                      >
+                        <div className="accordion-body p-0">
+                          <div className="p-3 border-bottom">
+                            <p className="mb-1"><i className="bi bi-clock me-2 text-warning"></i>{act.duration} นาที</p>
+                            <p className="mb-1"><i className="bi bi-tools me-2 text-warning"></i>{act.materials || 'ไม่มีอุปกรณ์'}</p>
+                            {act.debrief && (
+                              <p className="mb-0 small"><i className="bi bi-chat-quote me-2 text-warning"></i>{act.debrief}</p>
+                            )}
+                          </div>
                           
-                          <div className="row small">
-                            <div className="col-md-6 mb-1">
-                              <i className="bi bi-clock me-2 text-warning"></i>
-                              {act.duration} นาที
-                            </div>
-                            <div className="col-md-6 mb-1">
-                              <i className="bi bi-person me-2 text-warning"></i>
-                              {act.student_name}
-                            </div>
-                            <div className="col-md-6 mb-1">
-                              <i className="bi bi-calendar me-2 text-warning"></i>
-                              {formatDate(act.activity_date)}
-                            </div>
-                            <div className="col-md-6 mb-1">
-                              <i className="bi bi-tools me-2 text-warning"></i>
-                              {act.materials || 'ไม่มีอุปกรณ์'}
+                          <div className="p-3">
+                            <h6 className="fw-bold mb-3">รายชื่อผู้เข้าร่วม</h6>
+                            <div className="list-group list-group-flush">
+                              {act.participants?.map((p, pIdx) => (
+                                <div key={pIdx} className="list-group-item d-flex justify-content-between align-items-center px-0">
+                                  <div>
+                                    <span>{p.student_name}</span>
+                                    <small className="text-muted d-block">{p.student_id}</small>
+                                  </div>
+                                  <div className="form-check form-switch">
+                                    <input
+                                      className="form-check-input"
+                                      type="checkbox"
+                                      checked={p.joined}
+                                      onChange={() => toggleParticipant(act, p.student_id, p.joined)}
+                                    />
+                                    <label className="form-check-label small">
+                                      {p.joined ? 'เข้าร่วม' : 'ไม่เข้าร่วม'}
+                                    </label>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-
-                          {act.debrief && (
-                            <div className="mt-2 p-2 bg-light small">
-                              <i className="bi bi-chat-quote me-1 text-warning"></i>
-                              {act.debrief.length > 100 
-                                ? act.debrief.substring(0, 100) + '...' 
-                                : act.debrief}
-                            </div>
-                          )}
                         </div>
-                        
-                        <Link 
-                          href={`/student_problem/activity/edit?student_id=${act.student_id}&index=${act.index}`}
-                          className="btn btn-sm btn-outline-warning rounded-0 ms-3"
-                          title="แก้ไขกิจกรรม"
-                        >
-                          <i className="bi bi-pencil"></i>
-                        </Link>
                       </div>
                     </div>
                   ))}
