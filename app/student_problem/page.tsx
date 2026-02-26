@@ -151,7 +151,8 @@ export default function StudentProblemPage() {
                     <table className="table table-bordered table-hover mb-0">
                       <thead className="table-light">
                         <tr>
-                          <th>นักเรียน</th>
+                          <th>รหัสนักศึกษา</th>
+                          <th>ชื่อ-นามสกุล</th>
                           <th>ปัญหา</th>
                           <th>แผน ISP</th>
                           <th>ความคืบหน้า</th>
@@ -161,53 +162,82 @@ export default function StudentProblemPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {problems.map((p) => (
-                          <tr key={p._id}>
-                            <td>
-                              <div>{p.student_name}</div>
-                              <small className="text-muted">{p.student_id}</small>
-                            </td>
-                            <td>{p.problem || '-'}</td>
-                            <td>{p.goal || '-'}</td>
-                            <td style={{ width: '150px' }}>
-                              <div className="progress rounded-0" style={{ height: '8px' }}>
-                                <div className="progress-bar bg-warning" style={{ width: `${p.progress || 0}%` }}></div>
-                              </div>
-                              <small>{p.progress || 0}%</small>
-                            </td>
-                            <td>
-                              <span className={`badge rounded-0 ${
-                                p.isp_status === 'กำลังดำเนินการ' ? 'bg-warning text-dark' :
-                                p.isp_status === 'สำเร็จ' ? 'bg-success' : 'bg-secondary'
-                              }`}>
-                                {p.isp_status || 'รอดำเนินการ'}
-                              </span>
-                            </td>
-                            <td>
-                              {getLatestEvaluation(p.evaluations || [])}
-                            </td>
-                            <td>
-                              <div className="btn-group btn-group-sm">
-                                <Link href={`/student_problem/${p.student_id}`} 
-                                  className="btn btn-outline-primary" title="ดูรายละเอียด">
-                                  <i className="bi bi-eye"></i>
-                                </Link>
-                                <Link href={`/student_problem/${p.student_id}/edit`} 
-                                  className="btn btn-outline-success" title="แก้ไขแผน">
-                                  <i className="bi bi-pencil"></i>
-                                </Link>
-                                <Link href={`/student_problem/${p.student_id}?tab=activities`} 
-                                  className="btn btn-outline-info" title="กำหนดกิจกรรม">
-                                  <i className="bi bi-calendar-check"></i>
-                                </Link>
-                                <Link href={`/student_problem/${p.student_id}/result`} 
-                                  className="btn btn-outline-warning" title="บันทึกผล">
-                                  <i className="bi bi-bar-chart"></i>
-                                </Link>
-                              </div>
+                        {problems.map((p) => {
+                          // แยกคำนำหน้า ชื่อ และนามสกุล (ถ้าต้องการ)
+                          const nameParts = p.student_name?.split(' ') || [];
+                          const prefix = nameParts[0] || '';
+                          const firstName = nameParts[1] || '';
+                          const lastName = nameParts.slice(2).join(' ') || '';
+                          
+                          return (
+                            <tr key={p._id}>
+                              <td className="align-middle">
+                                <span className="fw-bold">{p.student_id}</span>
+                              </td>
+                              <td className="align-middle">
+                                <span>{p.student_name}</span>
+                              </td>
+                              <td className="align-middle">{p.problem || '-'}</td>
+                              <td className="align-middle">{p.goal || '-'}</td>
+                              <td className="align-middle" style={{ width: '150px' }}>
+                                <div className="d-flex align-items-center">
+                                  <div className="progress rounded-0 flex-grow-1" style={{ height: '8px' }}>
+                                    <div className="progress-bar bg-warning" style={{ width: `${p.progress || 0}%` }}></div>
+                                  </div>
+                                  <span className="ms-2 small fw-bold">{p.progress || 0}%</span>
+                                </div>
+                              </td>
+                              <td className="align-middle">
+                                <span className={`badge rounded-0 px-3 py-2 ${
+                                  p.isp_status === 'กำลังดำเนินการ' ? 'bg-warning text-dark' :
+                                  p.isp_status === 'สำเร็จ' ? 'bg-success' : 'bg-secondary'
+                                }`}>
+                                  {p.isp_status || 'รอดำเนินการ'}
+                                </span>
+                              </td>
+                              <td className="align-middle">
+                                <span className={`badge rounded-0 px-3 py-2 ${
+                                  getLatestEvaluation(p.evaluations || []) === 'ดีขึ้นชัดเจน' ? 'bg-success' :
+                                  getLatestEvaluation(p.evaluations || []) === 'เริ่มเห็นการเปลี่ยนแปลง' ? 'bg-warning text-dark' :
+                                  getLatestEvaluation(p.evaluations || []) === 'คงเดิม/ไม่เปลี่ยนแปลง' ? 'bg-danger' : 'bg-secondary bg-opacity-25 text-dark'
+                                }`}>
+                                  {getLatestEvaluation(p.evaluations || [])}
+                                </span>
+                              </td>
+                              <td className="align-middle">
+                                <div className="btn-group btn-group-sm">
+                                  <Link href={`/student_problem/${p.student_id}`} 
+                                    className="btn btn-outline-primary" title="ดูรายละเอียด">
+                                    <i className="bi bi-eye"></i>
+                                  </Link>
+                                  <Link href={`/student_problem/${p.student_id}/edit`} 
+                                    className="btn btn-outline-success" title="แก้ไขแผน">
+                                    <i className="bi bi-pencil"></i>
+                                  </Link>
+                                  <Link href={`/student_problem/${p.student_id}?tab=activities`} 
+                                    className="btn btn-outline-info" title="กำหนดกิจกรรม">
+                                    <i className="bi bi-calendar-check"></i>
+                                  </Link>
+                                  <Link href={`/student_problem/${p.student_id}/result`} 
+                                    className="btn btn-outline-warning" title="บันทึกผล">
+                                    <i className="bi bi-bar-chart"></i>
+                                  </Link>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {problems.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="text-center py-5">
+                              <i className="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                              <p className="text-muted mb-0">ยังไม่มีข้อมูลนักเรียน</p>
+                              <Link href="/student_problem/add" className="btn btn-warning btn-sm mt-3">
+                                <i className="bi bi-plus-circle me-2"></i>เพิ่มนักเรียน
+                              </Link>
                             </td>
                           </tr>
-                        ))}
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -217,7 +247,7 @@ export default function StudentProblemPage() {
           </div>
         )}
 
-        {/* Tab: Activities */}
+        {/* Tab: Activities (เหมือนเดิม) */}
         {activeTab === 'activities' && (
           <div className="row">
             <div className="col-12">
@@ -227,7 +257,7 @@ export default function StudentProblemPage() {
                     <i className="bi bi-activity me-2 text-warning"></i>
                     จัดการกิจกรรมกลุ่มสัมพันธ์
                   </h5>
-                  <Link href="/student_problem/activity/edit" className="btn btn-warning btn-sm rounded-0">
+                  <Link href="/student_problem/activity" className="btn btn-warning btn-sm rounded-0">
                     <i className="bi bi-plus-circle me-2"></i>เพิ่มกิจกรรม
                   </Link>
                 </div>
@@ -248,7 +278,7 @@ export default function StudentProblemPage() {
                             <p className="small text-muted">
                               {act.debrief?.substring(0, 50)}...
                             </p>
-                            <Link href={`/student_problem/activity/edit?id=${idx}`} 
+                            <Link href={`/student_problem/activity/edit?student_id=${act.student_id}&index=${act.index}`} 
                               className="btn btn-sm btn-outline-warning rounded-0">
                               <i className="bi bi-pencil me-2"></i>แก้ไข
                             </Link>
