@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; 
 import Image from "next/image";
 
 export default function ProfilePage() {
@@ -8,7 +8,7 @@ export default function ProfilePage() {
  const [profiles, setProfiles] = useState([]);
 
   useEffect(() => {
-    loadProfiles();
+    loadProfiles(); 
   }, []);
 
   const loadProfiles = async () => {
@@ -19,12 +19,12 @@ export default function ProfilePage() {
 
   const [file, setFile] = useState<File | null>(null);
 
-  const submit = async (e: any) => {
+  const submit = async (e: any) => { 
     e.preventDefault();
 
     const formData = new FormData();
     formData.append("name", e.target.name.value);
-    formData.append("email", e.target.email.value);
+    formData.append("email", e.target.email.value); 
     if (file) formData.append("image", file);
 
     await fetch("/api/profile", {

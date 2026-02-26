@@ -11,6 +11,8 @@
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.1",
     "bcrypt": "^6.0.0",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "cloudinary": "^2.9.0",
     "mongoose": "^9.2.2",
     "multer": "^2.0.2",
