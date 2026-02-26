@@ -1,3 +1,4 @@
+// D:\advisor-main\app\student_learn\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ interface HomeroomPlan {
   academicYear: string;
   createdAt: string;
   status: string;
+  has_record?: boolean; // เพิ่มฟิลด์นี้
   date?: string;
 }
 
@@ -20,7 +22,7 @@ export default function StudentLearnPage() {
   const router = useRouter();
   const [plans, setPlans] = useState<HomeroomPlan[]>([]);
   const [filteredPlans, setFilteredPlans] = useState<HomeroomPlan[]>([]);
-  const [search_keyword, setSearchKeyword] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedYear, setSelectedYear] = useState("2568");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -28,195 +30,131 @@ export default function StudentLearnPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
   
-  // ปฏิทิน
-  const [calendarLevel, setCalendarLevel] = useState<"day" | "month" | "year">("day"); // day=ดูรายวัน, month=ดูทั้งเดือน, year=ดูทั้งปี
-  const [selectedDate, setSelectedDate] = useState(new Date()); // วันที่เลือก
+  // Calendar state
+  const [calendarLevel, setCalendarLevel] = useState<"day" | "month" | "year">("day");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarEvents, setCalendarEvents] = useState<{[key: string]: HomeroomPlan[]}>({});
 
   const teacher_name = "อาจารย์วิมลรัตน์";
   const academic_year = "2568";
 
-  // Load Bootstrap CSS and Icons
-  useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
-  }, []);
-
-  // Load plans data
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const mockData: HomeroomPlan[] = [
-          {
-            id: "1",
-            title: "การปรับตัวเข้าสู่ชีวิตนักเรียน",
-            level: "ปวช.1",
-            week: "สัปดาห์ที่ 1",
-            semester: "ภาคเรียนที่ 1",
-            academicYear: "2568",
-            createdAt: "01/05/2568",
-            status: "เผยแพร่",
-            date: "2024-05-01"
-          },
-          {
-            id: "2",
-            title: "การวางแผนการเรียน",
-            level: "ปวช.2",
-            week: "สัปดาห์ที่ 3",
-            semester: "ภาคเรียนที่ 1",
-            academicYear: "2568",
-            createdAt: "10/05/2568",
-            status: "ร่าง",
-            date: "2024-05-15"
-          },
-          {
-            id: "3",
-            title: "การเตรียมตัวสอบ",
-            level: "ปวช.3",
-            week: "สัปดาห์ที่ 8",
-            semester: "ภาคเรียนที่ 2",
-            academicYear: "2568",
-            createdAt: "15/08/2568",
-            status: "เสร็จสิ้น",
-            date: "2024-08-20"
-          },
-          {
-            id: "4",
-            title: "ทักษะการสื่อสาร",
-            level: "ปวส.1",
-            week: "สัปดาห์ที่ 5",
-            semester: "ภาคเรียนที่ 1",
-            academicYear: "2568",
-            createdAt: "10/06/2568",
-            status: "เผยแพร่",
-            date: "2024-06-12"
-          },
-          {
-            id: "5",
-            title: "การเตรียมตัวฝึกงาน",
-            level: "ปวส.2",
-            week: "สัปดาห์ที่ 10",
-            semester: "ภาคเรียนที่ 2",
-            academicYear: "2568",
-            createdAt: "05/09/2568",
-            status: "ร่าง",
-            date: "2024-09-18"
-          },
-          {
-            id: "6",
-            title: "การพัฒนาบุคลิกภาพ",
-            level: "ปวช.1",
-            week: "สัปดาห์ที่ 7",
-            semester: "ภาคเรียนที่ 1",
-            academicYear: "2568",
-            createdAt: "20/06/2568",
-            status: "เผยแพร่",
-            date: "2024-06-25"
-          },
-          {
-            id: "7",
-            title: "การทำงานเป็นทีม",
-            level: "ปวช.2",
-            week: "สัปดาห์ที่ 9",
-            semester: "ภาคเรียนที่ 2",
-            academicYear: "2568",
-            createdAt: "10/10/2568",
-            status: "ร่าง",
-            date: "2024-10-12"
-          }
-        ];
+  // Load Bootstrap
+// ใน useEffect สำหรับ fetchPlans
+useEffect(() => {
+  const fetchPlans = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedSemester) params.append('semester', selectedSemester.replace('ภาคเรียนที่ ', ''));
+      if (selectedYear) params.append('academicYear', selectedYear);
+      
+      // ส่ง hasRecord แทน status เมื่อเลือก "บันทึกผลแล้ว"
+      if (selectedStatus === 'บันทึกผลแล้ว') {
+        params.append('hasRecord', 'true');
+      } else if (selectedStatus) {
+        const statusMap: {[key: string]: string} = {
+          'เผยแพร่': 'published',
+          'ร่าง': 'draft'
+        };
+        params.append('status', statusMap[selectedStatus] || selectedStatus);
+      }
+      
+      if (searchKeyword) params.append('search', searchKeyword);
+      
+      const url = `/api/learn${params.toString() ? `?${params.toString()}` : ''}`;
+      console.log("📡 Fetching URL:", url);
+      
+      const response = await fetch(url);
+      const result = await response.json();
+      
+      console.log("📥 Response:", result);
+      
+      if (result.success) {
+        // ✅ กรองข้อมูลอีกครั้งที่หน้าเว็บ
+        let filteredData = result.data;
         
-        setPlans(mockData);
-        setFilteredPlans(mockData);
+        // ถ้าเลือก "เผยแพร่" ให้กรองเอาเฉพาะที่ has_record = false
+        if (selectedStatus === 'เผยแพร่') {
+          filteredData = result.data.filter((plan: HomeroomPlan) => !plan.has_record);
+        }
+        // ถ้าเลือก "ร่าง" ให้กรองเอาเฉพาะที่ has_record = false
+        else if (selectedStatus === 'ร่าง') {
+          filteredData = result.data.filter((plan: HomeroomPlan) => !plan.has_record);
+        }
+        // ถ้าเลือก "บันทึกผลแล้ว" ให้กรองเอาเฉพาะที่ has_record = true
+        else if (selectedStatus === 'บันทึกผลแล้ว') {
+          filteredData = result.data.filter((plan: HomeroomPlan) => plan.has_record);
+        }
         
-        // จัดกลุ่มกิจกรรมตามวันที่
+        setPlans(filteredData);
+        setFilteredPlans(filteredData);
+        
+        // Group events for calendar
         const events: {[key: string]: HomeroomPlan[]} = {};
-        mockData.forEach(plan => {
+        filteredData.forEach((plan: HomeroomPlan) => {
           if (plan.date) {
-            if (!events[plan.date]) {
-              events[plan.date] = [];
-            }
+            if (!events[plan.date]) events[plan.date] = [];
             events[plan.date].push(plan);
           }
         });
         setCalendarEvents(events);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching plans:", error);
-        setLoading(false);
       }
-    };
-
-    fetchPlans();
-  }, []);
-
-  // Search and filter plans
-  useEffect(() => {
-    let filtered = plans;
-
-    if (search_keyword) {
-      filtered = filtered.filter(
-        (plan) =>
-          plan.title.toLowerCase().includes(search_keyword.toLowerCase()) ||
-          plan.level.includes(search_keyword)
-      );
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (selectedSemester) {
-      filtered = filtered.filter((plan) => plan.semester === selectedSemester);
-    }
-
-    if (selectedYear) {
-      filtered = filtered.filter((plan) => plan.academicYear === selectedYear);
-    }
-
-    if (selectedStatus) {
-      filtered = filtered.filter((plan) => plan.status === selectedStatus);
-    }
-
-    setFilteredPlans(filtered);
-  }, [search_keyword, selectedSemester, selectedYear, selectedStatus, plans]);
+  fetchPlans();
+}, [selectedSemester, selectedYear, selectedStatus, searchKeyword]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     
     try {
-      setPlans(plans.filter(p => p.id !== deleteId));
-      setFilteredPlans(filteredPlans.filter(p => p.id !== deleteId));
+      const response = await fetch(`/api/learn/${deleteId}`, {
+        method: 'DELETE',
+      });
       
-      const modal = document.getElementById('deleteModal');
-      if (modal) {
-        const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
-        bsModal.hide();
+      const result = await response.json();
+      
+      if (result.success) {
+        setPlans(plans.filter(p => p.id !== deleteId));
+        setFilteredPlans(filteredPlans.filter(p => p.id !== deleteId));
+        
+        // Close modal
+        const modal = document.getElementById('deleteModal');
+        if (modal) {
+          const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
+          bsModal.hide();
+        }
+      } else {
+        alert(result.message);
       }
       setDeleteId(null);
     } catch (error) {
       console.error("Error deleting plan:", error);
+      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, has_record?: boolean) => {
+    if (has_record) {
+      return <span className="badge bg-info rounded-0 text-uppercase fw-semibold">บันทึกผลแล้ว</span>;
+    }
+    
     switch(status) {
       case 'ร่าง':
         return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">ร่าง</span>;
       case 'เผยแพร่':
         return <span className="badge bg-success rounded-0 text-uppercase fw-semibold">เผยแพร่</span>;
-      case 'เสร็จสิ้น':
-        return <span className="badge bg-info rounded-0 text-uppercase fw-semibold">เสร็จสิ้น</span>;
       default:
         return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">{status}</span>;
     }
   };
 
-  // ฟังก์ชันปฏิทิน
+  // Calendar functions
   const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
   const monthNamesFull = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -259,11 +197,8 @@ export default function StudentLearnPage() {
   };
 
   const zoomOut = () => {
-    if (calendarLevel === "day") {
-      setCalendarLevel("month");
-    } else if (calendarLevel === "month") {
-      setCalendarLevel("year");
-    }
+    if (calendarLevel === "day") setCalendarLevel("month");
+    else if (calendarLevel === "month") setCalendarLevel("year");
   };
 
   const zoomIn = (date?: Date) => {
@@ -282,11 +217,6 @@ export default function StudentLearnPage() {
   };
 
   const buddhistYear = selectedDate.getFullYear() + 543;
-
-  const total_records = filteredPlans.length;
-  const itemsPerPage = 10;
-  const total_pages = Math.ceil(total_records / itemsPerPage);
-  const current_page = 1;
 
   return (
     <div className="min-vh-100 bg-light">
@@ -347,7 +277,7 @@ export default function StudentLearnPage() {
                 type="text" 
                 className="form-control rounded-0" 
                 placeholder="ค้นหาด้วยหัวข้อ, ระดับชั้น..."
-                value={search_keyword}
+                value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
               />
             </div>
@@ -383,7 +313,7 @@ export default function StudentLearnPage() {
               <option value="">สถานะ</option>
               <option value="ร่าง">ร่าง</option>
               <option value="เผยแพร่">เผยแพร่</option>
-              <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+              <option value="บันทึกผลแล้ว">บันทึกผลแล้ว</option> {/* เปลี่ยนจาก เสร็จสิ้น */}
             </select>
           </div>
           <div className="col-md-3">
@@ -411,7 +341,7 @@ export default function StudentLearnPage() {
               </button>
             </div>
             <div>
-              <span className="text-muted me-3">แสดง {total_records} รายการ</span>
+              <span className="text-muted me-3">แสดง {filteredPlans.length} รายการ</span>
               <Link
                 href="/student_learn/create"
                 className="btn btn-primary rounded-0 text-uppercase fw-semibold"
@@ -466,7 +396,7 @@ export default function StudentLearnPage() {
                             <td>{plan.level}</td>
                             <td>{plan.week}</td>
                             <td>{plan.date || '-'}</td>
-                            <td>{getStatusBadge(plan.status)}</td>
+                            <td>{getStatusBadge(plan.status, plan.has_record)}</td>
                             <td>
                               <div className="btn-group" role="group">
                                 <button 
@@ -518,12 +448,12 @@ export default function StudentLearnPage() {
           </div>
         )}
 
-        {/* Calendar View - ซูมเข้า/ออกได้ */}
+        {/* Calendar View */}
         {viewMode === 'calendar' && (
           <div className="row">
             <div className="col-12">
               <div className="card rounded-0 border-0 shadow-sm">
-                {/* Header ปฏิทิน */}
+                {/* Calendar Header */}
                 <div className="card-header bg-dark text-white rounded-0 py-3">
                   <div className="d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-2">
@@ -573,7 +503,7 @@ export default function StudentLearnPage() {
                   </div>
                 </div>
 
-                {/* แสดงสถานะสี */}
+                {/* Status Legend */}
                 <div className="card-footer bg-white border-bottom">
                   <div className="d-flex gap-3">
                     <div className="d-flex align-items-center">
@@ -586,12 +516,12 @@ export default function StudentLearnPage() {
                     </div>
                     <div className="d-flex align-items-center">
                       <span className="badge bg-info rounded-0 me-2">&nbsp;</span>
-                      <span className="small">เสร็จสิ้น</span>
+                      <span className="small">บันทึกผลแล้ว</span> {/* เปลี่ยนจาก เสร็จสิ้น */}
                     </div>
                   </div>
                 </div>
 
-                {/* มุมมองปี - แสดง 12 เดือน */}
+                {/* Year View */}
                 {calendarLevel === "year" && (
                   <div className="card-body">
                     <div className="row g-3">
@@ -638,7 +568,7 @@ export default function StudentLearnPage() {
                   </div>
                 )}
 
-                {/* มุมมองเดือน - แสดงปฏิทินทั้งเดือน */}
+                {/* Month View */}
                 {calendarLevel === "month" && (
                   <div className="card-body p-0">
                     <table className="table table-bordered mb-0">
@@ -716,7 +646,7 @@ export default function StudentLearnPage() {
                   </div>
                 )}
 
-                {/* มุมมองวัน - แสดงกิจกรรมของวันนั้น */}
+                {/* Day View */}
                 {calendarLevel === "day" && (
                   <div className="card-body">
                     <h5 className="mb-3">
@@ -755,7 +685,7 @@ export default function StudentLearnPage() {
                                   </p>
                                 </div>
                                 <div>
-                                  {getStatusBadge(event.status)}
+                                  {getStatusBadge(event.status, event.has_record)}
                                 </div>
                               </div>
                             </div>
@@ -766,33 +696,6 @@ export default function StudentLearnPage() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Pagination - แสดงเฉพาะโหมดตาราง */}
-        {viewMode === 'table' && (
-          <div className="row mt-3">
-            <div className="col-12 d-flex justify-content-center">
-              <nav aria-label="Page navigation">
-                <ul className="pagination rounded-0">
-                  <li className={`page-item ${current_page === 1 ? 'disabled' : ''}`}>
-                    <a className="page-link rounded-0" href="#" aria-label="Previous">
-                      <span aria-hidden="true">&laquo;</span>
-                    </a>
-                  </li>
-                  {Array.from({ length: total_pages }, (_, i) => i + 1).map(page => (
-                    <li key={page} className={`page-item ${page === current_page ? 'active' : ''}`}>
-                      <a className="page-link rounded-0" href="#">{page}</a>
-                    </li>
-                  ))}
-                  <li className={`page-item ${current_page === total_pages ? 'disabled' : ''}`}>
-                    <a className="page-link rounded-0" href="#" aria-label="Next">
-                      <span aria-hidden="true">&raquo;</span>
-                    </a>
-                  </li>
-                </ul>
-              </nav>
             </div>
           </div>
         )}
@@ -834,8 +737,6 @@ export default function StudentLearnPage() {
           </div>
         </div>
       </footer>
-
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
 }

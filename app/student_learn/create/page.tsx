@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -94,12 +95,82 @@ export default function CreateHomeroomPlanPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    
     try {
-      console.log("Saving plan:", formData);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push("/student_learn");
+      // สร้าง FormData สำหรับส่งไป API
+      const submitFormData = new FormData();
+      
+      // เพิ่มฟิลด์ทั่วไป
+      submitFormData.append('level', formData.level);
+      submitFormData.append('semester', formData.semester);
+      submitFormData.append('academicYear', formData.academicYear);
+      submitFormData.append('week', formData.week);
+      submitFormData.append('time', formData.time);
+      submitFormData.append('topic', formData.topic);
+      
+      // เพิ่มวัตถุประสงค์
+      formData.objectives.forEach((obj, index) => {
+        if (obj.trim()) {
+          submitFormData.append(`objectives[${index}]`, obj);
+        }
+      });
+      
+      // เพิ่มฟิลด์ช่วงที่ 1
+      submitFormData.append('checkAttendance', formData.checkAttendance);
+      submitFormData.append('checkUniform', formData.checkUniform);
+      submitFormData.append('announceNews', formData.announceNews);
+      
+      // เพิ่มฟิลด์ช่วงที่ 2
+      submitFormData.append('warmup', formData.warmup);
+      submitFormData.append('mainActivity', formData.mainActivity);
+      submitFormData.append('summary', formData.summary);
+      
+      // เพิ่มฟิลด์ช่วงที่ 3
+      submitFormData.append('trackProblems', formData.trackProblems);
+      submitFormData.append('individualCounsel', formData.individualCounsel);
+      
+      // เพิ่มฟิลด์การประเมินผล
+      submitFormData.append('evalObservation', formData.evalObservation ? 'on' : 'off');
+      submitFormData.append('evalWorksheet', formData.evalWorksheet ? 'on' : 'off');
+      submitFormData.append('evalParticipation', formData.evalParticipation ? 'on' : 'off');
+      
+      // เพิ่มฟิลด์บันทึกหลังกิจกรรม
+      submitFormData.append('teacherNote', formData.teacherNote);
+      submitFormData.append('problems', formData.problems);
+      submitFormData.append('specialTrack', formData.specialTrack);
+      submitFormData.append('sessionNote', formData.sessionNote);
+      
+      // เพิ่มฟิลด์สื่อ/เอกสาร
+      if (formData.materials) {
+        submitFormData.append('materials', formData.materials);
+      }
+      submitFormData.append('materialsNote', formData.materialsNote);
+      
+      // เพิ่มฟิลด์ข้อเสนอแนะและการติดตาม
+      submitFormData.append('suggestions', formData.suggestions);
+      submitFormData.append('individualFollowup', formData.individualFollowup);
+      
+      // เพิ่มสถานะและผู้สร้าง
+      submitFormData.append('status', formData.status);
+      submitFormData.append('created_by', teacher_name);
+      
+      // ส่งข้อมูลไป API
+      const response = await fetch('/api/learn', {
+        method: 'POST',
+        body: submitFormData,
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        router.push('/student_learn');
+      } else {
+        alert(result.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        setLoading(false);
+      }
     } catch (error) {
       console.error("Error:", error);
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
       setLoading(false);
     }
   };
@@ -164,13 +235,16 @@ export default function CreateHomeroomPlanPage() {
             <div className="col-md-2">
               <label className="form-label fw-semibold">ภาคเรียน</label>
               <select className="form-select rounded-0" name="semester" value={formData.semester} onChange={handleInputChange}>
-                <option value="1">ภาคเรียนที่ 1</option><option value="2">ภาคเรียนที่ 2</option>
+                <option value="1">ภาคเรียนที่ 1</option>
+                <option value="2">ภาคเรียนที่ 2</option>
               </select>
             </div>
             <div className="col-md-2">
               <label className="form-label fw-semibold">ปีการศึกษา</label>
               <select className="form-select rounded-0" name="academicYear" value={formData.academicYear} onChange={handleInputChange}>
-                <option value="2568">2568</option><option value="2567">2567</option><option value="2566">2566</option>
+                <option value="2568">2568</option>
+                <option value="2567">2567</option>
+                <option value="2566">2566</option>
               </select>
             </div>
             <div className="col-md-2">
@@ -365,7 +439,6 @@ export default function CreateHomeroomPlanPage() {
           </div>
         </div>
       </footer>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     </div>
   );
 }
