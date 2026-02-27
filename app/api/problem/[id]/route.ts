@@ -1,7 +1,10 @@
+// D:\advisor-main\app\api\problem\[id]\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
 import Student from "@/models/Student";
+import Activity from "@/models/Activity";
+import mongoose from "mongoose";
 
 // GET: ดึงข้อมูลนักเรียน
 export async function GET(
@@ -13,13 +16,46 @@ export async function GET(
     
     const { id } = await params;
     
-    const problem = await Problem.findOne({ student_id: id });
+    console.log("🔍 Searching with ID:", id);
     
-    if (problem) {
-      return NextResponse.json({ success: true, data: problem });
+    let problem = null;
+    
+    // ตรวจสอบว่า id เป็น MongoDB ObjectId หรือไม่
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // ค้นหาด้วย _id
+      problem = await Problem.findById(id);
+      console.log("📋 Found by _id:", problem ? "Yes" : "No");
     }
     
-    const student = await Student.findOne({ id });
+    // ถ้าไม่เจอด้วย _id ให้ค้นหาด้วย student_id
+    if (!problem) {
+      problem = await Problem.findOne({ student_id: id });
+      console.log("📋 Found by student_id:", problem ? "Yes" : "No");
+    }
+    
+    if (problem) {
+      // ดึงกิจกรรมที่เกี่ยวข้องกับนักเรียนคนนี้
+      const activities = await Activity.find({
+        "participants.student_id": problem.student_id
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        data: {
+          ...problem.toObject(),
+          activities: activities
+        }
+      });
+    }
+    
+    // ถ้าไม่เจอใน Problem ให้ค้นหานักเรียนจาก Student
+    const student = await Student.findOne({ 
+      $or: [
+        { id: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null }
+      ]
+    });
+    
     if (student) {
       return NextResponse.json({ 
         success: true, 
@@ -38,6 +74,7 @@ export async function GET(
     }, { status: 404 });
     
   } catch (error: any) {
+    console.error("❌ Error:", error);
     return NextResponse.json({ 
       success: false, 
       error: error.message 
@@ -56,6 +93,7 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     
+    // ค้นหานักเรียนด้วย student_id
     const student = await Student.findOne({ id });
     if (!student) {
       return NextResponse.json({ 
@@ -86,7 +124,6 @@ export async function POST(
       responsible: body.responsible,
       isp_status: "กำลังดำเนินการ",
       progress: 0,
-      activities: [],
       evaluations: []
     };
     
@@ -112,7 +149,17 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     
-    const problem = await Problem.findOne({ student_id: id });
+    let problem = null;
+    
+    // ค้นหาด้วย _id หรือ student_id
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      problem = await Problem.findById(id);
+    }
+    
+    if (!problem) {
+      problem = await Problem.findOne({ student_id: id });
+    }
+    
     if (!problem) {
       return NextResponse.json({ 
         success: false, 
@@ -156,7 +203,7 @@ export async function PUT(
     };
     
     const updated = await Problem.findOneAndUpdate(
-      { student_id: id },
+      { _id: problem._id },
       updateData,
       { new: true }
     );
@@ -181,7 +228,12 @@ export async function DELETE(
     
     const { id } = await params;
     
-    await Problem.findOneAndDelete({ student_id: id });
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      await Problem.findByIdAndDelete(id);
+    } else {
+      await Problem.findOneAndDelete({ student_id: id });
+    }
+    
     return NextResponse.json({ success: true });
     
   } catch (error: any) {

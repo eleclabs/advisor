@@ -1,44 +1,22 @@
-// D:\advisor-main\app\student_problem\activity\edit\page.tsx
+// D:\advisor-main\app\student_problem\activity\add\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface Student {
   id: string;
   student_name: string;
 }
 
-interface Activity {
-  _id: string;
-  name: string;
-  objective: string;
-  duration: number;
-  duration_period: string;
-  materials: string;
-  steps: string;
-  ice_breaking: string;
-  group_task: string;
-  debrief: string;
-  activity_date: string;
-  participants: Array<{
-    student_id: string;
-    student_name: string;
-    joined: boolean;
-    joined_at?: string;
-  }>;
-}
-
-export default function EditActivityPage() {
+// ตรวจสอบว่า export default ถูกต้อง
+export default function AddActivityPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const id = searchParams.get("id");
-  
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -50,17 +28,12 @@ export default function EditActivityPage() {
     ice_breaking: "",
     group_task: "",
     debrief: "",
-    activity_date: "",
     student_ids: [] as string[]
   });
 
   useEffect(() => {
-    if (id) {
-      fetchData();
-    } else {
-      router.push("/student_problem?tab=activities");
-    }
-  }, [id]);
+    fetchStudents();
+  }, []);
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
@@ -75,64 +48,34 @@ export default function EditActivityPage() {
     }
   }, [searchTerm, students]);
 
-  const fetchData = async () => {
+  const fetchStudents = async () => {
     try {
-      setLoading(true);
+      setLoadingStudents(true);
+      const res = await fetch("/api/problem");
+      const data = await res.json();
       
-      // ดึงข้อมูลกิจกรรม
-      const activityRes = await fetch(`/api/problem/activity?id=${id}`);
-      const activityData = await activityRes.json();
+      const studentList = (data.data || []).map((p: any) => ({
+        id: p.student_id,
+        student_name: p.student_name
+      }));
       
-      // ดึงรายชื่อนักเรียนทั้งหมด
-      const studentsRes = await fetch("/api/problem");
-      const studentsData = await studentsRes.json();
-      
-      if (activityData.success) {
-        const activity = activityData.data;
-        
-        // เตรียม student_ids จาก participants
-        const participantIds = activity.participants?.map((p: any) => p.student_id) || [];
-        
-        setFormData({
-          name: activity.name || "",
-          objective: activity.objective || "",
-          duration: activity.duration || 60,
-          duration_period: activity.duration_period || "",
-          materials: activity.materials || "",
-          steps: activity.steps || "",
-          ice_breaking: activity.ice_breaking || "",
-          group_task: activity.group_task || "",
-          debrief: activity.debrief || "",
-          activity_date: activity.activity_date ? new Date(activity.activity_date).toISOString().split('T')[0] : "",
-          student_ids: participantIds
-        });
-      }
-      
-      if (studentsData.success) {
-        const studentList = (studentsData.data || []).map((p: any) => ({
-          id: p.student_id,
-          student_name: p.student_name
-        }));
-        setStudents(studentList);
-        setFilteredStudents(studentList);
-      }
-      
+      setStudents(studentList);
+      setFilteredStudents(studentList);
     } catch (error) {
-      console.error("Error fetching data:", error);
-      alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      console.error("Error fetching students:", error);
     } finally {
-      setLoading(false);
+      setLoadingStudents(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    setSaving(true);
+    setLoading(true);
     
     try {
-      const res = await fetch(`/api/problem/activity?id=${id}`, {
-        method: "PUT",
+      const res = await fetch("/api/problem/activity", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
       });
@@ -140,8 +83,8 @@ export default function EditActivityPage() {
       const data = await res.json();
       
       if (res.ok) {
-        alert("แก้ไขกิจกรรมเรียบร้อย");
-        router.push(`/student_problem/activity/view?id=${id}`);
+        alert(data.message || "เพิ่มกิจกรรมเรียบร้อย");
+        router.push("/student_problem?tab=activities");
       } else {
         alert(data.error || "เกิดข้อผิดพลาด");
       }
@@ -149,7 +92,7 @@ export default function EditActivityPage() {
       console.error("Error:", error);
       alert("เกิดข้อผิดพลาดในการบันทึก");
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -162,27 +105,15 @@ export default function EditActivityPage() {
     }));
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "-";
-    try {
-      return new Date(dateString).toLocaleDateString('th-TH', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch {
-      return "-";
-    }
-  };
-
-  if (loading) {
+  // ถ้ายังโหลดนักเรียนอยู่
+  if (loadingStudents) {
     return (
       <div className="container py-5">
         <div className="text-center">
           <div className="spinner-border text-warning" role="status">
             <span className="visually-hidden">กำลังโหลด...</span>
           </div>
-          <p className="mt-2 text-muted">กำลังโหลดข้อมูล...</p>
+          <p className="mt-2 text-muted">กำลังโหลดข้อมูลนักเรียน...</p>
         </div>
       </div>
     );
@@ -195,8 +126,8 @@ export default function EditActivityPage() {
           <div className="card">
             <div className="card-header bg-dark text-white">
               <h4 className="mb-0">
-                <i className="bi bi-pencil-square me-2"></i>
-                แก้ไขกิจกรรมกลุ่มสัมพันธ์
+                <i className="bi bi-plus-circle me-2"></i>
+                เพิ่มกิจกรรมกลุ่มสัมพันธ์
               </h4>
             </div>
             <div className="card-body">
@@ -214,17 +145,22 @@ export default function EditActivityPage() {
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                         required
+                        placeholder="เช่น ละลายพฤติกรรม สร้างทีม"
                       />
                     </div>
 
-                    {/* วัตถุประสงค์ */}
+                    {/* วัตถุประสงค์ / เป้าหมายกิจกรรม */}
                     <div className="mb-3">
-                      <label className="form-label fw-bold">วัตถุประสงค์ / เป้าหมายกิจกรรม</label>
+                      <label className="form-label fw-bold">
+                        วัตถุประสงค์ / เป้าหมายกิจกรรม
+                        <small className="text-muted ms-2">(เพื่อแก้ปัญหาอะไร)</small>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.objective}
                         onChange={(e) => setFormData({...formData, objective: e.target.value})}
+                        placeholder="เช่น ลดความขัดแย้ง / เสริมการทำงานเป็นทีม / พัฒนาการสื่อสาร"
                       />
                     </div>
 
@@ -246,29 +182,23 @@ export default function EditActivityPage() {
                           className="form-control"
                           value={formData.materials}
                           onChange={(e) => setFormData({...formData, materials: e.target.value})}
+                          placeholder="กระดาษ, ปากกา, บอลล์"
                         />
                       </div>
                     </div>
 
-                    {/* วันที่จัดกิจกรรม */}
+                    {/* ระยะเวลาดำเนินการ / ครั้งที่จัด */}
                     <div className="mb-3">
-                      <label className="form-label fw-bold">วันที่จัดกิจกรรม</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        value={formData.activity_date}
-                        onChange={(e) => setFormData({...formData, activity_date: e.target.value})}
-                      />
-                    </div>
-
-                    {/* ระยะเวลาดำเนินการ */}
-                    <div className="mb-3">
-                      <label className="form-label fw-bold">ระยะเวลาดำเนินการ / ครั้งที่จัด</label>
+                      <label className="form-label fw-bold">
+                        ระยะเวลาดำเนินการ / ครั้งที่จัด
+                        <small className="text-muted ms-2">(ทำครั้งเดียว หรือ ต่อเนื่อง)</small>
+                      </label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.duration_period}
                         onChange={(e) => setFormData({...formData, duration_period: e.target.value})}
+                        placeholder="ครั้งที่ 1 / 1 หรือ ก.พ. – มี.ค. 2569"
                       />
                     </div>
 
@@ -279,6 +209,9 @@ export default function EditActivityPage() {
                         rows={4}
                         value={formData.steps}
                         onChange={(e) => setFormData({...formData, steps: e.target.value})}
+                        placeholder="1. แนะนำตัว
+2. จับคู่ทำกิจกรรม
+3. สรุปผล"
                       />
                     </div>
 
@@ -289,6 +222,7 @@ export default function EditActivityPage() {
                         className="form-control"
                         value={formData.ice_breaking}
                         onChange={(e) => setFormData({...formData, ice_breaking: e.target.value})}
+                        placeholder="เกมหรือกิจกรรมละลายพฤติกรรม"
                       />
                     </div>
 
@@ -299,6 +233,7 @@ export default function EditActivityPage() {
                         className="form-control"
                         value={formData.group_task}
                         onChange={(e) => setFormData({...formData, group_task: e.target.value})}
+                        placeholder="โจทย์ที่ให้กลุ่มทำ"
                       />
                     </div>
 
@@ -307,6 +242,7 @@ export default function EditActivityPage() {
                       <textarea
                         className="form-control"
                         rows={3}
+                        placeholder="สิ่งที่ได้เรียนรู้จากการทำงานร่วมกับเพื่อน"
                         value={formData.debrief}
                         onChange={(e) => setFormData({...formData, debrief: e.target.value})}
                       />
@@ -337,7 +273,12 @@ export default function EditActivityPage() {
                     
                     <div className="mb-3">
                       <div className="border p-3 bg-light" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                        {filteredStudents.length === 0 ? (
+                        {loadingStudents ? (
+                          <div className="text-center py-4">
+                            <div className="spinner-border spinner-border-sm text-warning me-2"></div>
+                            <span className="text-muted">กำลังโหลด...</span>
+                          </div>
+                        ) : filteredStudents.length === 0 ? (
                           <div className="text-center py-4">
                             <p className="text-muted mb-0">ไม่พบนักเรียน</p>
                           </div>
@@ -359,22 +300,27 @@ export default function EditActivityPage() {
                         )}
                       </div>
                       
-                      <div className="mt-2">
-                        <span className="text-success">
+                      {formData.student_ids.length > 0 ? (
+                        <div className="mt-2 text-success">
                           <i className="bi bi-check-circle me-1"></i>
                           เลือกแล้ว {formData.student_ids.length} คน
-                        </span>
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-muted small">
+                          <i className="bi bi-info-circle me-1"></i>
+                          ไม่เลือกนักเรียนก็ได้
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="d-flex justify-content-end gap-2 mt-4">
-                  <Link href={`/student_problem/activity/view?id=${id}`} className="btn btn-secondary">
+                  <Link href="/student_problem?tab=activities" className="btn btn-secondary">
                     ยกเลิก
                   </Link>
-                  <button type="submit" className="btn btn-warning" disabled={saving}>
-                    {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
+                  <button type="submit" className="btn btn-warning" disabled={loading}>
+                    {loading ? "กำลังบันทึก..." : "บันทึกกิจกรรม"}
                   </button>
                 </div>
               </form>
