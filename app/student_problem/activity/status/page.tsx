@@ -54,6 +54,31 @@ export default function ActivityStatusPage() {
     fetchData();
   }, [activity_id, student_object_id]);
 
+  // ✅ เพิ่ม effect สำหรับ refresh ข้อมูลเมื่อกลับมาจากหน้าอื่น
+  useEffect(() => {
+    const handleFocus = () => {
+      if (activity_id && student_object_id) {
+        console.log("🔄 Refreshing data on focus...");
+        fetchData();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && activity_id && student_object_id) {
+        console.log("🔄 Refreshing data on visibility change...");
+        fetchData();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [activity_id, student_object_id]);
+
   /* ================= FETCH ================= */
   const fetchData = async () => {
     try {
@@ -87,13 +112,22 @@ export default function ActivityStatusPage() {
 
   /* ================= LOAD STATUS ================= */
   const loadExistingStatus = (studentData: StudentData, activityData: ActivityData) => {
+    console.log("🔍 Loading status for student:", studentData.student_id);
+    console.log("🔍 Looking for activity:", activityData._id);
+    console.log("🔍 Student activities:", studentData.activities);
+    
     const found = studentData.activities?.find(
       (a) => String(a.activity_id) === String(activityData._id)
     );
 
-    if (!found) return;
+    console.log("🔍 Found activity data:", found);
 
-    setFormData({
+    if (!found) {
+      console.log("❌ No activity found, keeping default values");
+      return;
+    }
+
+    const formDataToUpdate = {
       status: found.status || "ยังไม่เข้าร่วม",
       joined_at: found.joined_at
         ? new Date(found.joined_at).toISOString().split("T")[0]
@@ -102,7 +136,10 @@ export default function ActivityStatusPage() {
         ? new Date(found.completed_at).toISOString().split("T")[0]
         : "",
       notes: found.notes || ""
-    });
+    };
+
+    console.log("📝 Updating form data:", formDataToUpdate);
+    setFormData(formDataToUpdate);
   };
 
   /* ================= SUBMIT ================= */

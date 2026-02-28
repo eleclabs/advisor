@@ -381,6 +381,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
             <div className="card border-0 shadow-sm">
               <div className="card-body">
                 <h5 className="mb-3">ประวัติการประเมิน</h5>
+                {console.log("🔍 Evaluations data:", problem.evaluations)}
                 {problem.evaluations && Array.isArray(problem.evaluations) && problem.evaluations.length > 0 ? (
                   <div className="table-responsive">
                     <table className="table table-hover table-bordered">

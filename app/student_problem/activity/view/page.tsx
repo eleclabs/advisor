@@ -517,7 +517,7 @@ export default function ViewActivityPage() {
                         </td>
                         <td>
                           <span className={`badge ${getStatusBadgeClass(status)} text-white px-3 py-2`}>
-                            {p.status}
+                            {status}
                           </span>
                         </td>
                         <td>

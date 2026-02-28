@@ -7,21 +7,27 @@ import Link from "next/link";
 import { use } from "react";
 
 interface Activity {
-  _id?: string;
+  _id: string;
   name: string;
+  objective?: string;
   duration: number;
+  duration_period?: string;
   materials: string;
-  step1: string;
-  step2: string;
-  step3: string;
+  steps: string;
   ice_breaking: string;
   group_task: string;
   debrief: string;
-  activity_date?: string;
-  joined: boolean;
-  student_id?: string;
-  student_name?: string;
-  index?: number;
+  activity_date: string;
+  participants: Array<{
+    student_id: string;
+    student_name: string;
+    joined: boolean;
+    joined_at?: string;
+  }>;
+  total_participants?: number;
+  joined_count?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function EditProblemPage({ params }: { params: Promise<{ id: string }> }) {
@@ -77,8 +83,8 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
         // เตรียมกิจกรรมที่เลือกไว้แล้ว
         if (data.data.activities && data.data.activities.length > 0) {
           const selectedIds = data.data.activities
-            .filter((a: any) => a.joined)
-            .map((a: any, idx: number) => `${data.data.student_id}_${idx}`);
+            .filter((a: any) => a.activity_id) // กรองเฉพาะที่มี activity_id
+            .map((a: any) => a.activity_id.toString());
           setSelectedActivities(selectedIds);
         }
       }
@@ -106,21 +112,18 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
     try {
       // เตรียมข้อมูลกิจกรรมที่เลือก
       const selectedActivitiesData = selectedActivities.map(actId => {
-        const act = activities.find(a => `${a.student_id}_${a.index}` === actId);
+        const act = activities.find(a => a._id === actId);
         return act ? { 
+          activity_id: act._id,
           name: act.name,
           duration: act.duration,
           materials: act.materials,
-          step1: act.step1,
-          step2: act.step2,
-          step3: act.step3,
+          steps: act.steps,
           ice_breaking: act.ice_breaking,
           group_task: act.group_task,
           debrief: act.debrief,
           activity_date: act.activity_date,
-          joined: true,
-          student_id: act.student_id,
-          student_name: act.student_name
+          status: "เข้าร่วมแล้ว"
         } : null;
       }).filter(Boolean);
 
@@ -360,26 +363,25 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                       {filteredActivities.length === 0 ? (
                         <p className="text-muted text-center py-4">ไม่มีกิจกรรม</p>
                       ) : (
-                        filteredActivities.map((act, idx) => {
-                          const activityId = `${act.student_id}_${act.index}`;
+                        filteredActivities.map((act) => {
                           return (
-                            <div key={idx} className="card mb-2 border-0 bg-light">
+                            <div key={act._id} className="card mb-2 border-0 bg-light">
                               <div className="card-body p-2">
                                 <div className="form-check">
                                   <input
                                     type="checkbox"
                                     className="form-check-input"
-                                    id={activityId}
-                                    checked={selectedActivities.includes(activityId)}
-                                    onChange={() => toggleActivity(activityId)}
+                                    id={act._id}
+                                    checked={selectedActivities.includes(act._id)}
+                                    onChange={() => toggleActivity(act._id)}
                                   />
-                                  <label className="form-check-label w-100" htmlFor={activityId}>
+                                  <label className="form-check-label w-100" htmlFor={act._id}>
                                     <div className="d-flex justify-content-between">
                                       <span className="fw-bold">{act.name}</span>
                                       <small className="text-muted">{act.duration} นาที</small>
                                     </div>
                                     <small className="text-muted d-block">
-                                      {act.student_name} • {act.activity_date ? new Date(act.activity_date).toLocaleDateString('th-TH') : '-'}
+                                      วันที่: {act.activity_date ? new Date(act.activity_date).toLocaleDateString('th-TH') : '-'}
                                     </small>
                                   </label>
                                 </div>
