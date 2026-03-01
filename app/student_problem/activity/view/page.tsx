@@ -29,11 +29,11 @@ interface Activity {
   updatedAt?: string;
 }
 
-// ✅ Interface สำหรับข้อมูลจาก Problem
 interface StudentProblemData {
   student_id: string;
   activities_status?: Record<string, string>;
   activity_join_dates?: Record<string, string>;
+  activity_completed_dates?: Record<string, string>;
   activities?: Array<{
     activity_id: string;
     status: string;
@@ -70,7 +70,6 @@ export default function ViewActivityPage() {
         console.log("📥 Activity data:", data.data);
         setActivity(data.data);
         
-        // ✅ ดึงข้อมูล Problem ของนักเรียนทุกคนในกิจกรรม
         if (data.data.participants && data.data.participants.length > 0) {
           await fetchStudentsData(data.data.participants);
         }
@@ -85,7 +84,6 @@ export default function ViewActivityPage() {
     }
   };
 
-  // ✅ ฟังก์ชันดึงข้อมูล Problem ของนักเรียนแต่ละคน
   const fetchStudentsData = async (participants: any[]) => {
     try {
       const promises = participants.map(async (p) => {
@@ -114,61 +112,55 @@ export default function ViewActivityPage() {
     }
   };
 
-  // ✅ ดึงสถานะกิจกรรมจาก Problem
   const getActivityStatus = (studentId: string) => {
     const studentData = studentsData.get(studentId);
     
-    // ลองหาจาก activities_status Map
-    if (studentData?.activities_status && activity) {
-      const status = studentData.activities_status[activity._id];
-      if (status) return status;
-    }
-    
-    // ลองหาจาก activities array
     if (studentData?.activities && activity) {
       const activityData = studentData.activities.find(
-        (a: any) => a.activity_id === activity._id || a.activity_id?.toString() === activity._id
+        (a: any) => String(a.activity_id) === String(activity._id)
       );
       if (activityData?.status) return activityData.status;
     }
     
-    // ถ้าไม่มีใน Problem ให้ใช้ข้อมูลจาก participants
     const participant = activity?.participants?.find(p => p.student_id === studentId);
     return participant?.joined ? 'เข้าร่วมแล้ว' : 'ยังไม่เข้าร่วม';
   };
 
-  // ✅ ดึงวันที่เข้าร่วมจาก Problem
   const getJoinDate = (studentId: string) => {
     const studentData = studentsData.get(studentId);
     
-    // ลองหาจาก activity_join_dates Map
-    if (studentData?.activity_join_dates && activity) {
-      const joinDate = studentData.activity_join_dates[activity._id];
-      if (joinDate) return joinDate;
-    }
-    
-    // ลองหาจาก activities array
     if (studentData?.activities && activity) {
       const activityData = studentData.activities.find(
-        (a: any) => a.activity_id === activity._id || a.activity_id?.toString() === activity._id
+        (a: any) => String(a.activity_id) === String(activity._id)
       );
       if (activityData?.joined_at) return activityData.joined_at;
     }
     
-    // ถ้าไม่มีใน Problem ให้ใช้ข้อมูลจาก participants
     const participant = activity?.participants?.find(p => p.student_id === studentId);
-    return participant?.joined_at;
+    return participant?.joined_at || null;
   };
 
-  // ✅ ดึงคำอธิบายจาก Problem
+  const getCompletedDate = (studentId: string) => {
+    const studentData = studentsData.get(studentId);
+    
+    if (studentData?.activities && activity) {
+      const activityData = studentData.activities.find(
+        (a: any) => String(a.activity_id) === String(activity._id)
+      );
+      if (activityData?.completed_at) return activityData.completed_at;
+    }
+    
+    return null;
+  };
+
   const getNotes = (studentId: string) => {
     const studentData = studentsData.get(studentId);
     
     if (studentData?.activities && activity) {
       const activityData = studentData.activities.find(
-        (a: any) => a.activity_id === activity._id || a.activity_id?.toString() === activity._id
+        (a: any) => String(a.activity_id) === String(activity._id)
       );
-      return activityData?.notes;
+      return activityData?.notes || null;
     }
     
     return null;
@@ -202,7 +194,6 @@ export default function ViewActivityPage() {
     }
   };
 
-  // ✅ ฟังก์ชันหา badge class ตามสถานะ
   const getStatusBadgeClass = (status: string) => {
     switch(status) {
       case 'เสร็จสิ้น': return 'bg-success';
@@ -241,7 +232,6 @@ export default function ViewActivityPage() {
 
   return (
     <div className="container py-4">
-      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-3 border-warning">
         <div>
           <h2 className="fw-bold mb-1">
@@ -277,7 +267,6 @@ export default function ViewActivityPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="row g-3 mb-4">
         <div className="col-sm-6 col-md-6">
           <div className="card bg-primary text-white">
@@ -309,7 +298,6 @@ export default function ViewActivityPage() {
         </div>
       </div>
 
-      {/* วัตถุประสงค์ / เป้าหมายกิจกรรม */}
       <div className="card mb-4">
         <div className="card-header bg-warning">
           <h6 className="mb-0 fw-bold text-dark">
@@ -332,7 +320,6 @@ export default function ViewActivityPage() {
         </div>
       </div>
 
-      {/* รายละเอียดกิจกรรม */}
       <div className="card mb-4">
         <div className="card-header bg-light">
           <h6 className="mb-0 fw-bold">📋 รายละเอียดกิจกรรม</h6>
@@ -358,8 +345,6 @@ export default function ViewActivityPage() {
                 <label className="fw-bold text-muted small">วันที่จัด</label>
                 <p className="mb-0">{formatDate(activity.activity_date)}</p>
               </div>
-              
-              {/* ส่วนแสดงระยะเวลาดำเนินการ / ครั้งที่จัด */}
               <div className="mb-3">
                 <label className="fw-bold text-muted small">
                   <i className="bi bi-calendar-range me-1"></i>
@@ -377,7 +362,6 @@ export default function ViewActivityPage() {
         </div>
       </div>
 
-      {/* ขั้นตอน */}
       {activity.steps ? (
         <div className="card mb-4">
           <div className="card-header bg-success text-white">
@@ -397,7 +381,6 @@ export default function ViewActivityPage() {
         </div>
       )}
 
-      {/* ละลายพฤติกรรม / โจทย์กลุ่ม / ถอดบทเรียน */}
       <div className="row g-3 mb-4">
         <div className="col-md-4">
           <div className="card h-100">
@@ -457,7 +440,6 @@ export default function ViewActivityPage() {
         </div>
       </div>
 
-      {/* ✅ รายชื่อนักเรียนทั้งหมด - ดึงข้อมูลจาก Problem */}
       <div className="card mb-4">
         <div className="card-header bg-dark text-white">
           <h6 className="mb-0">
@@ -480,16 +462,20 @@ export default function ViewActivityPage() {
                     <th>รหัสนักเรียน</th>
                     <th>ชื่อ-นามสกุล</th>
                     <th>วันที่เข้าร่วม</th>
+                    <th>วันที่เสร็จสิ้น</th>
                     <th>สถานะ</th>
+                    <th>หมายเหตุ</th>
                     <th>จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {activity.participants.map((p, index) => {
-                    // ✅ ดึงข้อมูลจาก Problem
                     const status = getActivityStatus(p.student_id);
                     const joinDate = getJoinDate(p.student_id);
+                    const completedDate = getCompletedDate(p.student_id);
                     const notes = getNotes(p.student_id);
+                    
+                    console.log(`📊 Student ${p.student_id}:`, { status, joinDate, completedDate, notes });
                     
                     return (
                       <tr key={p.student_id}>
@@ -497,16 +483,7 @@ export default function ViewActivityPage() {
                         <td>
                           <span className="fw-bold">{p.student_id}</span>
                         </td>
-                        <td>
-                          {p.student_name}
-                          {notes && (
-                            <i 
-                              className="bi bi-chat-dots-fill ms-2 text-info" 
-                              style={{ cursor: 'pointer' }}
-                              title={notes}
-                            ></i>
-                          )}
-                        </td>
+                        <td>{p.student_name}</td>
                         <td>
                           {joinDate 
                             ? formatShortDate(joinDate)
@@ -516,13 +493,25 @@ export default function ViewActivityPage() {
                           }
                         </td>
                         <td>
+                          {completedDate 
+                            ? formatShortDate(completedDate)
+                            : '-'
+                          }
+                        </td>
+                        <td>
                           <span className={`badge ${getStatusBadgeClass(status)} text-white px-3 py-2`}>
                             {status}
                           </span>
                         </td>
                         <td>
+                          {notes ? (
+                            <span title={notes}>
+                              <i className="bi bi-chat-dots-fill text-info"></i>
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td>
                           <div className="btn-group" role="group">
-                            {/* ปุ่มดูโปรไฟล์ */}
                             <button 
                               className="btn btn-sm btn-outline-info"
                               onClick={() => router.push(`/student_problem/${p.student_id}`)}
@@ -530,8 +519,6 @@ export default function ViewActivityPage() {
                             >
                               <i className="bi bi-eye"></i>
                             </button>
-                            
-                            {/* ปุ่มแก้ไขสถานะ */}
                             <button 
                               className="btn btn-sm btn-outline-warning"
                               onClick={() => router.push(
@@ -553,7 +540,6 @@ export default function ViewActivityPage() {
         </div>
       </div>
 
-      {/* ข้อมูลระบบ */}
       {(activity.createdAt || activity.updatedAt) && (
         <div className="mt-3 text-muted small text-end">
           {activity.createdAt && <span>สร้าง: {formatDate(activity.createdAt)}</span>}

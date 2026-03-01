@@ -1,14 +1,14 @@
+// D:\advisor-main\app\student_problem\[id]\result\page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { use } from "react";
 
 export default function EvaluationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const searchParams = useSearchParams();
   
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -45,6 +45,9 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
             evaluation_number: data.data.evaluations.length + 1
           }));
         }
+      } else {
+        alert("ไม่พบข้อมูลนักเรียน");
+        router.push("/student_problem");
       }
     } catch (error) {
       console.error("Error fetching student data:", error);
@@ -74,7 +77,8 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
       const data = await res.json();
       if (res.ok) {
         alert("บันทึกผลการประเมินเรียบร้อย");
-        router.push(`/student_problem/${id}`);
+        router.push(`/student_problem/${id}?tab=evaluations`);
+        router.refresh();
       } else {
         alert(data.error || "เกิดข้อผิดพลาด");
       }
@@ -313,7 +317,7 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div className="d-flex justify-content-end gap-2">
-                  <Link href={`/student_problem/${id}`} className="btn btn-secondary">
+                  <Link href={`/student_problem/${id}?tab=evaluations`} className="btn btn-secondary">
                     <i className="bi bi-arrow-left me-1"></i>
                     กลับ
                   </Link>

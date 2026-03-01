@@ -4,12 +4,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ViewProblemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   
   const [problem, setProblem] = useState<any>(null);
-  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("info");
 
@@ -24,17 +25,33 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
       const data = await res.json();
       console.log("📥 Response:", data);
       setProblem(data.data);
-      
-      // ดึงกิจกรรมที่นักเรียนคนนี้เข้าร่วม
-      if (data.data && data.data.student_id) {
-        const activitiesRes = await fetch(`/api/problem/activity?student_id=${data.data.student_id}`);
-        const activitiesData = await activitiesRes.json();
-        setActivities(activitiesData.data || []);
-      }
     } catch (error) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteEvaluation = async (evaluationId: string) => {
+    if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบการประเมินนี้?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/problem/${id}/evaluation/${evaluationId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        alert("ลบการประเมินเรียบร้อย");
+        fetchData(); // โหลดข้อมูลใหม่
+      } else {
+        const data = await res.json();
+        alert(data.error || "เกิดข้อผิดพลาดในการลบ");
+      }
+    } catch (error) {
+      console.error("Error deleting evaluation:", error);
+      alert("เกิดข้อผิดพลาด");
     }
   };
 
@@ -73,18 +90,24 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
     return "danger";
   };
 
-  // ✅ ดึงสถานะกิจกรรมจาก Problem (activities_status)
   const getActivityStatus = (activityId: string) => {
-    const status = problem?.activities_status?.[activityId];
+    if (!problem?.activities) return 'ยังไม่เข้าร่วม';
     
-    if (status === 'completed') return 'เสร็จสิ้น';
-    if (status === 'joined') return 'เข้าร่วมแล้ว';
-    return 'ยังไม่เข้าร่วม';
+    const activity = problem.activities.find(
+      (a: any) => String(a.activity_id?._id) === String(activityId) || String(a.activity_id) === String(activityId)
+    );
+    
+    return activity?.status || 'ยังไม่เข้าร่วม';
   };
 
-  // ✅ ดึงวันที่เข้าร่วมจาก Problem (activity_join_dates)
   const getJoinDate = (activityId: string) => {
-    return problem?.activity_join_dates?.[activityId] || null;
+    if (!problem?.activities) return null;
+    
+    const activity = problem.activities.find(
+      (a: any) => String(a.activity_id?._id) === String(activityId) || String(a.activity_id) === String(activityId)
+    );
+    
+    return activity?.joined_at || null;
   };
 
   const getStatusBadgeClass = (status: string) => {
@@ -308,12 +331,12 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
             </div>
           )}
 
-          {/* TAB 3: กิจกรรม - ใช้ข้อมูลจาก Problem โดยตรง */}
+          {/* TAB 3: กิจกรรม */}
           {activeTab === 'activities' && (
             <div className="card border-0 shadow-sm">
               <div className="card-body">
                 <h5 className="mb-3">กิจกรรมที่เข้าร่วม</h5>
-                {activities && activities.length > 0 ? (
+                {problem.activities && problem.activities.length > 0 ? (
                   <div className="table-responsive">
                     <table className="table table-hover table-bordered">
                       <thead className="table-light">
@@ -327,17 +350,20 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                         </tr>
                       </thead>
                       <tbody>
-                        {activities.map((act: any, idx: number) => {
-                          // ✅ ดึงข้อมูลจาก Problem โดยตรง
-                          const status = getActivityStatus(act._id);
-                          const joinDate = getJoinDate(act._id);
+                        {problem.activities.map((act: any, idx: number) => {
+                          const activityId = act.activity_id?._id || act.activity_id;
+                          const activityName = act.activity_id?.name || 'ไม่ระบุชื่อ';
+                          const duration = act.activity_id?.duration || '-';
+                          
+                          const status = getActivityStatus(activityId);
+                          const joinDate = getJoinDate(activityId);
                           
                           return (
-                            <tr key={act._id || idx}>
+                            <tr key={activityId || idx}>
                               <td className="fw-bold text-center">{idx + 1}</td>
                               <td>
-                                <Link href={`/student_problem/activity/view?id=${act._id}`} className="text-decoration-none fw-bold">
-                                  {act.name || 'ไม่ระบุชื่อ'}
+                                <Link href={`/student_problem/activity/view?id=${activityId}`} className="text-decoration-none fw-bold">
+                                  {activityName}
                                 </Link>
                               </td>
                               <td>
@@ -346,7 +372,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                                   : '-'
                                 }
                               </td>
-                              <td className="text-center">{act.duration || '-'} นาที</td>
+                              <td className="text-center">{duration} นาที</td>
                               <td className="text-center">
                                 <span className={`badge ${getStatusBadgeClass(status)} text-white px-3 py-2`}>
                                   {status}
@@ -354,7 +380,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                               </td>
                               <td className="text-center">
                                 <Link 
-                                  href={`/student_problem/activity/view?id=${act._id}`} 
+                                  href={`/student_problem/activity/view?id=${activityId}`} 
                                   className="btn btn-sm btn-outline-info"
                                 >
                                   <i className="bi bi-eye"></i>
@@ -380,8 +406,12 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
           {activeTab === 'evaluations' && (
             <div className="card border-0 shadow-sm">
               <div className="card-body">
-                <h5 className="mb-3">ประวัติการประเมิน</h5>
-                {console.log("🔍 Evaluations data:", problem.evaluations)}
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h5 className="mb-0">ประวัติการประเมิน</h5>
+                  <Link href={`/student_problem/${problem._id}/result`} className="btn btn-warning btn-sm">
+                    <i className="bi bi-plus-circle me-2"></i>เพิ่มการประเมิน
+                  </Link>
+                </div>
                 {problem.evaluations && Array.isArray(problem.evaluations) && problem.evaluations.length > 0 ? (
                   <div className="table-responsive">
                     <table className="table table-hover table-bordered">
@@ -392,6 +422,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                           <th>ระดับการเปลี่ยนแปลง</th>
                           <th>ผลสรุป</th>
                           <th>หมายเหตุ</th>
+                          <th>จัดการ</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -409,6 +440,15 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                             </td>
                             <td>{e.result || '-'}</td>
                             <td>{e.notes || '-'}</td>
+                            <td>
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => handleDeleteEvaluation(e._id)}
+                                title="ลบการประเมิน"
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -418,9 +458,6 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                   <div className="text-center py-5">
                     <i className="bi bi-bar-chart fs-1 text-muted d-block mb-3"></i>
                     <p className="text-muted mb-0">ยังไม่มีการประเมิน</p>
-                    <Link href={`/student_problem/${problem._id}/result`} className="btn btn-warning btn-sm mt-3">
-                      <i className="bi bi-plus-circle me-2"></i>เพิ่มการประเมิน
-                    </Link>
                   </div>
                 )}
               </div>

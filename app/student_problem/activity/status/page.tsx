@@ -4,39 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-/* ================= TYPES ================= */
-interface StudentData {
-  _id: string;              // Mongo ObjectId
-  student_id: string;       // รหัสนักเรียนจริง
-  student_name: string;
-  activities?: Array<{
-    activity_id: string;
-    status: string;
-    joined_at?: string;
-    completed_at?: string;
-    notes?: string;
-  }>;
-}
-
-interface ActivityData {
-  _id: string;
-  name: string;
-  activity_date: string;
-}
-
-/* ================= PAGE ================= */
 export default function ActivityStatusPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ⚠️ student_id จาก URL = Mongo _id เท่านั้น
   const activity_id = searchParams.get("activity_id");
-  const student_object_id = searchParams.get("student_id");
+  const student_id = searchParams.get("student_id"); // เปลี่ยนจาก student_object_id เป็น student_id
+  const student_name = searchParams.get("student_name");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [student, setStudent] = useState<StudentData | null>(null);
-  const [activity, setActivity] = useState<ActivityData | null>(null);
+  const [student, setStudent] = useState<any>(null);
+  const [activity, setActivity] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     status: "ยังไม่เข้าร่วม",
@@ -45,54 +24,24 @@ export default function ActivityStatusPage() {
     notes: ""
   });
 
-  /* ================= EFFECT ================= */
-  useEffect(() => {
-    if (!activity_id || !student_object_id) {
-      router.push("/student_problem?tab=activities");
-      return;
-    }
-    fetchData();
-  }, [activity_id, student_object_id]);
-
-  // ✅ เพิ่ม effect สำหรับ refresh ข้อมูลเมื่อกลับมาจากหน้าอื่น
-  useEffect(() => {
-    const handleFocus = () => {
-      if (activity_id && student_object_id) {
-        console.log("🔄 Refreshing data on focus...");
-        fetchData();
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden && activity_id && student_object_id) {
-        console.log("🔄 Refreshing data on visibility change...");
-        fetchData();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [activity_id, student_object_id]);
-
-  /* ================= FETCH ================= */
+  // ฟังก์ชัน fetch ข้อมูล
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log("🔄 Starting fetch for:", { activity_id, student_id });
 
       const [activityRes, studentRes] = await Promise.all([
         fetch(`/api/problem/activity?id=${activity_id}`),
-        fetch(`/api/problem/${student_object_id}`) // ✅ ใช้ Mongo _id
+        fetch(`/api/problem/${student_id}`) // ใช้ student_id
       ]);
 
       const activityJson = await activityRes.json();
       const studentJson = await studentRes.json();
 
+      console.log("📥 API Responses:", { activityJson, studentJson });
+
       if (!activityJson.success || !studentJson.success) {
+        console.error("❌ API Error:", { activityJson, studentJson });
         alert("ไม่พบข้อมูล");
         router.push("/student_problem?tab=activities");
         return;
@@ -100,99 +49,113 @@ export default function ActivityStatusPage() {
 
       setActivity(activityJson.data);
       setStudent(studentJson.data);
-      loadExistingStatus(studentJson.data, activityJson.data);
+
+      // ค้นหาข้อมูลกิจกรรมในนักเรียน
+      const studentActivities = studentJson.data.activities || [];
+      console.log("🔍 Student activities:", studentActivities);
+      console.log("🔍 Looking for activity_id:", activityJson.data._id);
+
+      // ค้นหาจาก activities array
+      const found = studentActivities.find((a: any) => 
+        String(a.activity_id) === String(activityJson.data._id)
+      );
+
+      console.log("🎯 Found activity data:", found);
+
+      if (found) {
+        setFormData({
+          status: found.status || "ยังไม่เข้าร่วม",
+          joined_at: found.joined_at ? new Date(found.joined_at).toISOString().split("T")[0] : "",
+          completed_at: found.completed_at ? new Date(found.completed_at).toISOString().split("T")[0] : "",
+          notes: found.notes || ""
+        });
+      } else {
+        // ถ้าไม่เจอใน activities array ให้ลองค้นจาก activities_status map
+        const statusFromMap = studentJson.data.activities_status?.[activityJson.data._id];
+        const joinDateFromMap = studentJson.data.activity_join_dates?.[activityJson.data._id];
+        
+        if (statusFromMap) {
+          setFormData({
+            status: statusFromMap,
+            joined_at: joinDateFromMap ? new Date(joinDateFromMap).toISOString().split("T")[0] : "",
+            completed_at: "",
+            notes: ""
+          });
+        } else {
+          setFormData({
+            status: "ยังไม่เข้าร่วม",
+            joined_at: "",
+            completed_at: "",
+            notes: ""
+          });
+        }
+      }
 
     } catch (err) {
-      console.error(err);
+      console.error("❌ Fetch Error:", err);
       alert("เกิดข้อผิดพลาด");
     } finally {
       setLoading(false);
     }
   };
 
-  /* ================= LOAD STATUS ================= */
-  const loadExistingStatus = (studentData: StudentData, activityData: ActivityData) => {
-    console.log("🔍 Loading status for student:", studentData.student_id);
-    console.log("🔍 Looking for activity:", activityData._id);
-    console.log("🔍 Student activities:", studentData.activities);
+  useEffect(() => {
+    if (!activity_id || !student_id) {
+      console.log("❌ Missing IDs, redirecting...");
+      router.push("/student_problem?tab=activities");
+      return;
+    }
+    fetchData();
+  }, [activity_id, student_id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const found = studentData.activities?.find(
-      (a) => String(a.activity_id) === String(activityData._id)
-    );
-
-    console.log("🔍 Found activity data:", found);
-
-    if (!found) {
-      console.log("❌ No activity found, keeping default values");
+    if (!student || !activity) {
+      alert("ข้อมูลนักเรียนหรือกิจกรรมไม่โหลด");
       return;
     }
 
-    const formDataToUpdate = {
-      status: found.status || "ยังไม่เข้าร่วม",
-      joined_at: found.joined_at
-        ? new Date(found.joined_at).toISOString().split("T")[0]
-        : "",
-      completed_at: found.completed_at
-        ? new Date(found.completed_at).toISOString().split("T")[0]
-        : "",
-      notes: found.notes || ""
-    };
+    setSaving(true);
+    try {
+      const payload = {
+        student_id: student.student_id,
+        activity_id: activity._id,
+        status: formData.status,
+        notes: formData.notes,
+        joined_at: formData.joined_at || undefined,
+        completed_at: formData.completed_at || undefined
+      };
 
-    console.log("📝 Updating form data:", formDataToUpdate);
-    setFormData(formDataToUpdate);
+      console.log("📤 Submitting payload:", payload);
+
+      const res = await fetch("/api/problem/update-activity-status", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      console.log("📥 Submit response:", data);
+      
+      if (!res.ok) {
+        throw new Error(data.error || "เกิดข้อผิดพลาดในการบันทึก");
+      }
+
+      alert("บันทึกสถานะเรียบร้อย");
+      
+      // ✅ กลับไปหน้า view activity
+      router.push(`/student_problem/activity/view?id=${activity._id}`);
+      router.refresh();
+
+    } catch (err: any) {
+      console.error("❌ Submit Error:", err);
+      alert(`บันทึกไม่สำเร็จ: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  /* ================= SUBMIT ================= */
- /* ================= SUBMIT (แก้ไขให้ส่ง ID ครบ) ================= */
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  // 🔍 Check ก่อนส่งว่ามีข้อมูลครบไหม
-  if (!student || !activity) {
-    alert("ข้อมูลนักเรียนหรือกิจกรรมไม่โหลด");
-    return;
-  }
-
-  setSaving(true);
-  try {
-    const payload = {
-      // 🚩 ต้องส่งค่าเหล่านี้ให้ตรงกับที่ API (route.ts) รอรับ
-      student_id: student.student_id, // รหัส "ก" หรือ "55"
-      activity_id: activity._id,      // Mongo _id ของกิจกรรม
-      status: formData.status,
-      notes: formData.notes,
-      joined_at: formData.joined_at || undefined,
-      completed_at: formData.completed_at || undefined
-    };
-
-    console.log("📤 กำลังส่ง Payload:", payload); // เอาไว้ดูใน Console ว่า ID มาไหม
-
-    const res = await fetch("/api/problem/update-activity-status", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-    
-    if (!res.ok) {
-      throw new Error(data.error || "เกิดข้อผิดพลาดในการบันทึก");
-    }
-
-    alert("บันทึกสถานะเรียบร้อย");
-    router.refresh(); 
-    router.push(`/student_problem/activity/view?id=${activity._id}`);
-
-  } catch (err: any) {
-    console.error("❌ Submit Error:", err);
-    alert(`บันทึกไม่สำเร็จ: ${err.message}`);
-  } finally {
-    setSaving(false);
-  }
-};
-
-
-  /* ================= RENDER ================= */
   if (loading) {
     return <div className="container py-5 text-center">กำลังโหลด...</div>;
   }
@@ -217,7 +180,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         <div className="card-body">
           <p><b>กิจกรรม:</b> {activity.name}</p>
-          <p><b>นักเรียน:</b> {student.student_name} ({student.student_id})</p>
+          <p><b>นักเรียน:</b> {student_name || student.student_name} ({student.student_id})</p>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
@@ -227,7 +190,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
               >
-                
                 <option value="ยังไม่เข้าร่วม">ยังไม่เข้าร่วม</option>
                 <option value="เข้าร่วมแล้ว">เข้าร่วมแล้ว</option>
                 <option value="เสร็จสิ้น">เสร็จสิ้น</option>
