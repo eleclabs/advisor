@@ -115,8 +115,11 @@ export default function StudentListPage() {
       });
 
       if (response.ok) {
+        // Remove from both student and filteredStudent states
         setStudent(prev => prev.filter(s => s._id !== deleteId));
+        setFilteredStudent(prev => prev.filter(s => s._id !== deleteId));
         
+        // Close modal
         const modal = document.getElementById('deleteModal');
         if (modal) {
           const bsModal = (window as any).bootstrap?.Modal.getInstance(modal);
@@ -125,6 +128,9 @@ export default function StudentListPage() {
           }
         }
         setDeleteId(null);
+        
+        // Show success message
+        alert("ลบข้อมูลนักเรียนเรียบร้อยแล้ว");
       } else {
         alert("ไม่สามารถลบข้อมูลได้");
       }
