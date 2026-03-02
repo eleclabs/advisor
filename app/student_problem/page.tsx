@@ -1,3 +1,4 @@
+// D:\advisor-main\app\student_problem\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,11 +16,30 @@ interface Problem {
   evaluations?: any[];
 }
 
+interface Activity {
+  _id: string;
+  name: string;
+  duration: number;
+  materials: string;
+  steps: string;
+  ice_breaking: string;
+  group_task: string;
+  debrief: string;
+  activity_date: string;
+  participants: Array<{
+    student_id: string;
+    student_name: string;
+    joined: boolean;
+  }>;
+  total_participants: number;
+  joined_count: number;
+}
+
 export default function StudentProblemPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("students");
   const [problems, setProblems] = useState<Problem[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,15 +64,10 @@ export default function StudentProblemPage() {
       const data = await res.json();
       setProblems(data.data || []);
       
-      // ดึงกิจกรรมทั้งหมดจากนักเรียนทุกคน
-      const allActivities = data.data?.flatMap((p: any) => 
-        p.activities?.map((a: any) => ({
-          ...a,
-          student_id: p.student_id,
-          student_name: p.student_name
-        })) || []
-      ) || [];
-      setActivities(allActivities);
+      // ดึงกิจกรรมทั้งหมด
+      const activitiesRes = await fetch("/api/problem/activity");
+      const activitiesData = await activitiesRes.json();
+      setActivities(activitiesData.data || []);
     } catch (error) {
       console.error("Error:", error);
     } finally {
@@ -68,10 +83,42 @@ export default function StudentProblemPage() {
     return latest.improvement_level;
   };
 
+  const handleDeleteActivity = async (id: string) => {
+    if (!id) return;
+    
+    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?")) {
+      try {
+        const res = await fetch(`/api/problem/activity?id=${id}`, {
+          method: "DELETE"
+        });
+        
+        if (res.ok) {
+          alert("ลบกิจกรรมเรียบร้อย");
+          fetchData(); // โหลดข้อมูลใหม่
+        } else {
+          alert("เกิดข้อผิดพลาดในการลบ");
+        }
+      } catch (error) {
+        console.error("Error deleting activity:", error);
+        alert("เกิดข้อผิดพลาด");
+      }
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleDateString('th-TH');
+    } catch {
+      return '-';
+    }
+  };
+
   const stats = {
     total: problems.length,
     active: problems.filter(p => p.isp_status === "กำลังดำเนินการ").length,
-    completed: problems.filter(p => p.isp_status === "สำเร็จ").length
+    completed: problems.filter(p => p.isp_status === "สำเร็จ").length,
+    totalActivities: activities.length
   };
 
   return (
@@ -100,8 +147,11 @@ export default function StudentProblemPage() {
                 <span className="badge bg-warning text-dark rounded-0 p-2 me-2">
                   ดำเนินการ: {stats.active}
                 </span>
-                <span className="badge bg-success rounded-0 p-2">
+                <span className="badge bg-success rounded-0 p-2 me-2">
                   สำเร็จ: {stats.completed}
+                </span>
+                <span className="badge bg-info text-dark rounded-0 p-2">
+                  กิจกรรม: {stats.totalActivities}
                 </span>
               </div>
             </div>
@@ -162,71 +212,63 @@ export default function StudentProblemPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {problems.map((p) => {
-                          // แยกคำนำหน้า ชื่อ และนามสกุล (ถ้าต้องการ)
-                          const nameParts = p.student_name?.split(' ') || [];
-                          const prefix = nameParts[0] || '';
-                          const firstName = nameParts[1] || '';
-                          const lastName = nameParts.slice(2).join(' ') || '';
-                          
-                          return (
-                            <tr key={p._id}>
-                              <td className="align-middle">
-                                <span className="fw-bold">{p.student_id}</span>
-                              </td>
-                              <td className="align-middle">
-                                <span>{p.student_name}</span>
-                              </td>
-                              <td className="align-middle">{p.problem || '-'}</td>
-                              <td className="align-middle">{p.goal || '-'}</td>
-                              <td className="align-middle" style={{ width: '150px' }}>
-                                <div className="d-flex align-items-center">
-                                  <div className="progress rounded-0 flex-grow-1" style={{ height: '8px' }}>
-                                    <div className="progress-bar bg-warning" style={{ width: `${p.progress || 0}%` }}></div>
-                                  </div>
-                                  <span className="ms-2 small fw-bold">{p.progress || 0}%</span>
+                        {problems.map((p) => (
+                          <tr key={p._id}>
+                            <td className="align-middle">
+                              <span className="fw-bold">{p.student_id}</span>
+                            </td>
+                            <td className="align-middle">
+                              <span>{p.student_name}</span>
+                            </td>
+                            <td className="align-middle">{p.problem || '-'}</td>
+                            <td className="align-middle">{p.goal || '-'}</td>
+                            <td className="align-middle" style={{ width: '150px' }}>
+                              <div className="d-flex align-items-center">
+                                <div className="progress rounded-0 flex-grow-1" style={{ height: '8px' }}>
+                                  <div className="progress-bar bg-warning" style={{ width: `${p.progress || 0}%` }}></div>
                                 </div>
-                              </td>
-                              <td className="align-middle">
-                                <span className={`badge rounded-0 px-3 py-2 ${
-                                  p.isp_status === 'กำลังดำเนินการ' ? 'bg-warning text-dark' :
-                                  p.isp_status === 'สำเร็จ' ? 'bg-success' : 'bg-secondary'
-                                }`}>
-                                  {p.isp_status || 'รอดำเนินการ'}
-                                </span>
-                              </td>
-                              <td className="align-middle">
-                                <span className={`badge rounded-0 px-3 py-2 ${
-                                  getLatestEvaluation(p.evaluations || []) === 'ดีขึ้นชัดเจน' ? 'bg-success' :
-                                  getLatestEvaluation(p.evaluations || []) === 'เริ่มเห็นการเปลี่ยนแปลง' ? 'bg-warning text-dark' :
-                                  getLatestEvaluation(p.evaluations || []) === 'คงเดิม/ไม่เปลี่ยนแปลง' ? 'bg-danger' : 'bg-secondary bg-opacity-25 text-dark'
-                                }`}>
-                                  {getLatestEvaluation(p.evaluations || [])}
-                                </span>
-                              </td>
-                              <td className="align-middle">
-                                <div className="btn-group btn-group-sm">
-                                  <Link href={`/student_problem/${p.student_id}`} 
-                                    className="btn btn-outline-primary" title="ดูรายละเอียด">
-                                    <i className="bi bi-eye"></i>
-                                  </Link>
-                                  <Link href={`/student_problem/${p.student_id}/edit`} 
-                                    className="btn btn-outline-success" title="แก้ไขแผน">
-                                    <i className="bi bi-pencil"></i>
-                                  </Link>
-                                  <Link href={`/student_problem/${p.student_id}?tab=activities`} 
-                                    className="btn btn-outline-info" title="กำหนดกิจกรรม">
-                                    <i className="bi bi-calendar-check"></i>
-                                  </Link>
-                                  <Link href={`/student_problem/${p.student_id}/result`} 
-                                    className="btn btn-outline-warning" title="บันทึกผล">
-                                    <i className="bi bi-bar-chart"></i>
-                                  </Link>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                                <span className="ms-2 small fw-bold">{p.progress || 0}%</span>
+                              </div>
+                            </td>
+                            <td className="align-middle">
+                              <span className={`badge rounded-0 px-3 py-2 ${
+                                p.isp_status === 'กำลังดำเนินการ' ? 'bg-warning text-dark' :
+                                p.isp_status === 'สำเร็จ' ? 'bg-success' : 'bg-secondary'
+                              }`}>
+                                {p.isp_status || 'รอดำเนินการ'}
+                              </span>
+                            </td>
+                            <td className="align-middle">
+                              <span className={`badge rounded-0 px-3 py-2 ${
+                                getLatestEvaluation(p.evaluations || []) === 'ดีขึ้นชัดเจน' ? 'bg-success' :
+                                getLatestEvaluation(p.evaluations || []) === 'เริ่มเห็นการเปลี่ยนแปลง' ? 'bg-warning text-dark' :
+                                getLatestEvaluation(p.evaluations || []) === 'คงเดิม/ไม่เปลี่ยนแปลง' ? 'bg-danger' : 'bg-secondary bg-opacity-25 text-dark'
+                              }`}>
+                                {getLatestEvaluation(p.evaluations || [])}
+                              </span>
+                            </td>
+                            <td className="align-middle">
+                              <div className="btn-group btn-group-sm">
+                                <Link href={`/student_problem/${p._id}`} 
+                                  className="btn btn-outline-primary" title="ดูรายละเอียด">
+                                  <i className="bi bi-eye"></i>
+                                </Link>
+                                <Link href={`/student_problem/${p._id}/edit`} 
+                                  className="btn btn-outline-success" title="แก้ไขแผน">
+                                  <i className="bi bi-pencil"></i>
+                                </Link>
+                                <Link href={`/student_problem/${p._id}?tab=activities`} 
+                                  className="btn btn-outline-info" title="กำหนดกิจกรรม">
+                                  <i className="bi bi-calendar-check"></i>
+                                </Link>
+                                <Link href={`/student_problem/${p._id}/result`} 
+                                  className="btn btn-outline-warning" title="บันทึกผล">
+                                  <i className="bi bi-bar-chart"></i>
+                                </Link>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                         {problems.length === 0 && (
                           <tr>
                             <td colSpan={8} className="text-center py-5">
@@ -247,7 +289,7 @@ export default function StudentProblemPage() {
           </div>
         )}
 
-        {/* Tab: Activities (เหมือนเดิม) */}
+        {/* Tab: Activities */}
         {activeTab === 'activities' && (
           <div className="row">
             <div className="col-12">
@@ -257,36 +299,84 @@ export default function StudentProblemPage() {
                     <i className="bi bi-activity me-2 text-warning"></i>
                     จัดการกิจกรรมกลุ่มสัมพันธ์
                   </h5>
-                  <Link href="/student_problem/activity" className="btn btn-warning btn-sm rounded-0">
+                  <Link href="/student_problem/activity/add" className="btn btn-warning btn-sm rounded-0">
                     <i className="bi bi-plus-circle me-2"></i>เพิ่มกิจกรรม
                   </Link>
                 </div>
                 <div className="card-body">
-                  <div className="row">
-                    {activities.map((act, idx) => (
-                      <div key={idx} className="col-md-6 mb-3">
-                        <div className="card rounded-0 border">
-                          <div className="card-body">
-                            <h6 className="fw-bold">{act.name}</h6>
-                            <p className="small mb-1">
-                              <i className="bi bi-clock me-2"></i>{act.duration} นาที
-                            </p>
-                            <p className="small mb-1">
-                              <i className="bi bi-person me-2"></i>
-                              {act.student_name} {act.joined ? '(เข้าร่วม)' : '(ยังไม่เข้าร่วม)'}
-                            </p>
-                            <p className="small text-muted">
-                              {act.debrief?.substring(0, 50)}...
-                            </p>
-                            <Link href={`/student_problem/activity/edit?student_id=${act.student_id}&index=${act.index}`} 
-                              className="btn btn-sm btn-outline-warning rounded-0">
-                              <i className="bi bi-pencil me-2"></i>แก้ไข
-                            </Link>
+                  {activities.length === 0 ? (
+                    <div className="text-center py-5">
+                      <i className="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
+                      <p className="text-muted mb-0">ยังไม่มีกิจกรรม</p>
+                      <Link href="/student_problem/activity/add" className="btn btn-warning btn-sm mt-3">
+                        <i className="bi bi-plus-circle me-2"></i>เพิ่มกิจกรรม
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="row">
+                      {activities.map((act) => (
+                        <div key={act._id} className="col-md-6 col-lg-4 mb-4">
+                          <div className="card h-100 border-0 shadow-sm">
+                            <div className="card-header bg-light d-flex justify-content-between align-items-center">
+                              <h6 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '180px' }} title={act.name}>
+                                {act.name}
+                              </h6>
+                              <span className="badge bg-info rounded-0">
+                                {act.joined_count || 0}/{act.total_participants || 0}
+                              </span>
+                            </div>
+                            <div className="card-body">
+                              <div className="mb-3">
+                                <p className="small mb-2">
+                                  <i className="bi bi-clock me-2 text-warning"></i>
+                                  <strong>เวลา:</strong> {act.duration} นาที
+                                </p>
+                                <p className="small mb-2">
+                                  <i className="bi bi-calendar me-2 text-warning"></i>
+                                  <strong>วันที่:</strong> {formatDate(act.activity_date)}
+                                </p>
+                                {act.materials && (
+                                  <p className="small mb-2">
+                                    <i className="bi bi-tools me-2 text-warning"></i>
+                                    <strong>อุปกรณ์:</strong> {act.materials}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="small text-muted bg-light p-2 rounded">
+                                <i className="bi bi-chat-quote me-1"></i>
+                                {act.debrief ? (act.debrief.length > 50 ? act.debrief.substring(0, 50) + '...' : act.debrief) : 'ไม่มีบทเรียน'}
+                              </div>
+                            </div>
+                            <div className="card-footer bg-transparent p-2">
+                              <div className="btn-group w-100">
+                                <Link 
+                                  href={`/student_problem/activity/view?id=${act._id}`} 
+                                  className="btn btn-sm btn-outline-primary"
+                                  title="ดูรายละเอียด"
+                                >
+                                  <i className="bi bi-eye"></i>
+                                </Link>
+                                <Link 
+                                  href={`/student_problem/activity/edit?id=${act._id}`} 
+                                  className="btn btn-sm btn-outline-warning"
+                                  title="แก้ไข"
+                                >
+                                  <i className="bi bi-pencil"></i>
+                                </Link>
+                                <button 
+                                  className="btn btn-sm btn-outline-danger"
+                                  title="ลบ"
+                                  onClick={() => handleDeleteActivity(act._id)}
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

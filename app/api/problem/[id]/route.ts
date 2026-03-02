@@ -1,7 +1,9 @@
+// D:\advisor-main\app\api\problem\[id]\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
 import Student from "@/models/Student";
+import mongoose from "mongoose";
 
 // GET: ดึงข้อมูลนักเรียน
 export async function GET(
@@ -13,13 +15,66 @@ export async function GET(
     
     const { id } = await params;
     
-    const problem = await Problem.findOne({ student_id: id });
+    console.log("🔍 Searching with ID:", id);
     
-    if (problem) {
-      return NextResponse.json({ success: true, data: problem });
+    let problem = null;
+    
+    // ตรวจสอบว่า id เป็น MongoDB ObjectId หรือไม่
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // ✅ ค้นหาด้วย _id และ populate ข้อมูล activities
+      problem = await Problem.findById(id)
+        .populate('activities.activity_id'); // สำคัญมาก!
+      console.log("📋 Found by _id:", problem ? "Yes" : "No");
     }
     
-    const student = await Student.findOne({ id });
+    // ถ้าไม่เจอด้วย _id ให้ค้นหาด้วย student_id
+    if (!problem) {
+      // ✅ ค้นหาด้วย student_id และ populate ข้อมูล activities
+      problem = await Problem.findOne({ student_id: id })
+        .populate('activities.activity_id'); // สำคัญมาก!
+      console.log("📋 Found by student_id:", problem ? "Yes" : "No");
+    }
+    
+    if (problem) {
+      // ✅ แปลงข้อมูลให้แน่ใจว่า activities อยู่ในรูปแบบที่ถูกต้อง
+      const problemData = problem.toObject();
+      
+      // ✅ ใช้ activities จาก problem โดยตรง (ไม่ต้องไปหาใหม่)
+      // activities ถูก populate แล้วจาก .populate('activities.activity_id')
+      
+      // แปลง Map ให้เป็น plain object
+      if (problemData.activities_status && problemData.activities_status instanceof Map) {
+        problemData.activities_status = Object.fromEntries(problemData.activities_status);
+      }
+      if (problemData.activity_join_dates && problemData.activity_join_dates instanceof Map) {
+        problemData.activity_join_dates = Object.fromEntries(problemData.activity_join_dates);
+      }
+      if (problemData.activity_completed_dates && problemData.activity_completed_dates instanceof Map) {
+        problemData.activity_completed_dates = Object.fromEntries(problemData.activity_completed_dates);
+      }
+      
+      // ถ้าไม่มี activities array ให้สร้าง array ว่าง
+      if (!problemData.activities) {
+        problemData.activities = [];
+      }
+      
+      console.log("✅ Sending problem data with activities:", JSON.stringify(problemData.activities, null, 2));
+      console.log("✅ Activities count:", problemData.activities.length);
+      
+      return NextResponse.json({ 
+        success: true, 
+        data: problemData // ส่ง problemData โดยตรง
+      });
+    }
+    
+    // ถ้าไม่เจอใน Problem ให้ค้นหานักเรียนจาก Student
+    const student = await Student.findOne({ 
+      $or: [
+        { id: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null }
+      ]
+    });
+    
     if (student) {
       return NextResponse.json({ 
         success: true, 
@@ -27,7 +82,11 @@ export async function GET(
           student_id: student.id,
           student_name: `${student.prefix || ''} ${student.first_name || ''} ${student.last_name || ''}`.trim(),
           student_data: student,
-          isNew: true
+          isNew: true,
+          activities: [], // ✅ เพิ่ม activities ว่าง
+          activities_status: {},
+          activity_join_dates: {},
+          activity_completed_dates: {}
         }
       });
     }
@@ -38,6 +97,7 @@ export async function GET(
     }, { status: 404 });
     
   } catch (error: any) {
+    console.error("❌ Error:", error);
     return NextResponse.json({ 
       success: false, 
       error: error.message 
@@ -56,6 +116,7 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     
+    // ค้นหานักเรียนด้วย student_id
     const student = await Student.findOne({ id });
     if (!student) {
       return NextResponse.json({ 
@@ -86,14 +147,18 @@ export async function POST(
       responsible: body.responsible,
       isp_status: "กำลังดำเนินการ",
       progress: 0,
-      activities: [],
-      evaluations: []
+      evaluations: [],
+      activities: [], // ✅ เพิ่ม activities ว่าง
+      activities_status: {},
+      activity_join_dates: {},
+      activity_completed_dates: {}
     };
     
     const problem = await Problem.create(problemData);
     return NextResponse.json({ success: true, data: problem });
     
   } catch (error: any) {
+    console.error("❌ Error in POST:", error);
     return NextResponse.json({ 
       success: false, 
       error: error.message 
@@ -112,7 +177,17 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
     
-    const problem = await Problem.findOne({ student_id: id });
+    let problem = null;
+    
+    // ค้นหาด้วย _id หรือ student_id
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      problem = await Problem.findById(id);
+    }
+    
+    if (!problem) {
+      problem = await Problem.findOne({ student_id: id });
+    }
+    
     if (!problem) {
       return NextResponse.json({ 
         success: false, 
@@ -136,6 +211,19 @@ export async function PUT(
       };
       
       problem.evaluations.push(newEvaluation);
+      
+      // อัปเดตความคืบหน้าตามผลการประเมิน
+      if (body.result === 'ยุติการช่วยเหลือ') {
+        problem.progress = 100;
+        problem.isp_status = 'สำเร็จ';
+      } else if (body.result === 'ดำเนินการต่อ') {
+        problem.progress = 75;
+        problem.isp_status = 'กำลังดำเนินการ';
+      } else if (body.result === 'ส่งต่อผู้เชี่ยวชาญ') {
+        problem.progress = 50;
+        problem.isp_status = 'ปรับแผน';
+      }
+      
       await problem.save();
       
       return NextResponse.json({ success: true, data: problem });
@@ -156,7 +244,7 @@ export async function PUT(
     };
     
     const updated = await Problem.findOneAndUpdate(
-      { student_id: id },
+      { _id: problem._id },
       updateData,
       { new: true }
     );
@@ -164,6 +252,7 @@ export async function PUT(
     return NextResponse.json({ success: true, data: updated });
     
   } catch (error: any) {
+    console.error("❌ Error in PUT:", error);
     return NextResponse.json({ 
       success: false, 
       error: error.message 
@@ -181,10 +270,16 @@ export async function DELETE(
     
     const { id } = await params;
     
-    await Problem.findOneAndDelete({ student_id: id });
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      await Problem.findByIdAndDelete(id);
+    } else {
+      await Problem.findOneAndDelete({ student_id: id });
+    }
+    
     return NextResponse.json({ success: true });
     
   } catch (error: any) {
+    console.error("❌ Error in DELETE:", error);
     return NextResponse.json({ 
       success: false, 
       error: error.message 
