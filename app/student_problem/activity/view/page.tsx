@@ -122,6 +122,12 @@ export default function ViewActivityPage() {
       if (activityData?.status) return activityData.status;
     }
     
+    const studentDataFull = studentsData.get(studentId);
+    if (studentDataFull?.activities_status && activity) {
+      const statusFromMap = studentDataFull.activities_status[activity._id];
+      if (statusFromMap) return statusFromMap;
+    }
+    
     const participant = activity?.participants?.find(p => p.student_id === studentId);
     return participant?.joined ? 'เข้าร่วมแล้ว' : 'ยังไม่เข้าร่วม';
   };
@@ -134,6 +140,13 @@ export default function ViewActivityPage() {
         (a: any) => String(a.activity_id) === String(activity._id)
       );
       if (activityData?.joined_at) return activityData.joined_at;
+    }
+    
+    // ตรวจสอบจาก activity_join_dates map ด้วย
+    const studentDataFull = studentsData.get(studentId);
+    if (studentDataFull?.activity_join_dates && activity) {
+      const joinDateFromMap = studentDataFull.activity_join_dates[activity._id];
+      if (joinDateFromMap) return joinDateFromMap;
     }
     
     const participant = activity?.participants?.find(p => p.student_id === studentId);
@@ -150,6 +163,13 @@ export default function ViewActivityPage() {
       if (activityData?.completed_at) return activityData.completed_at;
     }
     
+    // ตรวจสอบจาก activity_completed_dates map ด้วย
+    const studentDataFull = studentsData.get(studentId);
+    if (studentDataFull?.activity_completed_dates && activity) {
+      const completedDateFromMap = studentDataFull.activity_completed_dates[activity._id];
+      if (completedDateFromMap) return completedDateFromMap;
+    }
+    
     return null;
   };
 
@@ -164,6 +184,30 @@ export default function ViewActivityPage() {
     }
     
     return null;
+  };
+
+  const handleRemoveParticipant = async (studentId: string) => {
+    if (!confirm('คุณต้องการลบนักเรียนคนนี้ออกจากกิจกรรมใช่หรือไม่?')) return;
+    
+    if (!activity) return;
+    
+    try {
+      const response = await fetch(`/api/problem/activity/${activity._id}/remove-participant`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId })
+      });
+      
+      if (response.ok) {
+        // Refresh activity data
+        window.location.reload();
+      } else {
+        alert('ลบนักเรียนไม่สำเร็จ');
+      }
+    } catch (error) {
+      console.error('Error removing participant:', error);
+      alert('เกิดข้อผิดพลาดในการลบนักเรียน');
+    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -464,7 +508,6 @@ export default function ViewActivityPage() {
                     <th>วันที่เข้าร่วม</th>
                     <th>วันที่เสร็จสิ้น</th>
                     <th>สถานะ</th>
-                    <th>หมายเหตุ</th>
                     <th>จัดการ</th>
                   </tr>
                 </thead>
@@ -504,29 +547,31 @@ export default function ViewActivityPage() {
                           </span>
                         </td>
                         <td>
-                          {notes ? (
-                            <span title={notes}>
-                              <i className="bi bi-chat-dots-fill text-info"></i>
-                            </span>
-                          ) : '-'}
-                        </td>
-                        <td>
                           <div className="btn-group" role="group">
                             <button 
-                              className="btn btn-sm btn-outline-info"
-                              onClick={() => router.push(`/student_problem/${p.student_id}`)}
-                              title="ดูโปรไฟล์นักเรียน"
+                              className="btn btn-sm btn-outline-info me-1"
+                              onClick={() => router.push(
+                                `/student_problem/activity/status/view?activity_id=${activity._id}&student_id=${p.student_id}&student_name=${encodeURIComponent(p.student_name)}`
+                              )}
+                              title="ดูสถานะกิจกรรม"
                             >
                               <i className="bi bi-eye"></i>
                             </button>
                             <button 
-                              className="btn btn-sm btn-outline-warning"
+                              className="btn btn-sm btn-outline-warning me-1"
                               onClick={() => router.push(
                                 `/student_problem/activity/status?activity_id=${activity._id}&student_id=${p.student_id}&student_name=${encodeURIComponent(p.student_name)}`
                               )}
                               title="จัดการสถานะกิจกรรม"
                             >
                               <i className="bi bi-pencil-square"></i>
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleRemoveParticipant(p.student_id)}
+                              title="ลบนักเรียนออกจากกิจกรรม"
+                            >
+                              <i className="bi bi-person-x"></i>
                             </button>
                           </div>
                         </td>
