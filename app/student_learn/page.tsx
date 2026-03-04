@@ -394,6 +394,13 @@ useEffect(() => {
                                   <i className="bi bi-check-circle"></i>
                                 </button>
                                 <button 
+                                  className="btn btn-sm btn-outline-info rounded-0"
+                                  onClick={() => router.push(`/student_learn/${plan.id}/album`)}
+                                  title="อัลบัมรูปภาพ"
+                                >
+                                  <i className="bi bi-images"></i>
+                                </button>
+                                <button 
                                   className="btn btn-sm btn-outline-danger rounded-0"
                                   title="ลบ"
                                   data-bs-toggle="modal"

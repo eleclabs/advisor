@@ -14,7 +14,7 @@ export async function GET(
     
     await connectDB();
     
-    const learn = await Learn.findById(id);
+    const learn = await Learn.findById(id).lean().exec();
     
     if (!learn) {
       return NextResponse.json({ 
@@ -22,6 +22,8 @@ export async function GET(
         message: "ไม่พบข้อมูลแผนกิจกรรม" 
       }, { status: 404 });
     }
+    
+    console.log("GET learn.special_track:", learn.special_track);
     
     return NextResponse.json({ 
       success: true, 
@@ -59,7 +61,7 @@ export async function PUT(
       'checkAttendance', 'checkUniform', 'announceNews',
       'warmup', 'mainActivity', 'summary',
       'trackProblems', 'individualCounsel',
-      'teacherNote', 'problems', 'specialTrack', 'sessionNote',
+      'teacherNote', 'problems', 'special_track', 'sessionNote',
       'materialsNote', 'suggestions', 'individualFollowup',
       'status', 'created_by'
     ];

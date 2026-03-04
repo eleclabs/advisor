@@ -54,6 +54,7 @@ const LearnSchema = new mongoose.Schema({
   activity_notes: { type: String },
   activity_problems: { type: String },
   activity_solutions: { type: String },
+  special_track: { type: String },
   evaluator: { type: String },
   has_record: { type: Boolean, default: false },
   recorded_at: { type: String },

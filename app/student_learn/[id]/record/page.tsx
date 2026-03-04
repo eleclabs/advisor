@@ -18,7 +18,7 @@ export default function RecordActivityPage() {
     // 6. บันทึกหลังกิจกรรม
     teacherNote: "",
     problems: "",
-    specialTrack: "",
+    special_track: "",
     sessionNote: "",
     
     // ติดตามผลรายบุคคล
@@ -30,6 +30,11 @@ export default function RecordActivityPage() {
     total_students: "",
     evaluator: "อาจารย์วิมลรัตน์"
   });
+
+  // Debug: Log formData changes
+  useEffect(() => {
+    console.log("📝 FormData updated:", formData);
+  }, [formData]);
 
   const teacher_name = "อาจารย์วิมลรัตน์";
 
@@ -59,19 +64,19 @@ export default function RecordActivityPage() {
           setPlanTitle(result.data.topic || "ไม่มีหัวข้อ");
           setHasRecord(result.data.has_record || false);
           
-          // เก็บค่า materials
+          // เก็บค่า materials - แปลงจาก object array เป็น string array ของ URLs
           const materials = Array.isArray(result.data.materials) 
-            ? result.data.materials 
-            : (result.data.materials ? [result.data.materials] : []);
+            ? result.data.materials.map((m: any) => typeof m === 'string' ? m : m.url || m)
+            : (result.data.materials ? [typeof result.data.materials === 'string' ? result.data.materials : result.data.materials.url || result.data.materials] : []);
           setPlanMaterials(materials);
           console.log("📥 Record page - Normalized materials:", materials);
           
-          // โหลดข้อมูลเดิมถ้ามี
+          // โหลดข้อมูลเดิมถ้ามี - ใช้ฟิลด์ใหม่ก่อน ถ้าไม่มีใช้ฟิลด์เก่า
           setFormData({
-            teacherNote: result.data.teacherNote || "",
-            problems: result.data.problems || "",
-            specialTrack: result.data.specialTrack || "",
-            sessionNote: result.data.sessionNote || "",
+            teacherNote: result.data.activity_notes || result.data.teacherNote || "",
+            problems: result.data.activity_problems || result.data.problems || "",
+            special_track: result.data.special_track || "",
+            sessionNote: result.data.activity_solutions || result.data.sessionNote || "",
             individualFollowup: result.data.individualFollowup || "",
             activity_date: result.data.activity_date || new Date().toISOString().split('T')[0],
             students_attended: result.data.students_attended || "",
@@ -92,12 +97,19 @@ export default function RecordActivityPage() {
   }, [params.id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
+    const { name } = target;
+    console.log(`🔧 Input change - ${name}: ${value}`); // Debug log
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("🚀 Submit button clicked"); // Debug
+    console.log("📝 Before submit - special_track:", formData.special_track); // Debug special_track
+    console.log("📝 Current formData:", formData); // Debug
+    
     setLoading(true);
     
     try {
@@ -106,7 +118,7 @@ export default function RecordActivityPage() {
       // ส่งเฉพาะฟิลด์บันทึกหลังกิจกรรม
       submitFormData.append('teacherNote', formData.teacherNote);
       submitFormData.append('problems', formData.problems);
-      submitFormData.append('specialTrack', formData.specialTrack);
+      submitFormData.append('special_track', formData.special_track);
       submitFormData.append('sessionNote', formData.sessionNote);
       submitFormData.append('individualFollowup', formData.individualFollowup);
       submitFormData.append('activity_date', formData.activity_date);
@@ -116,14 +128,20 @@ export default function RecordActivityPage() {
       submitFormData.append('has_record', 'true');
       submitFormData.append('recorded_at', new Date().toLocaleDateString('th-TH'));
       
+      console.log("📤 Sending FormData to API..."); // Debug
+      
       const response = await fetch(`/api/learn/${params.id}/record`, {
         method: 'POST',
         body: submitFormData,
       });
       
+      console.log("📥 API Response status:", response.status); // Debug
       const result = await response.json();
+      console.log("📥 API Response:", result); // Debug
       
       if (result.success) {
+        alert("บันทึกสำเร็จ!");
+        console.log("Redirecting to detail page");
         router.push(`/student_learn/${params.id}`);
       } else {
         alert(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -214,7 +232,14 @@ export default function RecordActivityPage() {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label fw-semibold small">นักเรียนที่ต้องติดตามเป็นพิเศษ</label>
-                  <input type="text" className="form-control rounded-0" name="specialTrack" value={formData.specialTrack} onChange={handleInputChange} placeholder="รายชื่อนักเรียนที่ต้องติดตาม" />
+                  <textarea 
+                    className="form-control rounded-0" 
+                    rows={2} 
+                    name="special_track" 
+                    value={formData.special_track} 
+                    onChange={handleInputChange} 
+                    placeholder="รายชื่อนักเรียนที่ต้องติดตาม" 
+                  />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label fw-semibold small">บันทึกการจัดกิจกรรม (รายครั้ง)</label>

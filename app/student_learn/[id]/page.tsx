@@ -50,7 +50,7 @@ interface HomeroomPlan {
   // ===== ข้อมูลจาก Record (บันทึกหลังกิจกรรม) =====
   teacherNote?: string;
   problems?: string;
-  specialTrack?: string;
+  special_track?: string;
   sessionNote?: string;
   individualFollowup?: string;
   activity_date?: string;
@@ -59,6 +59,11 @@ interface HomeroomPlan {
   evaluator?: string;
   has_record?: boolean;
   recorded_at?: string;
+  
+  // Database fields mapping
+  activity_notes?: string;
+  activity_problems?: string;
+  activity_solutions?: string;
 }
 
 export default function HomeroomPlanDetailPage() {
@@ -78,7 +83,9 @@ export default function HomeroomPlanDetailPage() {
         const result = await response.json();
         
         if (result.success) {
-          console.log("📥 Detail page - Raw data:", result.data);
+          console.log("🔍 API Response data:", result.data);
+          console.log("🔍 special_track value:", result.data.special_track);
+          console.log("Detail page result.data:", result.data);
           
           // Normalize materials field to always be an array of objects
           let normalizedMaterials: { name: string; url: string }[] = [];
@@ -101,6 +108,8 @@ export default function HomeroomPlanDetailPage() {
             ...result.data,
             materials: normalizedMaterials
           });
+          
+          console.log("Detail page plan.special_track:", result.data.special_track);
         } else {
           setError(result.message || "ไม่พบข้อมูลแผนกิจกรรม");
         }
@@ -227,12 +236,12 @@ export default function HomeroomPlanDetailPage() {
             
             <div className="row mb-4">
               <div className="col-md-8">
-                <h3 className="fw-bold mb-3">{plan.topic}</h3>
+                <h3 className="fw-bold mb-3">{plan.topic || '-'}</h3>
                 <div className="d-flex flex-wrap gap-2 mb-2">
-                  <span className="badge bg-dark rounded-0 p-2">ระดับชั้น: {plan.level}</span>
-                  <span className="badge bg-dark rounded-0 p-2">สัปดาห์ที่ {plan.week}</span>
-                  <span className="badge bg-dark rounded-0 p-2">ภาคเรียนที่ {plan.semester}/{plan.academicYear}</span>
-                  <span className="badge bg-dark rounded-0 p-2">เวลา: {plan.time} นาที</span>
+                  <span className="badge bg-dark rounded-0 p-2">ระดับชั้น: {plan.level || '-'}</span>
+                  <span className="badge bg-dark rounded-0 p-2">สัปดาห์ที่ {plan.week || '-'}</span>
+                  <span className="badge bg-dark rounded-0 p-2">ภาคเรียนที่ {plan.semester || '-'}/{plan.academicYear || '-'}</span>
+                  <span className="badge bg-dark rounded-0 p-2">เวลา: {plan.time || '-'} นาที</span>
                 </div>
               </div>
             </div>
@@ -395,25 +404,26 @@ export default function HomeroomPlanDetailPage() {
               </h5>
               <p className="mt-2">{plan.suggestions || '-'}</p>
             </div>
+
           </div>
 
           {/* ข้อมูลจาก Record Page */}
-          {plan.has_record && (
+          {(plan.has_record || plan.activity_notes || plan.activity_problems || plan.activity_solutions || plan.special_track || plan.individualFollowup) && (
             <div className="mb-4 mt-5 pt-4 border-top">
               <h4 className="text-success mb-3">📝 ข้อมูลบันทึกหลังกิจกรรม</h4>
               
               <div className="row mb-3">
                 <div className="col-md-3">
-                  <p><span className="fw-bold">วันที่จัดกิจกรรม:</span> {plan.activity_date}</p>
+                  <p><span className="fw-bold">วันที่จัดกิจกรรม:</span> {plan.activity_date || '-'}</p>
                 </div>
                 <div className="col-md-3">
-                  <p><span className="fw-bold">จำนวนนักเรียน:</span> {plan.students_attended}/{plan.total_students} คน</p>
+                  <p><span className="fw-bold">จำนวนนักเรียน:</span> {plan.students_attended || '-'} / {plan.total_students || '-'} คน</p>
                 </div>
                 <div className="col-md-3">
-                  <p><span className="fw-bold">ผู้บันทึก:</span> {plan.evaluator}</p>
+                  <p><span className="fw-bold">ผู้บันทึก:</span> {plan.evaluator || '-'}</p>
                 </div>
                 <div className="col-md-3">
-                  <p><span className="fw-bold">บันทึกเมื่อ:</span> {plan.recorded_at}</p>
+                  <p><span className="fw-bold">บันทึกเมื่อ:</span> {plan.recorded_at || '-'}</p>
                 </div>
               </div>
 
@@ -423,39 +433,80 @@ export default function HomeroomPlanDetailPage() {
                 </h5>
                 <div className="row">
                   <div className="col-md-6">
-                    {plan.teacherNote && (
-                      <p><span className="fw-bold">ผลการจัดกิจกรรม:</span> {plan.teacherNote}</p>
-                    )}
-                    {plan.problems && (
-                      <p><span className="fw-bold">ปัญหา/อุปสรรค:</span> {plan.problems}</p>
-                    )}
+                    <p><span className="fw-bold">ผลการจัดกิจกรรม:</span></p>
+                    <div className="bg-light p-2 rounded mb-2">
+                      {plan.activity_notes || plan.teacherNote || '-'}
+                    </div>
+                    
+                    <p><span className="fw-bold">ปัญหา/อุปสรรคที่พบ:</span></p>
+                    <div className="bg-light p-2 rounded mb-2">
+                      {plan.activity_problems || plan.problems || '-'}
+                    </div>
                   </div>
                   <div className="col-md-6">
-                    {plan.specialTrack && (
-                      <p><span className="fw-bold">นักเรียนที่ต้องติดตามเป็นพิเศษ:</span> {plan.specialTrack}</p>
-                    )}
-                    {plan.sessionNote && (
-                      <p><span className="fw-bold">บันทึกการจัดกิจกรรม:</span> {plan.sessionNote}</p>
-                    )}
+                    <p><span className="fw-bold">นักเรียนที่ต้องติดตามเป็นพิเศษ:</span></p>
+                    <div className="bg-light p-2 rounded mb-2">
+                      {plan.special_track || '-'}
+                    </div>
+                    
+                    <p><span className="fw-bold">บันทึกการจัดกิจกรรม (รายครั้ง):</span></p>
+                    <div className="bg-light p-2 rounded">
+                      {plan.activity_solutions || plan.sessionNote || '-'}
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {(plan.special_track && plan.special_track !== '-') && (
+                <div className="mb-3">
+                  <h5 className="fw-bold text-success border-bottom border-success pb-2">
+                    <i className="bi bi-person-badge me-2"></i>นักเรียนที่ต้องติดตามเป็นพิเศษ
+                  </h5>
+                  <div className="bg-light p-2 rounded">
+                    {plan.special_track}
+                  </div>
+                </div>
+              )}
 
               {plan.individualFollowup && (
                 <div className="mb-3">
                   <h5 className="fw-bold text-success border-bottom border-success pb-2">
                     <i className="bi bi-person-badge me-2"></i>ติดตามผลรายบุคคล
                   </h5>
-                  <p className="mt-2">{plan.individualFollowup}</p>
+                  <div className="bg-light p-2 rounded">
+                    {plan.individualFollowup || '-'}
+                  </div>
                 </div>
               )}
             </div>
           )}
 
+          {/* Photo Album Section */}
+          <div className="mb-4 mt-5 pt-4 border-top">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h4 className="text-info mb-0">
+                <i className="bi bi-images me-2"></i>อัลบัมรูปภาพกิจกรรม
+              </h4>
+              <Link href={`/student_learn/${params.id}/album`} className="btn btn-info rounded-0 btn-sm">
+                <i className="bi bi-plus-circle me-1"></i>จัดการรูปภาพ
+              </Link>
+            </div>
+            
+            {/* Empty state - no photos yet */}
+            <div className="text-center py-5 bg-light rounded">
+              <i className="bi bi-images text-muted fs-1"></i>
+              <p className="text-muted mt-3 mb-0">ยังไม่มีรูปภาพในอัลบัมนี้</p>
+              <p className="text-muted">เพิ่มรูปภาพบันทึกความทรงจำจากกิจกรรมโฮมรูม</p>
+              <Link href={`/student_learn/${params.id}/album`} className="btn btn-info rounded-0 mt-2">
+                <i className="bi bi-camera me-2"></i>เพิ่มรูปภาพแรก
+              </Link>
+            </div>
+          </div>
+
           {/* Footer Info */}
           <div className="text-end text-muted small mt-3 pt-3 border-top">
             <div>สร้างเมื่อ: {plan.created_at || new Date().toLocaleDateString('th-TH')}</div>
-            {plan.created_by && <div>สร้างโดย: {plan.created_by}</div>}
+            <div>สร้างโดย: {plan.created_by || '-'}</div>
           </div>
         </div>
       </div>
