@@ -12,6 +12,7 @@ export default function RecordActivityPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [planTitle, setPlanTitle] = useState("");
   const [hasRecord, setHasRecord] = useState(false);
+  const [planMaterials, setPlanMaterials] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     // 6. บันทึกหลังกิจกรรม
@@ -52,8 +53,18 @@ export default function RecordActivityPage() {
         const result = await response.json();
         
         if (result.success) {
+          console.log("📥 Record page - Raw data:", result.data);
+          console.log("📥 Record page - Materials:", result.data.materials);
+          
           setPlanTitle(result.data.topic || "ไม่มีหัวข้อ");
           setHasRecord(result.data.has_record || false);
+          
+          // เก็บค่า materials
+          const materials = Array.isArray(result.data.materials) 
+            ? result.data.materials 
+            : (result.data.materials ? [result.data.materials] : []);
+          setPlanMaterials(materials);
+          console.log("📥 Record page - Normalized materials:", materials);
           
           // โหลดข้อมูลเดิมถ้ามี
           setFormData({
@@ -253,6 +264,43 @@ export default function RecordActivityPage() {
               </div>
             </div>
           </div>
+
+          {/* สื่อและวัสดุอุปกรณ์ */}
+          {planMaterials.length > 0 && (
+            <div className="card rounded-0 border-0 shadow-sm mb-4">
+              <div className="card-header bg-dark text-white rounded-0">
+                <h5 className="card-title text-uppercase fw-semibold m-0">
+                  <i className="bi bi-paperclip me-2 text-warning"></i>สื่อและวัสดุอุปกรณ์
+                </h5>
+              </div>
+              <div className="card-body">
+                <div className="row g-2">
+                  {planMaterials.map((material, index) => (
+                    <div key={index} className="col-md-6">
+                      <div className="d-flex align-items-center p-2 border rounded">
+                        <i className="bi bi-file-earmark text-primary me-2"></i>
+                        <a 
+                          href={material} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-decoration-none text-dark flex-grow-1"
+                        >
+                          {material.split('/').pop() || `ไฟล์ ${index + 1}`}
+                        </a>
+                        <button 
+                          type="button"
+                          className="btn btn-sm btn-outline-primary rounded-0 ms-2"
+                          onClick={() => window.open(material, '_blank')}
+                        >
+                          <i className="bi bi-download"></i>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="d-flex justify-content-center gap-3 mb-4">
             <button type="button" className="btn btn-secondary rounded-0 px-5" onClick={() => router.back()}>ยกเลิก</button>

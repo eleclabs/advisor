@@ -83,18 +83,7 @@ export default function SdqAssessmentPage() {
   });
 
   useEffect(() => {
-    // Load Bootstrap CSS
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    // Load Bootstrap Icons
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
-
+  
     // Mock student name
     const mockNames: { [key: string]: string } = {
       "66001": "นายสมชาย ใจดี",
@@ -210,19 +199,7 @@ export default function SdqAssessmentPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* START: Navigation Bar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="/student">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {studentId}</span>
-          </div>
-        </div>
-      </nav>
-      {/* END: Navigation Bar */}
+     
 
       <div className="container-fluid py-4">
         {/* START: Page Header */}
@@ -265,41 +242,41 @@ export default function SdqAssessmentPage() {
                     <thead className="table-light">
                       <tr>
                         <th className="fw-semibold">ข้อความ</th>
-                        <th className="fw-semibold text-center" width="15%">ไม่จริง</th>
-                        <th className="fw-semibold text-center" width="15%">ค่อนข้างจริง</th>
-                        <th className="fw-semibold text-center" width="15%">จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ไม่จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ค่อนข้างจริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>จริง</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
                         <td>มักปวดหัว ปวดท้อง หรือคลื่นไส้</td>
-                        <td className="text-center"><input type="radio" name="emotional_somatic" value="0" checked={formData.emotional_somatic === "0"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_somatic" value="1" checked={formData.emotional_somatic === "1"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_somatic" value="2" checked={formData.emotional_somatic === "2"} onChange={handleInputChange} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_somatic" value="0" checked={formData.emotional_somatic === "0"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_somatic" value="1" checked={formData.emotional_somatic === "1"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_somatic" value="2" checked={formData.emotional_somatic === "2"} onChange={(e) => handleInputChange(e as any)} /></td>
                       </tr>
                       <tr>
                         <td>มักกังวลหลายเรื่อง</td>
-                        <td className="text-center"><input type="radio" name="emotional_worries" value="0" checked={formData.emotional_worries === "0"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_worries" value="1" checked={formData.emotional_worries === "1"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_worries" value="2" checked={formData.emotional_worries === "2"} onChange={handleInputChange} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_worries" value="0" checked={formData.emotional_worries === "0"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_worries" value="1" checked={formData.emotional_worries === "1"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_worries" value="2" checked={formData.emotional_worries === "2"} onChange={(e) => handleInputChange(e as any)} /></td>
                       </tr>
                       <tr>
                         <td>มักไม่มีความสุข ซึม หรือร้องไห้</td>
-                        <td className="text-center"><input type="radio" name="emotional_unhappy" value="0" checked={formData.emotional_unhappy === "0"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_unhappy" value="1" checked={formData.emotional_unhappy === "1"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_unhappy" value="2" checked={formData.emotional_unhappy === "2"} onChange={handleInputChange} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_unhappy" value="0" checked={formData.emotional_unhappy === "0"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_unhappy" value="1" checked={formData.emotional_unhappy === "1"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_unhappy" value="2" checked={formData.emotional_unhappy === "2"} onChange={(e) => handleInputChange(e as any)} /></td>
                       </tr>
                       <tr>
                         <td>มักกลัว ติดผู้ใหญ่ งอแงเมื่อต้องอยู่คนเดียว</td>
-                        <td className="text-center"><input type="radio" name="emotional_clingy" value="0" checked={formData.emotional_clingy === "0"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_clingy" value="1" checked={formData.emotional_clingy === "1"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_clingy" value="2" checked={formData.emotional_clingy === "2"} onChange={handleInputChange} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_clingy" value="0" checked={formData.emotional_clingy === "0"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_clingy" value="1" checked={formData.emotional_clingy === "1"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_clingy" value="2" checked={formData.emotional_clingy === "2"} onChange={(e) => handleInputChange(e as any)} /></td>
                       </tr>
                       <tr>
                         <td>กลัวสิ่งต่างๆ หลายอย่าง กลัวง่าย</td>
-                        <td className="text-center"><input type="radio" name="emotional_fears" value="0" checked={formData.emotional_fears === "0"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_fears" value="1" checked={formData.emotional_fears === "1"} onChange={handleInputChange} /></td>
-                        <td className="text-center"><input type="radio" name="emotional_fears" value="2" checked={formData.emotional_fears === "2"} onChange={handleInputChange} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_fears" value="0" checked={formData.emotional_fears === "0"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_fears" value="1" checked={formData.emotional_fears === "1"} onChange={(e) => handleInputChange(e as any)} /></td>
+                        <td className="text-center"><input type="radio" name="emotional_fears" value="2" checked={formData.emotional_fears === "2"} onChange={(e) => handleInputChange(e as any)} /></td>
                       </tr>
                     </tbody>
                   </table>
@@ -324,9 +301,9 @@ export default function SdqAssessmentPage() {
                     <thead className="table-light">
                       <tr>
                         <th className="fw-semibold">ข้อความ</th>
-                        <th className="fw-semibold text-center" width="15%">ไม่จริง</th>
-                        <th className="fw-semibold text-center" width="15%">ค่อนข้างจริง</th>
-                        <th className="fw-semibold text-center" width="15%">จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ไม่จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ค่อนข้างจริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>จริง</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -629,21 +606,7 @@ export default function SdqAssessmentPage() {
         </form>
       </div>
 
-      {/* START: Footer */}
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>แบบประเมิน SDQ</span>
-            </div>
-          </div>
-        </div>
-      </footer>
-      {/* END: Footer */}
+    
     </div>
   );
 }

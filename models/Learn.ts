@@ -31,7 +31,10 @@ const LearnSchema = new mongoose.Schema({
   evalParticipation: { type: Boolean, default: false },
   
   // สื่อ/เอกสาร
-  materials: { type: String },
+  materials: [{
+    name: { type: String },
+    url: { type: String }
+  }], // Array of { name, url }
   materialsNote: { type: String },
   
   // ข้อเสนอแนะ (สำหรับวางแผนล่วงหน้า)

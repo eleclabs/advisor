@@ -44,7 +44,7 @@ export default function CreateHomeroomPlanPage() {
     sessionNote: "",
     
     // สื่อ/เอกสาร
-    materials: null as File | null,
+    materials: [] as { name: string; url: string }[],
     materialsNote: "",
     
     // ข้อเสนอแนะ
@@ -57,6 +57,8 @@ export default function CreateHomeroomPlanPage() {
   });
 
   const teacher_name = "อาจารย์วิมลรัตน์";
+
+  const [newFiles, setNewFiles] = useState<File[]>([]);
 
   useEffect(() => {
     const bootstrapLink = document.createElement("link");
@@ -87,9 +89,14 @@ export default function CreateHomeroomPlanPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData(prev => ({ ...prev, materials: e.target.files![0] }));
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      setNewFiles(prev => [...prev, ...files]);
     }
+  };
+
+  const handleRemoveNewFile = (index: number) => {
+    setNewFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,10 +147,10 @@ export default function CreateHomeroomPlanPage() {
       submitFormData.append('specialTrack', formData.specialTrack);
       submitFormData.append('sessionNote', formData.sessionNote);
       
-      // เพิ่มฟิลด์สื่อ/เอกสาร
-      if (formData.materials) {
-        submitFormData.append('materials', formData.materials);
-      }
+      // เพิ่มฟิลด์สื่อ/เอกสาร (หลายไฟล์)
+      newFiles.forEach((file, index) => {
+        submitFormData.append(`materials[${index}]`, file);
+      });
       submitFormData.append('materialsNote', formData.materialsNote);
       
       // เพิ่มฟิลด์ข้อเสนอแนะและการติดตาม
@@ -153,6 +160,12 @@ export default function CreateHomeroomPlanPage() {
       // เพิ่มสถานะและผู้สร้าง
       submitFormData.append('status', formData.status);
       submitFormData.append('created_by', teacher_name);
+      
+      // Debug: แสดงทุก FormData entries
+      console.log("📤 Create Page - All FormData entries:");
+      for (let [key, value] of submitFormData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
       
       // ส่งข้อมูลไป API
       const response = await fetch('/api/learn', {
@@ -377,8 +390,38 @@ export default function CreateHomeroomPlanPage() {
             <div className="card-body">
               <div className="mb-3">
                 <label className="form-label">แนบไฟล์:</label>
-                <input type="file" className="form-control rounded-0" onChange={handleFileChange} />
-                <small className="text-muted">ใบงาน, สื่อวิดีโอ, คู่มือประเมิน SDQ</small>
+                <input 
+                  type="file" 
+                  name="materials"
+                  className="form-control rounded-0" 
+                  onChange={handleFileChange} 
+                  multiple 
+                  accept="*"
+                />
+                <small className="text-muted">ใบงาน, สื่อวิดีโอ, รูปภาพ, หรือไฟล์เอกสารอื่นๆ (ไม่จำกัดนามสกุลไฟล์)</small>
+                
+                {newFiles.length > 0 && (
+                  <div className="mt-3">
+                    <label className="form-label">ไฟล์ที่เลือก:</label>
+                    <div className="border rounded p-2 bg-light">
+                      {newFiles.map((file, index) => (
+                        <div key={index} className="d-flex justify-content-between align-items-center py-1">
+                          <small className="text-dark">
+                            <i className="bi bi-file-earmark me-2"></i>
+                            {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                          </small>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-danger rounded-0"
+                            onClick={() => handleRemoveNewFile(index)}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="form-label">หมายเหตุ:</label>

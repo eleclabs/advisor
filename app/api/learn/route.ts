@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Learn from "@/models/Learn";
-import Student from "@/models/Student"; // ✅ เพิ่ม import Student
+import Student from "@/models/Student";
+import cloudinary from "@/lib/cloudinary";
 
 export async function GET(request: NextRequest) {
   try {
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
       ];
     }
     
-    console.log("📥 Query:", query);
+    console.log(" Query:", query);
     
     const learns = await Learn.find(query).sort({ createdAt: -1 });
     
@@ -76,7 +77,8 @@ export async function GET(request: NextRequest) {
       status: learn.status === 'published' ? 'เผยแพร่' : 
               learn.status === 'draft' ? 'ร่าง' : learn.status || 'ร่าง',
       has_record: learn.has_record || false,
-      date: learn.createdAt ? new Date(learn.createdAt).toISOString().split('T')[0] : undefined
+      date: learn.createdAt ? new Date(learn.createdAt).toISOString().split('T')[0] : "",
+      materials: learn.materials || []
     }));
     
     return NextResponse.json({ 
@@ -116,7 +118,7 @@ export async function POST(request: NextRequest) {
     
     fields.forEach(field => {
       const value = formData.get(field);
-      if (value) data[field] = value;
+      if (value && field !== 'materials') data[field] = value;
     });
     
     // วัตถุประสงค์ (array)
@@ -135,9 +137,48 @@ export async function POST(request: NextRequest) {
     data.evalParticipation = formData.get('evalParticipation') === 'on';
     
     // ไฟล์
-    const file = formData.get('materials') as File;
-    if (file && file.size > 0) {
-      data.materials = file.name;
+    const materials: { name: string, url: string }[] = [];
+    
+    // รองรับหลายไฟล์
+    console.log(" POST API - Checking for files...");
+    
+    for (let i = 0; formData.has(`materials[${i}]`); i++) {
+      const file = formData.get(`materials[${i}]`) as File;
+      
+      if (file && file.size > 0) {
+        console.log(` Processing file ${i}:`, file.name, file.size);
+        
+        // validate file
+        if (!(file instanceof File)) continue;
+        
+        // convert file -> buffer
+        const buffer = Buffer.from(await file.arrayBuffer());
+        
+        // upload to cloudinary
+        const upload = await new Promise<any>((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { 
+              folder: "learning_materials",
+              resource_type: "raw" // สำคัญสำหรับไฟล์เอกสาร PDF, DOC, ฯลฯ
+            }, 
+            (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+            }
+          ).end(buffer);
+        });
+        
+        materials.push({
+          name: file.name,
+          url: upload.secure_url
+        });
+        console.log(` Added material:`, file.name);
+      }
+    }
+    
+    if (materials.length > 0) {
+      data.materials = materials;
+      console.log(` Final materials array (${materials.length} files):`, materials);
     }
     
     // Timestamps

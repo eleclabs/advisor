@@ -167,18 +167,6 @@ export default function StudentAddInterviewPage() {
   });
 
   useEffect(() => {
-    // Load Bootstrap CSS
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    // Load Bootstrap Icons
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
-
     // Load mock data
     setTimeout(() => {
       // Get student basic info
@@ -1026,21 +1014,7 @@ export default function StudentAddInterviewPage() {
         </form>
       </div>
 
-      {/* START: Footer */}
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>{isEditMode ? "แก้ไข" : "เพิ่ม"}บันทึกการสัมภาษณ์</span>
-            </div>
-          </div>
-        </div>
-      </footer>
-      {/* END: Footer */}
+   
     </div>
   );
 }

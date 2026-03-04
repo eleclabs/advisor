@@ -158,34 +158,7 @@ export default function StudentListPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* Navigation Bar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="/student">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3 active" href="/student">รายชื่อผู้เรียน</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/committees">คณะกรรมการ</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/isp">ISP</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/referrals">ส่งต่อ</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+     
 
       <div className="container-fluid py-4">
         {/* Page Header */}
@@ -301,7 +274,7 @@ export default function StudentListPage() {
                 <table className="table table-bordered table-hover bg-white">
                   <thead className="bg-dark text-white">
                     <tr>
-                      <th className="text-center" width="50">ลำดับ</th>
+                      <th className="text-center" style={{width: "50px"}}>ลำดับ</th>
                       <th className="text-uppercase fw-semibold">รหัสนักศึกษา</th>
                       <th className="text-uppercase fw-semibold">ชื่อ-นามสกุล</th>
                       <th className="text-uppercase fw-semibold">ระดับชั้น</th>

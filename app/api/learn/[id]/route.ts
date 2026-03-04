@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Learn from "@/models/Learn";
+import cloudinary from "@/lib/cloudinary";
 
 export async function GET(
   request: NextRequest,
@@ -59,7 +60,7 @@ export async function PUT(
       'warmup', 'mainActivity', 'summary',
       'trackProblems', 'individualCounsel',
       'teacherNote', 'problems', 'specialTrack', 'sessionNote',
-      'materials', 'materialsNote', 'suggestions', 'individualFollowup',
+      'materialsNote', 'suggestions', 'individualFollowup',
       'status', 'created_by'
     ];
     
@@ -91,11 +92,68 @@ export async function PUT(
     updateData.evalWorksheet = formData.get('evalWorksheet') === 'on';
     updateData.evalParticipation = formData.get('evalParticipation') === 'on';
     
-    // จัดการไฟล์ (ถ้ามี)
-    const file = formData.get('materials') as File;
-    if (file && file.size > 0) {
-      // ในที่นี้เก็บแค่ชื่อไฟล์ก่อน
-      updateData.materials = file.name;
+    // จัดการไฟล์ใหม่ (ถ้ามี)
+    const newMaterials: { name: string, url: string }[] = [];
+    
+    for (let i = 0; formData.has(`materials[${i}]`); i++) {
+      const file = formData.get(`materials[${i}]`) as File;
+      
+      if (file && file.size > 0) {
+        try {
+          const buffer = Buffer.from(await file.arrayBuffer());
+          const upload = await new Promise<any>((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+              { 
+                folder: "learning_materials",
+                resource_type: "raw"
+              }, 
+              (err, result) => {
+                if (err) reject(err);
+                else resolve(result);
+              }
+            ).end(buffer);
+          });
+          
+          newMaterials.push({
+            name: file.name,
+            url: upload.secure_url
+          });
+        } catch (error) {
+          console.error(`❌ Upload error for ${file.name}:`, error);
+        }
+      }
+    }
+    
+    // รับไฟล์เดิมที่คงไว้ (มาในรูปแบบ JSON string หรือชื่อ/URL แยกกัน)
+    const existingMaterials: { name: string, url: string }[] = [];
+    for (let i = 0; formData.has(`existingMaterials[${i}]`); i++) {
+      const materialData = formData.get(`existingMaterials[${i}]`) as string;
+      if (materialData) {
+        try {
+          // ตรวจสอบว่าเป็น JSON หรือไม่ (กรณีส่งมาเป็น object string)
+          const parsed = JSON.parse(materialData);
+          existingMaterials.push(parsed);
+        } catch (e) {
+          // ถ้าไม่ใช่ JSON (กรณีส่งมาเป็น URL เฉพาะสำหรับข้อมูลเก่า) 
+          // ให้พยายามหาชื่อไฟล์จาก URL
+          existingMaterials.push({
+            name: materialData.split('/').pop() || 'ไฟล์เดิม',
+            url: materialData
+          });
+        }
+      }
+    }
+    
+    // รวมไฟล์เดิมและไฟล์ใหม่
+    const allMaterials = [...existingMaterials, ...newMaterials];
+    
+    if (allMaterials.length > 0) {
+      updateData.materials = allMaterials;
+      console.log(`🔗 Final materials array (${allMaterials.length} files):`, allMaterials);
+    } else if (formData.get('materials_clear') === 'true') {
+      // กรณีต้องการลบไฟล์ทั้งหมด
+      updateData.materials = [];
+      console.log(`🔗 Cleared all materials`);
     }
     
     // อัปเดตเวลา

@@ -36,7 +36,7 @@ interface HomeroomPlan {
   evalParticipation: boolean;
   
   // สื่อ
-  materials: string;
+  materials: { name: string; url: string }[];
   materialsNote: string;
   
   // ข้อเสนอแนะ
@@ -71,18 +71,6 @@ export default function HomeroomPlanDetailPage() {
   const teacher_name = "อาจารย์วิมลรัตน์";
 
   useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
-  }, []);
-
-  useEffect(() => {
     const fetchPlan = async () => {
       try {
         setLoading(true);
@@ -90,7 +78,29 @@ export default function HomeroomPlanDetailPage() {
         const result = await response.json();
         
         if (result.success) {
-          setPlan(result.data);
+          console.log("📥 Detail page - Raw data:", result.data);
+          
+          // Normalize materials field to always be an array of objects
+          let normalizedMaterials: { name: string; url: string }[] = [];
+          
+          if (Array.isArray(result.data.materials)) {
+            normalizedMaterials = result.data.materials.map((m: any) => {
+              if (typeof m === 'string') {
+                return { name: m.split('/').pop() || 'ไฟล์', url: m };
+              }
+              if (m && typeof m === 'object' && m.url) {
+                return { name: m.name || m.url.split('/').pop() || 'ไฟล์', url: m.url };
+              }
+              return null;
+            }).filter(Boolean) as { name: string; url: string }[];
+          } else if (result.data.materials && typeof result.data.materials === 'string') {
+            normalizedMaterials = [{ name: (result.data.materials as string).split('/').pop() || 'ไฟล์', url: result.data.materials }];
+          }
+
+          setPlan({
+            ...result.data,
+            materials: normalizedMaterials
+          });
         } else {
           setError(result.message || "ไม่พบข้อมูลแผนกิจกรรม");
         }
@@ -168,35 +178,6 @@ export default function HomeroomPlanDetailPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item">
-                <a className="nav-link text-white px-3" href="/student">รายชื่อผู้เรียน</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white px-3" href="/committees">คณะกรรมการ</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white px-3 active" href="/student_learn">โฮมรูม</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white px-3" href="/referrals">ส่งต่อ</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-
       <div className="container-fluid py-4">
         {/* Header */}
         <div className="row mb-4">
@@ -240,11 +221,10 @@ export default function HomeroomPlanDetailPage() {
 
         {/* Content */}
         <div className="bg-white p-4 border">
-          {/* ===== ข้อมูลจาก Edit Page ===== */}
+          {/* ข้อมูลแผนกิจกรรม */}
           <div className="mb-4">
             <h4 className="text-primary mb-3">📋 ข้อมูลแผนกิจกรรม (ก่อนจัดกิจกรรม)</h4>
             
-            {/* Header Info */}
             <div className="row mb-4">
               <div className="col-md-8">
                 <h3 className="fw-bold mb-3">{plan.topic}</h3>
@@ -323,9 +303,87 @@ export default function HomeroomPlanDetailPage() {
                 <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
                   <i className="bi bi-paperclip me-2"></i>สื่อและวัสดุอุปกรณ์
                 </h5>
-                <p className="mt-2 mb-1">{plan.materials || '-'}</p>
+                {plan.materials && plan.materials.length > 0 ? (
+                  <div className="row g-3 mt-2">
+                    {plan.materials.map((material, index) => {
+                      const fileName = material.name;
+                      const fileUrl = material.url;
+                      const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(fileName);
+                      const isPdf = /\.pdf$/i.test(fileName);
+                      const isWord = /\.(doc|docx)$/i.test(fileName);
+                      const isExcel = /\.(xls|xlsx)$/i.test(fileName);
+                      const isPpt = /\.(ppt|pptx)$/i.test(fileName);
+                      const isTxt = /\.txt$/i.test(fileName);
+                      
+                      let iconClass = 'bi-file-earmark-text text-primary';
+                      if (isPdf) iconClass = 'bi-file-earmark-pdf text-danger';
+                      if (isWord) iconClass = 'bi-file-earmark-word text-primary';
+                      if (isExcel) iconClass = 'bi-file-earmark-excel text-success';
+                      if (isPpt) iconClass = 'bi-file-earmark-slides text-warning';
+                      if (isTxt) iconClass = 'bi-file-earmark-font text-secondary';
+                      
+                      return (
+                        <div key={index} className="col-md-6 col-lg-4">
+                          <div className="card h-100 rounded-0 border shadow-sm">
+                            {isImage ? (
+                              <div className="ratio ratio-16x9 bg-light overflow-hidden border-bottom">
+                                <img 
+                                  src={fileUrl} 
+                                  alt={fileName}
+                                  className="object-fit-cover w-100 h-100"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=No+Preview';
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="ratio ratio-16x9 bg-light d-flex align-items-center justify-content-center border-bottom">
+                                <div className="text-center">
+                                  <i className={`bi ${iconClass} display-4`}></i>
+                                  <p className="small text-muted mb-0">
+                                    {isPdf ? 'PDF' : isPpt ? 'PowerPoint' : isWord ? 'Word' : isTxt ? 'Text' : 'File'}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                            <div className="card-body p-2 d-flex flex-column justify-content-between">
+                              <div className="text-truncate mb-2 small fw-semibold" title={fileName}>
+                                {fileName}
+                              </div>
+                              <div className="d-grid gap-2">
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const response = await fetch(fileUrl);
+                                      const blob = await response.blob();
+                                      const url = window.URL.createObjectURL(blob);
+                                      const link = document.createElement('a');
+                                      link.href = url;
+                                      link.download = fileName;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      window.URL.revokeObjectURL(url);
+                                    } catch (error) {
+                                      console.error('Download error:', error);
+                                    }
+                                  }}
+                                  className="btn btn-primary btn-sm rounded-0"
+                                >
+                                  <i className="bi bi-download me-1"></i> ดาวน์โหลด
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-muted">- ไม่มีสื่อการเรียนรู้ -</p>
+                )}
                 {plan.materialsNote && (
-                  <small className="text-muted">หมายเหตุ: {plan.materialsNote}</small>
+                  <small className="text-muted d-block mt-2">หมายเหตุ: {plan.materialsNote}</small>
                 )}
               </div>
             </div>
@@ -339,12 +397,11 @@ export default function HomeroomPlanDetailPage() {
             </div>
           </div>
 
-          {/* ===== ข้อมูลจาก Record Page ===== */}
+          {/* ข้อมูลจาก Record Page */}
           {plan.has_record && (
-            <div className="mb-4">
+            <div className="mb-4 mt-5 pt-4 border-top">
               <h4 className="text-success mb-3">📝 ข้อมูลบันทึกหลังกิจกรรม</h4>
               
-              {/* ข้อมูลการจัดกิจกรรม */}
               <div className="row mb-3">
                 <div className="col-md-3">
                   <p><span className="fw-bold">วันที่จัดกิจกรรม:</span> {plan.activity_date}</p>
@@ -360,7 +417,6 @@ export default function HomeroomPlanDetailPage() {
                 </div>
               </div>
 
-              {/* 6. บันทึกหลังกิจกรรม */}
               <div className="mb-3">
                 <h5 className="fw-bold text-success border-bottom border-success pb-2">
                   <i className="bi bi-journal-text me-2"></i>6. บันทึกหลังกิจกรรม
@@ -385,7 +441,6 @@ export default function HomeroomPlanDetailPage() {
                 </div>
               </div>
 
-              {/* ติดตามผลรายบุคคล */}
               {plan.individualFollowup && (
                 <div className="mb-3">
                   <h5 className="fw-bold text-success border-bottom border-success pb-2">
@@ -404,21 +459,6 @@ export default function HomeroomPlanDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>เข้าสู่ระบบ: {teacher_name}</span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
