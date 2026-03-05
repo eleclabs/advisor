@@ -83,6 +83,7 @@ export default function HomeroomPlanDetailPage() {
   const [showGallery, setShowGallery] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [masonryPage, setMasonryPage] = useState(0);
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
   const photosPerPage = 12; // Show 12 photos per masonry page
 
   const teacher_name = "อาจารย์วิมลรัตน์";
@@ -228,6 +229,25 @@ export default function HomeroomPlanDetailPage() {
     }
   };
 
+  const downloadSinglePhoto = async (photo: Photo) => {
+    try {
+      const response = await fetch(photo.url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = photo.caption 
+        ? `${photo.caption.replace(/[^a-zA-Z0-9.-]/g, '_')}.jpg`
+        : `photo_${photo.id}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download error:', error);
+    }
+  };
+
   const downloadAllPhotos = async () => {
     if (photos.length === 0) return;
     
@@ -267,12 +287,23 @@ export default function HomeroomPlanDetailPage() {
     }
   };
 
+  // Sorting function
+  const getSortedPhotos = () => {
+    const sorted = [...photos].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+    return sorted;
+  };
+
   // Masonry pagination functions
   const getTotalMasonryPages = () => Math.ceil(photos.length / photosPerPage);
   const getCurrentMasonryPagePhotos = () => {
+    const sortedPhotos = getSortedPhotos();
     const start = masonryPage * photosPerPage;
     const end = start + photosPerPage;
-    return photos.slice(start, end);
+    return sortedPhotos.slice(start, end);
   };
   const goToMasonryPage = (page: number) => {
     setMasonryPage(page);
@@ -650,6 +681,25 @@ export default function HomeroomPlanDetailPage() {
                 <i className="bi bi-images me-2"></i>อัลบัมรูปภาพกิจกรรม
               </h4>
               <div className="d-flex align-items-center gap-2">
+                <div className="d-flex align-items-center gap-2">
+                  <label className="mb-0 small">เรียงตาม:</label>
+                  <select 
+                    className="form-select form-select-sm rounded-0" 
+                    style={{ width: 'auto' }}
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
+                  >
+                    <option value="newest">ใหม่สุด</option>
+                    <option value="oldest">เก่าสุด</option>
+                  </select>
+                </div>
+                <button 
+                  className="btn btn-primary rounded-0 btn-sm"
+                  onClick={downloadAllPhotos}
+                  disabled={photos.length === 0}
+                >
+                  <i className="bi bi-folder-zip"></i> ดาวน์โหลดทั้งหมด
+                </button>
                 <span className="badge bg-info rounded-0 px-3 py-2">
                   {photos.length} รูปภาพ
                 </span>
@@ -668,7 +718,9 @@ export default function HomeroomPlanDetailPage() {
                     return (
                       <div key={photo.id} className="masonry-item">
                         <div 
-                          className="card rounded-0 border shadow-sm h-100 cursor-pointer"
+                          className="card rounded-0 border shadow-sm h-100"
+                          onMouseOver={(e) => e.currentTarget.style.cursor = 'pointer'}
+                          onMouseOut={(e) => e.currentTarget.style.cursor = 'default'}
                           onClick={() => openGallery(globalIndex)}
                         >
                           <img 
@@ -682,6 +734,27 @@ export default function HomeroomPlanDetailPage() {
                               <small className="text-muted text-truncate d-block">{photo.caption}</small>
                             </div>
                           )}
+                          {/* Download icon overlay - always visible */}
+                          <div 
+                            className="position-absolute top-0 end-0 m-1"
+                            style={{ zIndex: 100 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              downloadSinglePhoto(photo);
+                            }}
+                            title="ดาวน์โหลดรูปนี้"
+                          >
+                            <button 
+                              className="btn btn-primary btn-sm rounded-0"
+                              style={{ 
+                                backdropFilter: 'blur(2px)',
+                                backgroundColor: 'rgba(13, 110, 253, 0.9)',
+                                borderColor: 'rgba(13, 110, 253, 1)'
+                              }}
+                            >
+                              <i className="bi bi-download"></i>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -813,23 +886,7 @@ export default function HomeroomPlanDetailPage() {
                   {/* Gallery Header */}
                   <div className="row py-3">
                     <div className="col-12">
-                      <div className="d-flex justify-content-between align-items-center text-white">
-                        <div className="d-flex align-items-center gap-3">
-                          <div className="d-flex gap-2">
-                            <button className="btn btn-sm btn-outline-light rounded-0" onClick={goToFirst} disabled={currentPhotoIndex === 0}>
-                              <i className="bi bi-chevron-double-left"></i> แรกสุด
-                            </button>
-                            <button className="btn btn-sm btn-outline-light rounded-0" onClick={goToPrevious}>
-                              <i className="bi bi-chevron-left"></i> ก่อนหน้า
-                            </button>
-                            <button className="btn btn-sm btn-outline-light rounded-0" onClick={goToNext}>
-                              ถัดไป <i className="bi bi-chevron-right"></i>
-                            </button>
-                            <button className="btn btn-sm btn-outline-light rounded-0" onClick={goToLast} disabled={currentPhotoIndex === photos.length - 1}>
-                              สุดท้าย <i className="bi bi-chevron-double-right"></i>
-                            </button>
-                          </div>
-                        </div>
+                      <div className="d-flex justify-content-end align-items-center text-white">
                         <div className="d-flex align-items-center gap-2">
                           <button className="btn btn-sm btn-success rounded-0" onClick={downloadCurrentPhoto}>
                             <i className="bi bi-download"></i> ดาวน์โหลดรูปนี้

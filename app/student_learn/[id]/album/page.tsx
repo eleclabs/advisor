@@ -21,6 +21,8 @@ export default function PhotoAlbumPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [planInfo, setPlanInfo] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const photosPerPage = 12;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -165,6 +167,27 @@ export default function PhotoAlbumPage() {
     } catch (error) {
       console.error("Delete error:", error);
       alert("เกิดข้อผิดพลาดในการลบรูปภาพ");
+    }
+  };
+
+  // Pagination functions
+  const getTotalPages = () => Math.ceil(photos.length / photosPerPage);
+  const getCurrentPagePhotos = () => {
+    const start = currentPage * photosPerPage;
+    const end = start + photosPerPage;
+    return photos.slice(start, end);
+  };
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+  };
+  const goToNextPage = () => {
+    if (currentPage < getTotalPages() - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  const goToPreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
@@ -356,34 +379,142 @@ export default function PhotoAlbumPage() {
               </div>
               <div className="card-body">
                 {photos.length > 0 ? (
-                  <div className="masonry-grid">
-                    {photos.map((photo) => (
-                      <div key={photo.id} className="masonry-item">
-                        <div className="card rounded-0 border shadow-sm h-100">
-                          <img 
-                            src={photo.url} 
-                            alt={photo.caption || 'Activity photo'}
-                            className="card-img-top masonry-img"
-                            loading="lazy"
-                          />
-                          <div className="position-absolute top-0 end-0 m-1">
-                            <button
-                              className="btn btn-danger btn-sm rounded-0"
-                              onClick={() => handleDeletePhoto(photo.id)}
-                              title="ลบรูปภาพ"
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </div>
-                          {photo.caption && (
-                            <div className="card-body p-2">
-                              <small className="text-muted text-truncate d-block">{photo.caption}</small>
+                  <>
+                    <div className="masonry-grid">
+                      {getCurrentPagePhotos().map((photo) => (
+                        <div key={photo.id} className="masonry-item">
+                          <div className="card rounded-0 border shadow-sm h-100">
+                            <img 
+                              src={photo.url} 
+                              alt={photo.caption || 'Activity photo'}
+                              className="card-img-top masonry-img"
+                              loading="lazy"
+                            />
+                            <div className="position-absolute top-0 end-0 m-1">
+                              <button
+                                className="btn btn-danger btn-sm rounded-0"
+                                onClick={() => handleDeletePhoto(photo.id)}
+                                title="ลบรูปภาพ"
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
                             </div>
-                          )}
+                            {photo.caption && (
+                              <div className="card-body p-2">
+                                <small className="text-muted text-truncate d-block">{photo.caption}</small>
+                              </div>
+                            )}
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                    
+                    {/* Pagination */}
+                    {getTotalPages() > 1 && (
+                      <div className="d-flex justify-content-center align-items-center gap-2 mt-4">
+                        <button 
+                          className="btn btn-outline-secondary rounded-0 btn-sm"
+                          onClick={goToPreviousPage}
+                          disabled={currentPage === 0}
+                        >
+                          <i className="bi bi-chevron-double-left"></i>
+                        </button>
+                        
+                        <button 
+                          className="btn btn-outline-secondary rounded-0 btn-sm"
+                          onClick={goToPreviousPage}
+                          disabled={currentPage === 0}
+                        >
+                          <i className="bi bi-chevron-left"></i>
+                        </button>
+                        
+                        <div className="d-flex gap-1">
+                          {(() => {
+                            const pages = [];
+                            const totalPages = getTotalPages();
+                            const maxVisible = 5;
+                            
+                            if (totalPages <= maxVisible) {
+                              // Show all pages
+                              for (let i = 0; i < totalPages; i++) {
+                                pages.push(
+                                  <button
+                                    key={i}
+                                    className={`btn btn-sm rounded-0 ${i === currentPage ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                    onClick={() => goToPage(i)}
+                                  >
+                                    {i + 1}
+                                  </button>
+                                );
+                              }
+                            } else {
+                              // Show smart pagination
+                              pages.push(
+                                <button
+                                  key={0}
+                                  className={`btn btn-sm rounded-0 ${0 === currentPage ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                  onClick={() => goToPage(0)}
+                                >
+                                  1
+                                </button>
+                              );
+                              
+                              if (currentPage > 2) {
+                                pages.push(<span key="start-dots" className="px-2">...</span>);
+                              }
+                              
+                              const start = Math.max(1, Math.min(currentPage - 1, totalPages - 3));
+                              const end = Math.min(totalPages - 2, Math.max(currentPage + 1, 3));
+                              
+                              for (let i = start; i <= end; i++) {
+                                pages.push(
+                                  <button
+                                    key={i}
+                                    className={`btn btn-sm rounded-0 ${i === currentPage ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                    onClick={() => goToPage(i)}
+                                  >
+                                    {i + 1}
+                                  </button>
+                                );
+                              }
+                              
+                              if (currentPage < totalPages - 3) {
+                                pages.push(<span key="end-dots" className="px-2">...</span>);
+                              }
+                              
+                              pages.push(
+                                <button
+                                  key={totalPages - 1}
+                                  className={`btn btn-sm rounded-0 ${totalPages - 1 === currentPage ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                  onClick={() => goToPage(totalPages - 1)}
+                                >
+                                  {totalPages}
+                                </button>
+                              );
+                            }
+                            
+                            return pages;
+                          })()}
+                        </div>
+                        
+                        <button 
+                          className="btn btn-outline-secondary rounded-0 btn-sm"
+                          onClick={goToNextPage}
+                          disabled={currentPage === getTotalPages() - 1}
+                        >
+                          <i className="bi bi-chevron-right"></i>
+                        </button>
+                        
+                        <button 
+                          className="btn btn-outline-secondary rounded-0 btn-sm"
+                          onClick={goToNextPage}
+                          disabled={currentPage === getTotalPages() - 1}
+                        >
+                          <i className="bi bi-chevron-double-right"></i>
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-5">
                     <i className="bi bi-images text-muted fs-1"></i>
