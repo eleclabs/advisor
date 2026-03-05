@@ -15,7 +15,7 @@ interface StudentData {
   birth_date: string;
   level: string;
   class_group: string;
-  class_number: string;  // ✅ เพิ่มเลขที่
+  class_number: string;  // เพิ่มเลขที่
   advisor_name: string;
   phone_number: string;
   religion: string;
@@ -25,6 +25,7 @@ interface StudentData {
   blood_type: string;
   bmi?: string;
   status?: string;
+  image: string;
 }
 
 export default function EditStudentPage() {
@@ -37,6 +38,8 @@ export default function EditStudentPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [studentData, setStudentData] = useState<StudentData>({
     _id: studentDocId || "",
     id: "",
@@ -56,18 +59,11 @@ export default function EditStudentPage() {
     weight: "",
     height: "",
     blood_type: "",
+    image: "",
   });
 
   useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
+   
   }, []);
 
   useEffect(() => {
@@ -112,6 +108,7 @@ export default function EditStudentPage() {
             weight: foundStudent.weight || "",
             height: foundStudent.height || "",
             blood_type: foundStudent.blood_type || "",
+            image: foundStudent.image || "",
           });
         } else {
           setError("ไม่พบข้อมูลนักเรียน");
@@ -130,6 +127,18 @@ export default function EditStudentPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setStudentData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const calculateBMI = () => {
@@ -176,12 +185,17 @@ export default function EditStudentPage() {
 
       const formData = new FormData();
       Object.entries(studentData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (key !== 'image' && value !== undefined && value !== null) {
           formData.append(key, String(value));
         }
       });
       formData.append("bmi", bmiValue);
       formData.append("status", "ปกติ");
+
+      // เพิ่มรูปภาพถ้ามี
+      if (profileImage) {
+        formData.append("profileImage", profileImage);
+      }
 
       console.log("📤 Updating with _id:", studentDocId);
 
@@ -193,7 +207,7 @@ export default function EditStudentPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        router.push(`/student_detail/${studentDocId}`);
+        router.push(`/student/student_detail/${studentDocId}`);
       } else {
         alert(result.message || "เกิดข้อผิดพลาด");
       }
@@ -230,36 +244,7 @@ export default function EditStudentPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="/student">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">แก้ไขข้อมูล: {studentData.id}</span>
-          </div>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/committees">คณะกรรมการ</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/isp">ISP</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/referrals">ส่งต่อ</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+    
 
       <div className="container-fluid py-4">
         <div className="row mb-4">
@@ -271,7 +256,7 @@ export default function EditStudentPage() {
               </h2>
               <div>
                 <Link 
-                  href={`/student_detail/${studentDocId}`}
+                  href={`/student/student_detail/${studentDocId}`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2"
                 >
                   <i className="bi bi-arrow-left me-2"></i>กลับ
@@ -293,6 +278,44 @@ export default function EditStudentPage() {
                 </div>
                 <div className="p-4">
                   <div className="row g-3">
+                    {/* รูปโปรไฟล์ */}
+                    <div className="col-md-12">
+                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์นักเรียน</label>
+                      <div className="d-flex align-items-start gap-4">
+                        <div className="text-center">
+                          {imagePreview || studentData.image ? (
+                            <img 
+                              src={imagePreview || studentData.image} 
+                              alt="รูปโปรไฟล์" 
+                              className="rounded-circle border border-3 border-warning"
+                              style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div 
+                              className="rounded-circle border border-3 border-secondary d-flex align-items-center justify-content-center bg-light"
+                              style={{ width: '120px', height: '120px' }}
+                            >
+                              <i className="bi bi-person-fill fs-1 text-secondary"></i>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-grow-1">
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="form-control rounded-0"
+                          />
+                          <small className="text-muted">รองรับไฟล์รูปภาพ .jpg, .png, .gif ขนาดไม่เกิน 5MB</small>
+                          {studentData.image && !imagePreview && (
+                            <div className="mt-2">
+                              <small className="text-info">มีรูปภาพอยู่แล้ว ถ้าต้องการเปลี่ยนให้เลือกรูปใหม่</small>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">
                         รหัสนักศึกษา <span className="text-danger">*</span>
@@ -536,7 +559,7 @@ export default function EditStudentPage() {
           <div className="row mb-4">
             <div className="col-12 text-center">
               <Link 
-                href={`/student_detail/${studentDocId}`}
+                href={`/student/student_detail/${studentDocId}`}
                 className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก
@@ -562,19 +585,7 @@ export default function EditStudentPage() {
         </form>
       </div>
 
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>แก้ไขข้อมูล</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      
     </div>
   );
 }

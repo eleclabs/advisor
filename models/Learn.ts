@@ -31,7 +31,10 @@ const LearnSchema = new mongoose.Schema({
   evalParticipation: { type: Boolean, default: false },
   
   // สื่อ/เอกสาร
-  materials: { type: String },
+  materials: [{
+    name: { type: String },
+    url: { type: String }
+  }], // Array of { name, url }
   materialsNote: { type: String },
   
   // ข้อเสนอแนะ (สำหรับวางแผนล่วงหน้า)
@@ -51,9 +54,18 @@ const LearnSchema = new mongoose.Schema({
   activity_notes: { type: String },
   activity_problems: { type: String },
   activity_solutions: { type: String },
+  special_track: { type: String },
   evaluator: { type: String },
   has_record: { type: Boolean, default: false },
   recorded_at: { type: String },
+  
+  // รูปภาพกิจกรรม
+  photos: [{
+    id: { type: String },
+    url: { type: String },
+    caption: { type: String },
+    createdAt: { type: String }
+  }], // Array of { id, url, caption, createdAt }
   
   // Timestamps
   created_at: { type: String },

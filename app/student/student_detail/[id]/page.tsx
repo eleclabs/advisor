@@ -42,15 +42,7 @@ export default function StudentBasicPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
+  
   }, []);
 
   useEffect(() => {
@@ -161,36 +153,7 @@ export default function StudentBasicPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="/student">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {student.id}</span>
-          </div>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/committees">คณะกรรมการ</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/isp">ISP</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/referrals">ส่งต่อ</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+      
 
       <div className="container-fluid py-4">
         <div className="row mb-4">
@@ -213,7 +176,7 @@ export default function StudentBasicPage() {
                   สถานะ: {student.status}
                 </span>
                 <Link
-                  href={`/student_detail/${student._id}/interview`}
+                  href={`/student/student_detail/${student._id}/interview`}
                   className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
                 >
                   <i className="bi bi-journal-text me-2"></i>ดูบันทึกการสัมภาษณ์
@@ -237,10 +200,44 @@ export default function StudentBasicPage() {
               </div>
               <div className="p-4">
                 <div className="row g-3">
-                  <div className="col-md-3">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">รหัสนักศึกษา</label>
-                    <p className="fw-bold">{student.id}</p>
+                  {/* รูปโปรไฟล์ */}
+                  <div className="col-md-12">
+                    <div className="d-flex align-items-start gap-4 mb-4">
+                      <div className="text-center">
+                        {student.image ? (
+                          <img 
+                            src={student.image} 
+                            alt="รูปโปรไฟล์" 
+                            className="rounded-circle border border-3 border-warning"
+                            style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div 
+                            className="rounded-circle border border-3 border-secondary d-flex align-items-center justify-content-center bg-light"
+                            style={{ width: '120px', height: '120px' }}
+                          >
+                            <i className="bi bi-person-fill fs-1 text-secondary"></i>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-grow-1">
+                        <h4 className="fw-bold mb-1">{student.name}</h4>
+                        <p className="text-muted mb-2">รหัสนักศึกษา: {student.id}</p>
+                        <span
+                          className={`badge rounded-0 text-uppercase fw-semibold p-2 ${
+                            student.status === "ปกติ"
+                              ? "bg-success"
+                              : student.status === "เสี่ยง"
+                              ? "bg-warning text-dark"
+                              : "bg-danger"
+                          }`}
+                        >
+                          สถานะ: {student.status}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+
                   <div className="col-md-3">
                     <label className="form-label text-uppercase fw-semibold small text-muted">ชื่อ-นามสกุล</label>
                     <p className="fw-bold">{student.name}</p>
@@ -321,25 +318,19 @@ export default function StudentBasicPage() {
         <div className="row mb-4">
           <div className="col-12 d-flex justify-content-end gap-2">
             <Link
-              href={`/student_detail/${student._id}/assessment/sdq`}
+              href={`/student/student_detail/${student._id}/assessment/sdq`}
               className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
             >
               <i className="bi bi-clipboard-data me-2"></i>SDQ
             </Link>
             <Link
-              href={`/student_detail/${student._id}/assessment/dass21`}
-              className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
+              href={`/student/student_detail/${student._id}/assessment/dass21`}
+              className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
             >
               <i className="bi bi-clipboard-heart me-2"></i>DASS-21
             </Link>
             <Link
-              href={`/student_detail/${student._id}/interview`}
-              className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
-            >
-              <i className="bi bi-journal-text me-2"></i>บันทึกการสัมภาษณ์
-            </Link>
-            <Link
-              href={`/student_detail/${student._id}/edit`}
+              href={`/student/student_detail/${student._id}/edit`}
               className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
             >
               <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
@@ -354,18 +345,6 @@ export default function StudentBasicPage() {
         </div>
       </div>
 
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 1.0.0</span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

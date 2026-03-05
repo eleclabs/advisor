@@ -62,6 +62,10 @@ export default function InterviewEditPage() {
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   
+  // State สำหรับจัดการไฟล์เยี่ยมบ้าน
+  const [homeVisitFiles, setHomeVisitFiles] = useState<File[]>([]);
+  const [existingHomeVisitFiles, setExistingHomeVisitFiles] = useState<{ name: string; url: string }[]>([]);
+  
   const [formData, setFormData] = useState<InterviewFormData>({
     student_id: "",
     semester: "2",
@@ -96,16 +100,7 @@ export default function InterviewEditPage() {
   });
 
   useEffect(() => {
-    // Load Bootstrap CSS
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
+   
   }, []);
 
   useEffect(() => {
@@ -115,43 +110,63 @@ export default function InterviewEditPage() {
       try {
         setLoading(true);
         
-        // ดึงข้อมูลนักเรียน
-        const studentRes = await fetch("/api/student");
+        // ดึงข้อมูลนักเรียนและข้อมูลเยี่ยมบ้าน
+        const studentRes = await fetch(`/api/student/${studentDocId}`);
         const studentResult = await studentRes.json();
         
-        let studentsData = [];
-        if (studentResult.success && Array.isArray(studentResult.data)) {
-          studentsData = studentResult.data;
-        }
-        
-        const foundStudent = studentsData.find((s: any) => s._id === studentDocId);
-        
-        if (foundStudent) {
+        if (studentResult.success && studentResult.data) {
+          const studentData = studentResult.data;
           setStudent({
-            _id: foundStudent._id,
-            id: foundStudent.id || "",
-            prefix: foundStudent.prefix || "",
-            first_name: foundStudent.first_name || "",
-            last_name: foundStudent.last_name || "",
-            name: `${foundStudent.prefix || ''}${foundStudent.first_name || ''} ${foundStudent.last_name || ''}`.trim(),
-            nickname: foundStudent.nickname || "",
-            level: foundStudent.level || "",
-            class_group: foundStudent.class_group || "",
+            _id: studentData._id,
+            id: studentData.id || "",
+            prefix: studentData.prefix || "",
+            first_name: studentData.first_name || "",
+            last_name: studentData.last_name || "",
+            name: `${studentData.prefix || ''}${studentData.first_name || ''} ${studentData.last_name || ''}`.trim(),
+            nickname: studentData.nickname || "",
+            level: studentData.level || "",
+            class_group: studentData.class_group || "",
           });
           
+          // ดึงข้อมูลการสัมภาษณ์จาก student data
           setFormData(prev => ({
             ...prev,
-            student_id: foundStudent.id || ""
+            student_id: studentData.id || "",
+            semester: studentData.semester || "2",
+            academic_year: studentData.academic_year || "2567",
+            parent_name: studentData.parent_name || "",
+            parent_relationship: studentData.parent_relationship || "",
+            parent_phone: studentData.parent_phone || "",
+            family_status: studentData.family_status || [],
+            living_with: studentData.living_with || "",
+            living_with_other: studentData.living_with_other || "",
+            housing_type: studentData.housing_type || "",
+            housing_type_other: studentData.housing_type_other || "",
+            transportation: studentData.transportation || [],
+            strengths: studentData.strengths || "",
+            weak_subjects: studentData.weak_subjects || "",
+            hobbies: studentData.hobbies || "",
+            home_behavior: studentData.home_behavior || "",
+            chronic_disease: studentData.chronic_disease || "",
+            risk_behaviors: studentData.risk_behaviors || [],
+            parent_concerns: studentData.parent_concerns || "",
+            family_income: studentData.family_income || "",
+            daily_allowance: studentData.daily_allowance || "",
+            assistance_needs: studentData.assistance_needs || [],
+            student_group: studentData.student_group || "ปกติ",
+            help_guidelines: studentData.help_guidelines || "",
+            home_visit_file: studentData.home_visit_file || ""
           }));
-        }
-        
-        // ดึงข้อมูลสัมภาษณ์ (ถ้ามี)
-        const interviewRes = await fetch(`/api/interview/${studentDocId}`);
-        const interviewResult = await interviewRes.json();
-        
-        if (interviewResult.success && interviewResult.data) {
-          setFormData(interviewResult.data);
-          setIsEditMode(true);
+          
+          // ดึงไฟล์เยี่ยมบ้านที่มีอยู่
+          if (studentData.home_visit_files && Array.isArray(studentData.home_visit_files)) {
+            setExistingHomeVisitFiles(studentData.home_visit_files);
+          }
+          
+          // ถ้ามีข้อมูลการสัมภาษณ์อยู่แล้ว ให้เป็น edit mode
+          if (studentData.parent_name || studentData.family_status?.length > 0) {
+            setIsEditMode(true);
+          }
         }
         
       } catch (error) {
@@ -181,30 +196,76 @@ export default function InterviewEditPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      // ตรวจสอบว่ามีไฟล์ซ้ำหรือไม่
+      const currentFileNames = homeVisitFiles.map(f => f.name);
+      const existingFileNames = existingHomeVisitFiles.map(m => m.name);
+      const allFileNames = [...currentFileNames, ...existingFileNames];
+      
+      const uniqueFiles = newFiles.filter(file => !allFileNames.includes(file.name));
+      
+      if (uniqueFiles.length > 0) {
+        setHomeVisitFiles(prev => [...prev, ...uniqueFiles]);
+        console.log(`✅ Added ${uniqueFiles.length} new files:`, uniqueFiles.map(f => f.name));
+      }
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setHomeVisitFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingFile = (index: number) => {
+    setExistingHomeVisitFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     
     try {
-      const submitData = {
-        ...formData,
-        student_doc_id: studentDocId, // ส่ง _id ไปด้วย
-      };
+      // สร้าง FormData สำหรับส่งไฟล์และข้อมูล
+      const submitFormData = new FormData();
       
-      console.log("Saving interview data:", submitData);
+      // เพิ่มข้อมูลฟอร์มทั้งหมด
+      Object.entries(formData).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          submitFormData.append(key, JSON.stringify(value));
+        } else {
+          submitFormData.append(key, String(value));
+        }
+      });
       
-      const response = await fetch(`/api/interview/${studentDocId}`, {
-        method: isEditMode ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
+      // เพิ่มไฟล์ใหม่
+      homeVisitFiles.forEach((file, index) => {
+        submitFormData.append(`home_visit_files[${index}]`, file);
+      });
+      
+      // เพิ่มไฟล์เดิมที่คงไว้
+      existingHomeVisitFiles.forEach((file, index) => {
+        submitFormData.append(`existingHomeVisitFiles[${index}]`, JSON.stringify(file));
+      });
+      
+      // ถ้าไม่มีไฟล์เดิมและไม่มีไฟล์ใหม่ ให้ส่งค่าว่างเพื่อล้างข้อมูลเดิม
+      if (existingHomeVisitFiles.length === 0 && homeVisitFiles.length === 0) {
+        submitFormData.append('home_visit_files_clear', 'true');
+      }
+      
+      console.log("📤 Submitting FormData with files:");
+      console.log("  New files count:", homeVisitFiles.length);
+      console.log("  Existing files count:", existingHomeVisitFiles.length);
+      
+      const response = await fetch(`/api/student/${studentDocId}`, {
+        method: 'PUT',
+        body: submitFormData,
       });
       
       const result = await response.json();
       
       if (response.ok && result.success) {
-        router.push(`/student_detail/${studentDocId}/interview`);
+        router.push(`/student/student_detail/${studentDocId}/interview`);
       } else {
         alert(result.message || "เกิดข้อผิดพลาด");
       }
@@ -237,7 +298,7 @@ export default function InterviewEditPage() {
       <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="alert alert-danger mb-0">
           <p className="mb-0">ไม่พบข้อมูลนักเรียน</p>
-          <Link href="/student" className="btn btn-sm btn-dark mt-3">
+          <Link href={`/student/student_detail/${studentDocId}/interview`} className="btn btn-sm btn-dark mt-3">
             <i className="bi bi-arrow-left me-2"></i>กลับไป
           </Link>
         </div>
@@ -247,38 +308,7 @@ export default function InterviewEditPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* Navigation Bar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="/student">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="ms-3">
-            <span className="badge bg-warning text-dark rounded-0 p-2">รหัสนักศึกษา: {student.id}</span>
-          </div>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/committees">คณะกรรมการ</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/isp">ISP</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/referrals">ส่งต่อ</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-
+      
       <div className="container-fluid py-4">
         {/* Page Header */}
         <div className="row mb-4">
@@ -295,7 +325,7 @@ export default function InterviewEditPage() {
                   สรุปสถานะ: {formData.student_group}
                 </span>
                 <Link
-                  href={`/student_detail/${studentDocId}/interview`}
+                  href={`/student/student_detail/${studentDocId}/interview`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold"
                 >
                   <i className="bi bi-x-circle me-2"></i>ยกเลิก
@@ -938,12 +968,57 @@ export default function InterviewEditPage() {
                     <input 
                       type="file" 
                       className="form-control rounded-0" 
-                      accept=".jpg,.jpeg,.png,.pdf"
+                      onChange={handleFileChange}
+                      multiple
+                      accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
                     />
-                    <div className="mt-2 text-muted small">
-                      <i className="bi bi-info-circle me-1"></i>
-                      รองรับไฟล์ .jpg, .png, .pdf ขนาดไม่เกิน 10MB
-                    </div>
+                    <small className="text-muted">รองรับไฟล์ .jpg, .png, .pdf, .doc, .docx ขนาดไม่เกิน 10MB</small>
+                    
+                    {homeVisitFiles.length > 0 && (
+                      <div className="mt-3">
+                        <label className="form-label">ไฟล์ใหม่ที่เลือก:</label>
+                        <div className="border rounded p-2 bg-light">
+                          {homeVisitFiles.map((file, index) => (
+                            <div key={index} className="d-flex justify-content-between align-items-center py-1">
+                              <small className="text-dark">
+                                <i className="bi bi-file-earmark me-2"></i>
+                                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                              </small>
+                              <button 
+                                type="button"
+                                className="btn btn-sm btn-outline-danger rounded-0"
+                                onClick={() => handleRemoveFile(index)}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {existingHomeVisitFiles.length > 0 && (
+                      <div className="mt-3">
+                        <label className="form-label">ไฟล์เดิม:</label>
+                        <div className="border rounded p-2 bg-light">
+                          {existingHomeVisitFiles.map((file, index) => (
+                            <div key={index} className="d-flex justify-content-between align-items-center py-1">
+                              <small className="text-dark">
+                                <i className="bi bi-file-earmark me-2"></i>
+                                {file.name}
+                              </small>
+                              <button 
+                                type="button"
+                                className="btn btn-sm btn-outline-danger rounded-0"
+                                onClick={() => handleRemoveExistingFile(index)}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-3 p-3 border rounded-0" style={{ backgroundColor: getStatusColor() === 'success' ? '#d4edda' : getStatusColor() === 'warning' ? '#fff3cd' : '#f8d7da' }}>
@@ -973,7 +1048,7 @@ export default function InterviewEditPage() {
           <div className="row mb-4">
             <div className="col-12 text-center">
               <Link
-                href={`/student_detail/${studentDocId}/interview`}
+                href={`/student/student_detail/${studentDocId}/interview`}
                 className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก
@@ -999,20 +1074,7 @@ export default function InterviewEditPage() {
         </form>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>{isEditMode ? "แก้ไข" : "เพิ่ม"}บันทึกการสัมภาษณ์</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+     
     </div>
   );
 }

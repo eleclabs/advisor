@@ -33,12 +33,21 @@ interface EditPlan {
   evalWorksheet: boolean;
   evalParticipation: boolean;
   
+  // บันทึกหลังกิจกรรม
+  teacherNote: string;
+  problems: string;
+  specialTrack: string;
+  sessionNote: string;
+  
   // สื่อ/เอกสาร
-  materials: string;
+  materials: string[];
   materialsNote: string;
   
   // ข้อเสนอแนะ
   suggestions: string;
+  
+  // ติดตามผลรายบุคคล
+  individualFollowup: string;
   
   status: string;
 }
@@ -74,27 +83,27 @@ export default function EditHomeroomPlanPage() {
     evalWorksheet: false,
     evalParticipation: false,
     
-    materials: "",
+    teacherNote: "",
+    problems: "",
+    specialTrack: "",
+    sessionNote: "",
+    
+    materials: [],
     materialsNote: "",
     
     suggestions: "",
     
+    individualFollowup: "",
+    
     status: "draft"
   });
 
-  const [file, setFile] = useState<File | null>(null);
+  const [materials, setMaterials] = useState<File[]>([]);
+  const [existingMaterials, setExistingMaterials] = useState<{ name: string; url: string }[]>([]);
   const teacher_name = "อาจารย์วิมลรัตน์";
 
   useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
+  
   }, []);
 
   useEffect(() => {
@@ -106,6 +115,7 @@ export default function EditHomeroomPlanPage() {
         
         if (result.success) {
           setFormData(result.data);
+          setExistingMaterials(result.data.materials || []);
         } else {
           setError(result.message || "ไม่พบข้อมูลแผนกิจกรรม");
         }
@@ -139,9 +149,37 @@ export default function EditHomeroomPlanPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      // ตรวจสอบว่ามีไฟล์ซ้ำหรือไม่ (ทั้งไฟล์ใหม่และไฟล์เดิม)
+      const currentFileNames = materials.map(f => f.name);
+      const existingFileNames = existingMaterials.map(m => m.name);
+      const allFileNames = [...currentFileNames, ...existingFileNames];
+      
+      const uniqueFiles = newFiles.filter(file => !allFileNames.includes(file.name));
+      
+      if (uniqueFiles.length > 0) {
+        setMaterials(prev => [...prev, ...uniqueFiles]);
+        console.log(`✅ Added ${uniqueFiles.length} new files:`, uniqueFiles.map(f => f.name));
+      }
+      
+      // แจ้งเตือนว่ามีไฟล์ซ้ำ
+      const duplicateFiles = newFiles.filter(file => allFileNames.includes(file.name));
+      if (duplicateFiles.length > 0) {
+        alert(`ไฟล์เหล่านี้มีอยู่แล้ว: ${duplicateFiles.map(f => f.name).join(', ')}`);
+      }
+      
+      // Reset input to allow selecting same file again
+      e.target.value = '';
     }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setMaterials(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingFile = (index: number) => {
+    setExistingMaterials(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,29 +187,92 @@ export default function EditHomeroomPlanPage() {
     setLoading(true);
     
     try {
+      // สร้าง FormData สำหรับส่งไป API
       const submitFormData = new FormData();
       
-      Object.keys(formData).forEach(key => {
-        const value = formData[key as keyof EditPlan];
-        
-        if (key === 'objectives' && Array.isArray(value)) {
-          value.forEach((obj, index) => {
-            if (obj) submitFormData.append(`objectives[${index}]`, obj);
-          });
-        } else if (typeof value === 'boolean') {
-          submitFormData.append(key, value ? 'on' : 'off');
-        } else if (value !== undefined && value !== null) {
-          submitFormData.append(key, String(value));
+      // เพิ่มฟิลด์ทั่วไป (แบบเดียวกับ Create Page)
+      submitFormData.append('level', formData.level);
+      submitFormData.append('semester', formData.semester);
+      submitFormData.append('academicYear', formData.academicYear);
+      submitFormData.append('week', formData.week);
+      submitFormData.append('time', formData.time);
+      submitFormData.append('topic', formData.topic);
+      
+      // เพิ่มวัตถุประสงค์
+      formData.objectives.forEach((obj, index) => {
+        if (obj.trim()) {
+          submitFormData.append(`objectives[${index}]`, obj);
         }
       });
       
-      if (file) {
-        submitFormData.append('materials', file);
+      // เพิ่มฟิลด์ช่วงที่ 1
+      submitFormData.append('checkAttendance', formData.checkAttendance);
+      submitFormData.append('checkUniform', formData.checkUniform);
+      submitFormData.append('announceNews', formData.announceNews);
+      
+      // เพิ่มฟิลด์ช่วงที่ 2
+      submitFormData.append('warmup', formData.warmup);
+      submitFormData.append('mainActivity', formData.mainActivity);
+      submitFormData.append('summary', formData.summary);
+      
+      // เพิ่มฟิลด์ช่วงที่ 3
+      submitFormData.append('trackProblems', formData.trackProblems);
+      submitFormData.append('individualCounsel', formData.individualCounsel);
+      
+      // เพิ่มฟิลด์การประเมินผล
+      submitFormData.append('evalObservation', formData.evalObservation ? 'on' : 'off');
+      submitFormData.append('evalWorksheet', formData.evalWorksheet ? 'on' : 'off');
+      submitFormData.append('evalParticipation', formData.evalParticipation ? 'on' : 'off');
+      
+      // เพิ่มฟิลด์บันทึกหลังกิจกรรม
+      submitFormData.append('teacherNote', formData.teacherNote);
+      submitFormData.append('problems', formData.problems);
+      submitFormData.append('specialTrack', formData.specialTrack);
+      submitFormData.append('sessionNote', formData.sessionNote);
+      
+      // เพิ่มฟิลด์ข้อเสนอแนะและการติดตาม
+      submitFormData.append('suggestions', formData.suggestions);
+      submitFormData.append('individualFollowup', formData.individualFollowup);
+      
+      // เพิ่มสถานะ
+      submitFormData.append('status', formData.status);
+      
+      // เพิ่มไฟล์ใหม่ (หลายไฟล์)
+      materials.forEach((file, index) => {
+        submitFormData.append(`materials[${index}]`, file);
+      });
+      submitFormData.append('materialsNote', formData.materialsNote);
+      
+      // Debug: ตรวจสอบข้อมูลที่ส่ง
+      console.log("📤 Edit Page - Sending FormData:");
+      console.log("  New materials count:", materials.length);
+      materials.forEach((file, index) => {
+        console.log(`  materials[${index}]:`, file.name, file.size);
+      });
+      console.log("  Existing materials count:", existingMaterials.length);
+      existingMaterials.forEach((material, index) => {
+        console.log(`  existingMaterials[${index}]:`, material.name, material.url);
+      });
+      
+      // Debug: แสดงทุก FormData entries
+      console.log("📤 Edit Page - All FormData entries:");
+      for (let [key, value] of submitFormData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
+      
+      // เพิ่มไฟล์เดิมที่คงไว้
+      existingMaterials.forEach((material, index) => {
+        submitFormData.append(`existingMaterials[${index}]`, JSON.stringify(material));
+      });
+      
+      // ถ้าไม่มีไฟล์เดิมและไม่มีไฟล์ใหม่ ให้ส่งค่าว่างเพื่อล้างข้อมูลเดิม
+      if (existingMaterials.length === 0 && materials.length === 0) {
+        submitFormData.append('materials_clear', 'true');
       }
       
       submitFormData.append('created_by', teacher_name);
       
-      const response = await fetch(`/api/learn/${params.id}/edit`, {
+      const response = await fetch(`/api/learn/${params.id}`, {
         method: 'PUT',
         body: submitFormData,
       });
@@ -220,25 +321,7 @@ export default function EditHomeroomPlanPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/student">รายชื่อผู้เรียน</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/committees">คณะกรรมการ</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3 active" href="/student_learn">ISP</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/referrals">ส่งต่อ</a></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+   
 
       <div className="container-fluid py-4">
         <div className="row mb-4">
@@ -405,15 +488,69 @@ export default function EditHomeroomPlanPage() {
               </h5>
             </div>
             <div className="card-body">
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <input type="text" className="form-control rounded-0 bg-light" value={formData.materials || "ไม่มีไฟล์"} readOnly />
-                </div>
-                <div className="col-md-6">
-                  <input type="file" className="form-control rounded-0" onChange={handleFileChange} />
-                </div>
+              <div className="mb-3">
+                <label className="form-label">แนบไฟล์ใหม่:</label>
+                <input 
+                  type="file" 
+                  name="materials"
+                  className="form-control rounded-0" 
+                  onChange={handleFileChange} 
+                  multiple 
+                  accept="*"
+                />
+                <small className="text-muted">ใบงาน, สื่อวิดีโอ, รูปภาพ, หรือไฟล์เอกสารอื่นๆ (ไม่จำกัดนามสกุลไฟล์)</small>
+                
+                {materials.length > 0 && (
+                  <div className="mt-3">
+                    <label className="form-label">ไฟล์ใหม่ที่เลือก:</label>
+                    <div className="border rounded p-2 bg-light">
+                      {materials.map((file, index) => (
+                        <div key={index} className="d-flex justify-content-between align-items-center py-1">
+                          <small className="text-dark">
+                            <i className="bi bi-file-earmark me-2"></i>
+                            {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                          </small>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-danger rounded-0"
+                            onClick={() => handleRemoveFile(index)}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <input type="text" className="form-control rounded-0" name="materialsNote" value={formData.materialsNote} onChange={handleInputChange} placeholder="หมายเหตุ" />
+              
+              {existingMaterials.length > 0 && (
+                <div className="mb-3">
+                  <label className="form-label">ไฟล์เดิม:</label>
+                  <div className="border rounded p-2 bg-light">
+                    {existingMaterials.map((material, index) => (
+                      <div key={index} className="d-flex justify-content-between align-items-center py-1">
+                        <small className="text-dark">
+                          <i className="bi bi-file-earmark me-2"></i>
+                          {material.name} (ไฟล์เดิม)
+                        </small>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-danger rounded-0"
+                          onClick={() => handleRemoveExistingFile(index)}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <label className="form-label">หมายเหตุ:</label>
+                <input type="text" className="form-control rounded-0" name="materialsNote" value={formData.materialsNote} onChange={handleInputChange} placeholder="เช่น ใช้แอปพลิเคชันเช็คชื่อ" />
+              </div>
             </div>
           </div>
 
@@ -454,14 +591,6 @@ export default function EditHomeroomPlanPage() {
         </form>
       </div>
 
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 small"><i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล</div>
-            <div className="col-md-6 text-end small"><span className="me-3">เวอร์ชัน 2.0.0</span><span>เข้าสู่ระบบ: {teacher_name}</span></div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

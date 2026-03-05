@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Student from "@/models/Student";
+import cloudinary from "@/lib/cloudinary";
 
 export async function POST(req: NextRequest) {
   console.log("🚀 POST /api/student เริ่มทำงาน");
@@ -54,6 +55,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // จัดการรูปโปรไฟล์
+    let imageUrl = "";
+    const profileImage = formData.get("profileImage") as File;
+    if (profileImage && profileImage.size > 0) {
+      try {
+        const buffer = Buffer.from(await profileImage.arrayBuffer());
+        const upload = await new Promise<any>((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { 
+              folder: "student_profiles",
+              resource_type: "image"
+            }, 
+            (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+            }
+          ).end(buffer);
+        });
+        imageUrl = upload.secure_url;
+        console.log(`✅ อัปโหลดรูปโปรไฟล์: ${profileImage.name} -> ${imageUrl}`);
+      } catch (error) {
+        console.error(`❌ อัปโหลดรูปโปรไฟล์ ${profileImage.name} ล้มเหลว:`, error);
+      }
+    }
+
     // สร้างข้อมูล
     const studentData = {
       id,
@@ -74,6 +100,7 @@ export async function POST(req: NextRequest) {
       height: height || "",
       blood_type: blood_type || "",
       bmi: bmi || "",
+      image: imageUrl, // ✅ เพิ่มรูปภาพ
       email: `${id}@student.com`,
       status: "นักเรียนปกติ",
       created_at: new Date().toISOString(),

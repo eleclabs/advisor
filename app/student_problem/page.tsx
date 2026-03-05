@@ -105,6 +105,28 @@ export default function StudentProblemPage() {
     }
   };
 
+  const handleDeleteProblem = async (id: string) => {
+    if (!id) return;
+    
+    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลปัญหานักเรียนคนนี้?")) {
+      try {
+        const res = await fetch(`/api/problem/${id}`, {
+          method: "DELETE"
+        });
+        
+        if (res.ok) {
+          alert("ลบข้อมูลปัญหาเรียบร้อย");
+          fetchData(); // โหลดข้อมูลใหม่
+        } else {
+          alert("เกิดข้อผิดพลาดในการลบ");
+        }
+      } catch (error) {
+        console.error("Error deleting problem:", error);
+        alert("เกิดข้อผิดพลาด");
+      }
+    }
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
@@ -257,29 +279,21 @@ export default function StudentProblemPage() {
                                   className="btn btn-outline-success" title="แก้ไขแผน">
                                   <i className="bi bi-pencil"></i>
                                 </Link>
-                                <Link href={`/student_problem/${p._id}?tab=activities`} 
-                                  className="btn btn-outline-info" title="กำหนดกิจกรรม">
-                                  <i className="bi bi-calendar-check"></i>
-                                </Link>
                                 <Link href={`/student_problem/${p._id}/result`} 
                                   className="btn btn-outline-warning" title="บันทึกผล">
                                   <i className="bi bi-bar-chart"></i>
                                 </Link>
+                                <button 
+                                  className="btn btn-outline-danger" 
+                                  title="ลบ"
+                                  onClick={() => handleDeleteProblem(p._id)}
+                                >
+                                  <i className="bi bi-trash"></i>
+                                </button>
                               </div>
                             </td>
                           </tr>
                         ))}
-                        {problems.length === 0 && (
-                          <tr>
-                            <td colSpan={8} className="text-center py-5">
-                              <i className="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
-                              <p className="text-muted mb-0">ยังไม่มีข้อมูลนักเรียน</p>
-                              <Link href="/student_problem/add" className="btn btn-warning btn-sm mt-3">
-                                <i className="bi bi-plus-circle me-2"></i>เพิ่มนักเรียน
-                              </Link>
-                            </td>
-                          </tr>
-                        )}
                       </tbody>
                     </table>
                   </div>

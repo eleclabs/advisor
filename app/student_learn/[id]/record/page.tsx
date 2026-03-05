@@ -12,12 +12,13 @@ export default function RecordActivityPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [planTitle, setPlanTitle] = useState("");
   const [hasRecord, setHasRecord] = useState(false);
+  const [planMaterials, setPlanMaterials] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     // 6. บันทึกหลังกิจกรรม
     teacherNote: "",
     problems: "",
-    specialTrack: "",
+    special_track: "",
     sessionNote: "",
     
     // ติดตามผลรายบุคคล
@@ -30,18 +31,15 @@ export default function RecordActivityPage() {
     evaluator: "อาจารย์วิมลรัตน์"
   });
 
+  // Debug: Log formData changes
+  useEffect(() => {
+    console.log("📝 FormData updated:", formData);
+  }, [formData]);
+
   const teacher_name = "อาจารย์วิมลรัตน์";
 
   useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
 
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
   }, []);
 
   useEffect(() => {
@@ -52,15 +50,25 @@ export default function RecordActivityPage() {
         const result = await response.json();
         
         if (result.success) {
+          console.log("📥 Record page - Raw data:", result.data);
+          console.log("📥 Record page - Materials:", result.data.materials);
+          
           setPlanTitle(result.data.topic || "ไม่มีหัวข้อ");
           setHasRecord(result.data.has_record || false);
           
-          // โหลดข้อมูลเดิมถ้ามี
+          // เก็บค่า materials - แปลงจาก object array เป็น string array ของ URLs
+          const materials = Array.isArray(result.data.materials) 
+            ? result.data.materials.map((m: any) => typeof m === 'string' ? m : m.url || m)
+            : (result.data.materials ? [typeof result.data.materials === 'string' ? result.data.materials : result.data.materials.url || result.data.materials] : []);
+          setPlanMaterials(materials);
+          console.log("📥 Record page - Normalized materials:", materials);
+          
+          // โหลดข้อมูลเดิมถ้ามี - ใช้ฟิลด์ใหม่ก่อน ถ้าไม่มีใช้ฟิลด์เก่า
           setFormData({
-            teacherNote: result.data.teacherNote || "",
-            problems: result.data.problems || "",
-            specialTrack: result.data.specialTrack || "",
-            sessionNote: result.data.sessionNote || "",
+            teacherNote: result.data.activity_notes || result.data.teacherNote || "",
+            problems: result.data.activity_problems || result.data.problems || "",
+            special_track: result.data.special_track || "",
+            sessionNote: result.data.activity_solutions || result.data.sessionNote || "",
             individualFollowup: result.data.individualFollowup || "",
             activity_date: result.data.activity_date || new Date().toISOString().split('T')[0],
             students_attended: result.data.students_attended || "",
@@ -81,12 +89,19 @@ export default function RecordActivityPage() {
   }, [params.id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
+    const { name } = target;
+    console.log(`🔧 Input change - ${name}: ${value}`); // Debug log
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("🚀 Submit button clicked"); // Debug
+    console.log("📝 Before submit - special_track:", formData.special_track); // Debug special_track
+    console.log("📝 Current formData:", formData); // Debug
+    
     setLoading(true);
     
     try {
@@ -95,7 +110,7 @@ export default function RecordActivityPage() {
       // ส่งเฉพาะฟิลด์บันทึกหลังกิจกรรม
       submitFormData.append('teacherNote', formData.teacherNote);
       submitFormData.append('problems', formData.problems);
-      submitFormData.append('specialTrack', formData.specialTrack);
+      submitFormData.append('special_track', formData.special_track);
       submitFormData.append('sessionNote', formData.sessionNote);
       submitFormData.append('individualFollowup', formData.individualFollowup);
       submitFormData.append('activity_date', formData.activity_date);
@@ -105,14 +120,20 @@ export default function RecordActivityPage() {
       submitFormData.append('has_record', 'true');
       submitFormData.append('recorded_at', new Date().toLocaleDateString('th-TH'));
       
+      console.log("📤 Sending FormData to API..."); // Debug
+      
       const response = await fetch(`/api/learn/${params.id}/record`, {
         method: 'POST',
         body: submitFormData,
       });
       
+      console.log("📥 API Response status:", response.status); // Debug
       const result = await response.json();
+      console.log("📥 API Response:", result); // Debug
       
       if (result.success) {
+        alert("บันทึกสำเร็จ!");
+        console.log("Redirecting to detail page");
         router.push(`/student_learn/${params.id}`);
       } else {
         alert(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
@@ -140,25 +161,7 @@ export default function RecordActivityPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/student">รายชื่อผู้เรียน</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/committees">คณะกรรมการ</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3 active" href="/student_learn">ISP</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/referrals">ส่งต่อ</a></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+
 
       <div className="container-fluid py-4">
         <div className="row mb-4">
@@ -203,7 +206,14 @@ export default function RecordActivityPage() {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label fw-semibold small">นักเรียนที่ต้องติดตามเป็นพิเศษ</label>
-                  <input type="text" className="form-control rounded-0" name="specialTrack" value={formData.specialTrack} onChange={handleInputChange} placeholder="รายชื่อนักเรียนที่ต้องติดตาม" />
+                  <textarea 
+                    className="form-control rounded-0" 
+                    rows={2} 
+                    name="special_track" 
+                    value={formData.special_track} 
+                    onChange={handleInputChange} 
+                    placeholder="รายชื่อนักเรียนที่ต้องติดตาม" 
+                  />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label fw-semibold small">บันทึกการจัดกิจกรรม (รายครั้ง)</label>
@@ -254,6 +264,7 @@ export default function RecordActivityPage() {
             </div>
           </div>
 
+
           <div className="d-flex justify-content-center gap-3 mb-4">
             <button type="button" className="btn btn-secondary rounded-0 px-5" onClick={() => router.back()}>ยกเลิก</button>
             <button type="submit" className="btn btn-success rounded-0 px-5" disabled={loading}>
@@ -263,14 +274,6 @@ export default function RecordActivityPage() {
         </form>
       </div>
 
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 small"><i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล</div>
-            <div className="col-md-6 text-end small"><span className="me-3">เวอร์ชัน 2.0.0</span><span>เข้าสู่ระบบ: {teacher_name}</span></div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

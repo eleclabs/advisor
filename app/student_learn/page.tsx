@@ -220,34 +220,7 @@ useEffect(() => {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* Navigation Bar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/committees">คณะกรรมการ</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3 active" href="/student_learn">ISP</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/referrals">ส่งต่อ</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+    
 
       <div className="container-fluid py-4">
         {/* Page Header */}
@@ -419,6 +392,13 @@ useEffect(() => {
                                   title="บันทึกผลกิจกรรม"
                                 >
                                   <i className="bi bi-check-circle"></i>
+                                </button>
+                                <button 
+                                  className="btn btn-sm btn-outline-info rounded-0"
+                                  onClick={() => router.push(`/student_learn/${plan.id}/album`)}
+                                  title="อัลบัมรูปภาพ"
+                                >
+                                  <i className="bi bi-images"></i>
                                 </button>
                                 <button 
                                   className="btn btn-sm btn-outline-danger rounded-0"
@@ -723,20 +703,6 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>เข้าสู่ระบบ: {teacher_name}</span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -44,17 +44,7 @@ export default function Dass21AssessmentPage() {
   });
 
   useEffect(() => {
-    // Load Bootstrap CSS
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    // Load Bootstrap Icons
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
+  
 
     // Mock student name
     const mockNames: { [key: string]: string } = {
@@ -62,7 +52,7 @@ export default function Dass21AssessmentPage() {
       "66002": "นางสาวจิรา สวยใจ",
       "66003": "นายสมเด็จ วิจิตร",
     };
-    setStudentName(mockNames[studentId] || "นักเรียน");
+    setStudentName(mockNames[studentId || ""] || "นักเรียน");
     setLoading(false);
   }, [studentId]);
 
@@ -137,7 +127,7 @@ export default function Dass21AssessmentPage() {
       });
       
       await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push(`/student_detail/${studentId}`);
+      router.push(`/student/student_detail/${studentId}`);
     } catch (error) {
       console.error("Error saving assessment:", error);
     } finally {
@@ -247,10 +237,10 @@ export default function Dass21AssessmentPage() {
                       <tr>
                         <th className="fw-semibold">ข้อ</th>
                         <th className="fw-semibold">ข้อความ</th>
-                        <th className="fw-semibold text-center" width="15%">ไม่เลย</th>
-                        <th className="fw-semibold text-center" width="15%">บ้าง</th>
-                        <th className="fw-semibold text-center" width="15%">ค่อนข้างมาก</th>
-                        <th className="fw-semibold text-center" width="15%">มากที่สุด</th>
+                        <th className="fw-semibold text-center" style={{ width: "15%" }}>ไม่เลย</th>
+                        <th className="fw-semibold text-center" style={{ width: "15%" }}>บ้าง</th>
+                        <th className="fw-semibold text-center" style={{ width: "15%" }}>ค่อนข้างมาก</th>
+                        <th className="fw-semibold text-center" style={{ width: "15%" }}>มากที่สุด</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -264,7 +254,7 @@ export default function Dass21AssessmentPage() {
                               name={`q${index + 1}`} 
                               value="0" 
                               checked={formData[`q${index + 1}` as keyof Dass21FormData] === "0"} 
-                              onChange={handleInputChange}
+                              onChange={(e) => handleInputChange(e as any)}
                             />
                           </td>
                           <td className="text-center">
@@ -273,7 +263,7 @@ export default function Dass21AssessmentPage() {
                               name={`q${index + 1}`} 
                               value="1" 
                               checked={formData[`q${index + 1}` as keyof Dass21FormData] === "1"} 
-                              onChange={handleInputChange}
+                              onChange={(e) => handleInputChange(e as any)}
                             />
                           </td>
                           <td className="text-center">
@@ -282,7 +272,7 @@ export default function Dass21AssessmentPage() {
                               name={`q${index + 1}`} 
                               value="2" 
                               checked={formData[`q${index + 1}` as keyof Dass21FormData] === "2"} 
-                              onChange={handleInputChange}
+                              onChange={(e) => handleInputChange(e as any)}
                             />
                           </td>
                           <td className="text-center">
@@ -291,7 +281,7 @@ export default function Dass21AssessmentPage() {
                               name={`q${index + 1}`} 
                               value="3" 
                               checked={formData[`q${index + 1}` as keyof Dass21FormData] === "3"} 
-                              onChange={handleInputChange}
+                              onChange={(e) => handleInputChange(e as any)}
                             />
                           </td>
                         </tr>
@@ -354,7 +344,7 @@ export default function Dass21AssessmentPage() {
           <div className="row mb-4">
             <div className="col-12 text-center">
               <Link
-                href={`/student_detail/${studentId}`}
+                href={`/student/student_detail/${studentId}`}
                 className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก

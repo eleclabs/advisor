@@ -110,6 +110,16 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
     return activity?.joined_at || null;
   };
 
+  const getCompletedDate = (activityId: string) => {
+    if (!problem?.activities) return null;
+    
+    const activity = problem.activities.find(
+      (a: any) => String(a.activity_id?._id) === String(activityId) || String(a.activity_id) === String(activityId)
+    );
+    
+    return activity?.completed_at || null;
+  };
+
   const getStatusBadgeClass = (status: string) => {
     switch(status) {
       case 'เสร็จสิ้น': return 'bg-success';
@@ -341,22 +351,22 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                     <table className="table table-hover table-bordered">
                       <thead className="table-light">
                         <tr>
-                          <th style={{ width: '5%' }}>#</th>
-                          <th style={{ width: '30%' }}>ชื่อกิจกรรม</th>
-                          <th style={{ width: '20%' }}>วันที่เข้าร่วม</th>
-                          <th style={{ width: '15%' }}>เวลากิจกรรม</th>
-                          <th style={{ width: '20%' }}>สถานะกิจกรรม</th>
-                          <th style={{ width: '10%' }}>ดูรายละเอียด</th>
+                          <th>#</th>
+                          <th>ชื่อกิจกรรม</th>
+                          <th>วันที่เข้าร่วม</th>
+                          <th>วันที่เสร็จสิ้น</th>
+                          <th>สถานะ</th>
+                          <th>จัดการ</th>
                         </tr>
                       </thead>
                       <tbody>
                         {problem.activities.map((act: any, idx: number) => {
                           const activityId = act.activity_id?._id || act.activity_id;
                           const activityName = act.activity_id?.name || 'ไม่ระบุชื่อ';
-                          const duration = act.activity_id?.duration || '-';
                           
                           const status = getActivityStatus(activityId);
                           const joinDate = getJoinDate(activityId);
+                          const completedDate = getCompletedDate(activityId);
                           
                           return (
                             <tr key={activityId || idx}>
@@ -372,19 +382,45 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                                   : '-'
                                 }
                               </td>
-                              <td className="text-center">{duration} นาที</td>
+                              <td>
+                                {completedDate 
+                                  ? formatDate(completedDate)
+                                  : '-'
+                                }
+                              </td>
                               <td className="text-center">
                                 <span className={`badge ${getStatusBadgeClass(status)} text-white px-3 py-2`}>
                                   {status}
                                 </span>
                               </td>
                               <td className="text-center">
-                                <Link 
-                                  href={`/student_problem/activity/view?id=${activityId}`} 
-                                  className="btn btn-sm btn-outline-info"
-                                >
-                                  <i className="bi bi-eye"></i>
-                                </Link>
+                                <div className="btn-group" role="group">
+                                  <button 
+                                    className="btn btn-sm btn-outline-info me-1"
+                                    onClick={() => router.push(
+                                      `/student_problem/activity/status/view?activity_id=${activityId}&student_id=${problem.student_id}&student_name=${encodeURIComponent(problem.student_name)}`
+                                    )}
+                                    title="ดูสถานะกิจกรรม"
+                                  >
+                                    <i className="bi bi-eye"></i>
+                                  </button>
+                                  <button 
+                                    className="btn btn-sm btn-outline-warning me-1"
+                                    onClick={() => router.push(
+                                      `/student_problem/activity/status?activity_id=${activityId}&student_id=${problem.student_id}&student_name=${encodeURIComponent(problem.student_name)}`
+                                    )}
+                                    title="จัดการสถานะกิจกรรม"
+                                  >
+                                    <i className="bi bi-pencil-square"></i>
+                                  </button>
+                                  <Link 
+                                    href={`/student_problem/activity/view?id=${activityId}`} 
+                                    className="btn btn-sm btn-outline-primary"
+                                    title="ดูรายละเอียดกิจกรรม"
+                                  >
+                                    <i className="bi bi-list-ul"></i>
+                                  </Link>
+                                </div>
                               </td>
                             </tr>
                           );

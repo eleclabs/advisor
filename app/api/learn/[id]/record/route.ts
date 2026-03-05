@@ -34,16 +34,40 @@ export async function POST(
     // เตรียมข้อมูลสำหรับอัปเดต
     const updateData: any = {};
     
-    const fields = [
-      'teacherNote', 'problems', 'specialTrack', 'sessionNote',
-      'individualFollowup', 'activity_date', 'students_attended',
-      'total_students', 'evaluator'
-    ];
+    // Map form fields to database fields
+    const fieldMapping = {
+      'teacherNote': 'activity_notes',
+      'problems': 'activity_problems', 
+      'sessionNote': 'activity_solutions',
+      'special_track': 'special_track',
+      'individualFollowup': 'individualFollowup',
+      'activity_date': 'activity_date',
+      'students_attended': 'students_attended',
+      'total_students': 'total_students',
+      'evaluator': 'evaluator'
+    };
     
-    fields.forEach(field => {
-      const value = formData.get(field);
+    // Also save the original field names for backward compatibility
+    const originalFieldMapping = {
+      'teacherNote': 'teacherNote',
+      'problems': 'problems',
+      'sessionNote': 'sessionNote',
+      'individualFollowup': 'individualFollowup'
+    };
+    
+    // Process each field - save both mapped and original fields
+    Object.entries(fieldMapping).forEach(([formField, dbField]) => {
+      const value = formData.get(formField);
       if (value !== null) {
-        updateData[field] = value.toString();
+        updateData[dbField] = value.toString();
+        // Also save with original field name for backward compatibility
+        if (originalFieldMapping[formField as keyof typeof originalFieldMapping]) {
+          updateData[formField] = value.toString();
+        }
+        console.log(`   Mapping ${formField} -> ${dbField}: ${value}`);
+        if (formField === 'special_track') {
+          console.log(`🔍 special_track debug: value="${value}", type=${typeof value}`);
+        }
       }
     });
     
@@ -53,13 +77,22 @@ export async function POST(
     updateData.updated_at = new Date().toLocaleDateString('th-TH');
     
     console.log("📤 Update data:", updateData);
+    console.log("🔍 updateData.special_track exists:", 'special_track' in updateData);
+    console.log("🔍 updateData.special_track value:", updateData.special_track);
+    console.log("🔍 updateData keys:", Object.keys(updateData));
     
     // อัปเดตฐานข้อมูล
     console.log("📡 Updating database...");
+    
+    // Ensure special_track is properly handled
+    if (updateData.special_track) {
+      console.log("🔧 Adding special_track to update:", updateData.special_track);
+    }
+    
     const learn = await Learn.findByIdAndUpdate(
       id,
-      updateData,
-      { new: true, runValidators: true }
+      { $set: updateData },
+      { new: true, runValidators: true, strict: false }
     );
     
     if (!learn) {
@@ -71,6 +104,8 @@ export async function POST(
     }
     
     console.log("✅ Update successful");
+    console.log("🔍 Updated learn.special_track:", learn.special_track);
+    console.log("🔍 Full updated document:", learn);
     
     return NextResponse.json({ 
       success: true, 
@@ -82,7 +117,8 @@ export async function POST(
     console.error("❌ Error in POST /api/learn/[id]/record:", error);
     return NextResponse.json({ 
       success: false, 
-      message: error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล"
+      message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
+      error: error.message
     }, { status: 500 });
   }
 }
