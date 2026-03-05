@@ -38,9 +38,16 @@ export default function PhotoAlbumPage() {
           return;
         }
 
-        // Fetch photos (for now, we'll simulate this)
-        // TODO: Create actual API for photos
-        setPhotos([]);
+        // Fetch photos
+        const photosResponse = await fetch(`/api/photos?planId=${params.id}`);
+        const photosResult = await photosResponse.json();
+        
+        if (photosResult.success) {
+          setPhotos(photosResult.data);
+        } else {
+          console.error("Failed to fetch photos:", photosResult.message);
+          setPhotos([]);
+        }
         
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -102,24 +109,31 @@ export default function PhotoAlbumPage() {
         formData.append(`photos[${index}]`, file);
       });
 
-      // TODO: Create actual API endpoint for photo upload
-      // const response = await fetch('/api/photos/upload', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-
-      // For now, simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('/api/photos', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message);
+      }
       
       // Clear previews
       previewUrls.forEach(url => URL.revokeObjectURL(url));
       setSelectedFiles([]);
       setPreviewUrls([]);
       
-      alert("อัปโหลดรูปภาพเรียบร้อยแล้ว");
+      alert(result.message || "อัปโหลดรูปภาพเรียบร้อยแล้ว");
       
       // Refresh photos
-      // TODO: Fetch photos again
+      const photosResponse = await fetch(`/api/photos?planId=${params.id}`);
+      const photosResult = await photosResponse.json();
+      
+      if (photosResult.success) {
+        setPhotos(photosResult.data);
+      }
       
     } catch (error) {
       console.error("Upload error:", error);
@@ -133,12 +147,19 @@ export default function PhotoAlbumPage() {
     if (!confirm("คุณต้องการลบรูปภาพนี้ใช่หรือไม่?")) return;
     
     try {
-      // TODO: Create actual API endpoint for photo deletion
-      // await fetch(`/api/photos/${photoId}`, {
-      //   method: 'DELETE',
-      // });
+      const response = await fetch(`/api/photos?planId=${params.id}&photoId=${photoId}`, {
+        method: 'DELETE',
+      });
       
-      // For now, simulate deletion
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      
+      alert(result.message || "ลบรูปภาพเรียบร้อยแล้ว");
+      
+      // Remove photo from state
       setPhotos(prev => prev.filter(photo => photo.id !== photoId));
       
     } catch (error) {
@@ -176,6 +197,38 @@ export default function PhotoAlbumPage() {
 
   return (
     <div className="min-vh-100 bg-light">
+      <style jsx>{`
+        .masonry-grid {
+          column-count: 2;
+          column-gap: 1rem;
+        }
+        
+        .masonry-item {
+          break-inside: avoid;
+          margin-bottom: 1rem;
+        }
+        
+        .masonry-item .card {
+          margin-bottom: 0;
+        }
+        
+        .masonry-img {
+          width: 100%;
+          height: auto;
+          display: block;
+          min-height: 250px;
+        }
+        
+        @media (max-width: 768px) {
+          .masonry-grid {
+            column-count: 1;
+            column-gap: 0.5rem;
+          }
+          .masonry-item {
+            margin-bottom: 0.5rem;
+          }
+        }
+      `}</style>
       <div className="container-fluid py-4">
         {/* Header */}
         <div className="row mb-4">
@@ -303,15 +356,15 @@ export default function PhotoAlbumPage() {
               </div>
               <div className="card-body">
                 {photos.length > 0 ? (
-                  <div className="row g-3">
+                  <div className="masonry-grid">
                     {photos.map((photo) => (
-                      <div key={photo.id} className="col-md-3 col-sm-6">
-                        <div className="position-relative">
+                      <div key={photo.id} className="masonry-item">
+                        <div className="card rounded-0 border shadow-sm h-100">
                           <img 
                             src={photo.url} 
                             alt={photo.caption || 'Activity photo'}
-                            className="img-fluid rounded"
-                            style={{ height: '200px', objectFit: 'cover', width: '100%' }}
+                            className="card-img-top masonry-img"
+                            loading="lazy"
                           />
                           <div className="position-absolute top-0 end-0 m-1">
                             <button
@@ -323,8 +376,8 @@ export default function PhotoAlbumPage() {
                             </button>
                           </div>
                           {photo.caption && (
-                            <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white p-2 rounded-bottom">
-                              <small className="text-truncate d-block">{photo.caption}</small>
+                            <div className="card-body p-2">
+                              <small className="text-muted text-truncate d-block">{photo.caption}</small>
                             </div>
                           )}
                         </div>

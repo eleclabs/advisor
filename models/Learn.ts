@@ -59,6 +59,14 @@ const LearnSchema = new mongoose.Schema({
   has_record: { type: Boolean, default: false },
   recorded_at: { type: String },
   
+  // รูปภาพกิจกรรม
+  photos: [{
+    id: { type: String },
+    url: { type: String },
+    caption: { type: String },
+    createdAt: { type: String }
+  }], // Array of { id, url, caption, createdAt }
+  
   // Timestamps
   created_at: { type: String },
   updated_at: { type: String },
