@@ -39,15 +39,7 @@ export default function RecordActivityPage() {
   const teacher_name = "อาจารย์วิมลรัตน์";
 
   useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
 
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
   }, []);
 
   useEffect(() => {
@@ -169,25 +161,7 @@ export default function RecordActivityPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/student">รายชื่อผู้เรียน</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/committees">คณะกรรมการ</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3 active" href="/student_learn">ISP</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/referrals">ส่งต่อ</a></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+
 
       <div className="container-fluid py-4">
         <div className="row mb-4">
@@ -290,42 +264,6 @@ export default function RecordActivityPage() {
             </div>
           </div>
 
-          {/* สื่อและวัสดุอุปกรณ์ */}
-          {planMaterials.length > 0 && (
-            <div className="card rounded-0 border-0 shadow-sm mb-4">
-              <div className="card-header bg-dark text-white rounded-0">
-                <h5 className="card-title text-uppercase fw-semibold m-0">
-                  <i className="bi bi-paperclip me-2 text-warning"></i>สื่อและวัสดุอุปกรณ์
-                </h5>
-              </div>
-              <div className="card-body">
-                <div className="row g-2">
-                  {planMaterials.map((material, index) => (
-                    <div key={index} className="col-md-6">
-                      <div className="d-flex align-items-center p-2 border rounded">
-                        <i className="bi bi-file-earmark text-primary me-2"></i>
-                        <a 
-                          href={material} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-decoration-none text-dark flex-grow-1"
-                        >
-                          {material.split('/').pop() || `ไฟล์ ${index + 1}`}
-                        </a>
-                        <button 
-                          type="button"
-                          className="btn btn-sm btn-outline-primary rounded-0 ms-2"
-                          onClick={() => window.open(material, '_blank')}
-                        >
-                          <i className="bi bi-download"></i>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="d-flex justify-content-center gap-3 mb-4">
             <button type="button" className="btn btn-secondary rounded-0 px-5" onClick={() => router.back()}>ยกเลิก</button>
@@ -336,14 +274,6 @@ export default function RecordActivityPage() {
         </form>
       </div>
 
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 small"><i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล</div>
-            <div className="col-md-6 text-end small"><span className="me-3">เวอร์ชัน 2.0.0</span><span>เข้าสู่ระบบ: {teacher_name}</span></div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

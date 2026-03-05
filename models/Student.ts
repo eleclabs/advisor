@@ -57,7 +57,10 @@ const StudentSchema = new mongoose.Schema({
   // สรุปความเห็น
   student_group: { type: String }, //กลุ่มนักเรียน (เช่น กลุ่มเสี่ยง, กลุ่มปกติ)
   help_guidelines: { type: String }, //แนวทางการช่วยเหลือ
-  home_visit_file: { type: String }, //ไฟล์รายงานการเยี่ยมบ้าน (เช่น PDF หรือรูปภาพ)
+  home_visit_files: [{
+    name: { type: String },
+    url: { type: String }
+  }], // ไฟล์เยี่ยมบ้านหลายไฟล์
   created_at: { type: String }, //วันที่สร้าง
   updated_at: { type: String }, //วันที่อัปเดต
 }, { timestamps: true });

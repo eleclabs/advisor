@@ -251,7 +251,7 @@ export default function StudentListPage() {
                 <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล
               </button>
               <Link
-                href="/student_add"
+                href="/student/student_add"
                 className="btn btn-primary rounded-0 text-uppercase fw-semibold"
               >
                 <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
@@ -293,7 +293,7 @@ export default function StudentListPage() {
                           <td>
                             {student._id ? (
                               <Link 
-                                href={`/student_detail/${student._id}`}
+                                href={`/student/student_detail/${student._id}/interview`}
                                 className="text-decoration-none text-primary"
                               >
                                 {student.name || `${student.prefix || ''}${student.first_name} ${student.last_name}`}
@@ -316,7 +316,7 @@ export default function StudentListPage() {
                             <div className="btn-group" role="group">
                               <button 
                                 className="btn btn-sm btn-outline-primary rounded-0"
-                                onClick={() => student._id && router.push(`/student_detail/${student._id}`)}
+                                onClick={() => student._id && router.push(`/student/student_detail/${student._id}`)}
                                 title="ดูรายละเอียด"
                                 disabled={!student._id}
                               >
@@ -324,7 +324,7 @@ export default function StudentListPage() {
                               </button>
                               <button 
                                 className="btn btn-sm btn-outline-warning rounded-0"
-                                onClick={() => student._id && router.push(`/student_detail/${student._id}/edit`)}
+                                onClick={() => student._id && router.push(`/student/student_detail/${student._id}/edit`)}
                                 title="แก้ไข"
                                 disabled={!student._id}
                               >

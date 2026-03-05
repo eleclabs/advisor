@@ -131,7 +131,7 @@ export default function HomeroomPlanDetailPage() {
         }
 
         // Fetch photos
-        const photosResponse = await fetch(`/api/photos?planId=${params.id}`);
+        const photosResponse = await fetch(`/api/learn/photos?planId=${params.id}`);
         const photosResult = await photosResponse.json();
         
         if (photosResult.success) {

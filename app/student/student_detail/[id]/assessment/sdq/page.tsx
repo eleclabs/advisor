@@ -179,7 +179,7 @@ export default function SdqAssessmentPage() {
       });
       
       await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push(`/student_detail/${studentId}`);
+      router.push(`/student/student_detail/${studentId}`);
     } catch (error) {
       console.error("Error saving assessment:", error);
     } finally {
@@ -579,7 +579,7 @@ export default function SdqAssessmentPage() {
           <div className="row mb-4">
             <div className="col-12 text-center">
               <Link
-                href={`/student_detail/${studentId}`}
+                href={`/student/student_detail/${studentId}`}
                 className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-3 px-5"
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก

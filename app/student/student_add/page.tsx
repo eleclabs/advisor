@@ -22,6 +22,7 @@ interface BasicInfoFormData {
   weight: string;
   height: string;
   blood_type: string;
+  image: string;
 }
 
 export default function StudentAddBasicPage() {
@@ -36,7 +37,7 @@ export default function StudentAddBasicPage() {
     birth_date: "",
     level: "ปวช.1",
     class_group: "",
-    class_number: "",  // ✅ เลขที่
+    class_number: "",  // เลขที่
     advisor_name: "",
     phone_number: "",
     religion: "พุทธ",
@@ -44,8 +45,11 @@ export default function StudentAddBasicPage() {
     weight: "",
     height: "",
     blood_type: "B",
+    image: "",
   });
   const [saving, setSaving] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   useEffect(() => {
  
@@ -54,6 +58,18 @@ export default function StudentAddBasicPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const calculateBMI = () => {
@@ -67,7 +83,7 @@ export default function StudentAddBasicPage() {
     return "";
   };
 
-  const handleSave = async (e: React.FormEvent, gotoNext: boolean = false) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     
@@ -84,12 +100,18 @@ export default function StudentAddBasicPage() {
 
       const formDataToSend = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (key !== 'image' && value !== undefined && value !== null) {
           formDataToSend.append(key, String(value));
           console.log(`📤 Appending ${key}:`, value);
         }
       });
       formDataToSend.append("bmi", bmiValue);
+
+      // เพิ่มรูปภาพถ้ามี
+      if (profileImage) {
+        formDataToSend.append("profileImage", profileImage);
+        console.log("📤 Appending profileImage:", profileImage.name);
+      }
 
       console.log("📦 FormData entries:");
       for (let pair of formDataToSend.entries()) {
@@ -102,14 +124,10 @@ export default function StudentAddBasicPage() {
       });
 
       const result = await response.json();
-      console.log("📥 Response:", result);
+      console.log(" Response:", result);
 
       if (response.ok && result.success) {
-        if (gotoNext) {
-          router.push(`/student_add/interview?studentId=${result.data.id}`);
-        } else {
-          router.push("/student");
-        }
+        router.push(`/student/student_detail/${result.data._id || result.data.id}`);
       } else {
         alert(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       }
@@ -136,8 +154,7 @@ export default function StudentAddBasicPage() {
                   เพิ่มผู้เรียนใหม่
                 </h2>
                 <div className="mt-2">
-                  <span className="badge bg-primary rounded-0 p-2 me-2">ขั้นตอนที่ 1: ข้อมูลพื้นฐาน</span>
-                  <span className="badge bg-secondary rounded-0 p-2">ขั้นตอนที่ 2: บันทึกการสัมภาษณ์</span>
+                  <span className="badge bg-primary rounded-0 p-2">เพิ่มข้อมูลนักเรียนใหม่</span>
                 </div>
               </div>
               <Link href="/student" className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
@@ -160,6 +177,39 @@ export default function StudentAddBasicPage() {
                 </div>
                 <div className="p-4">
                   <div className="row g-3">
+                    {/* รูปโปรไฟล์ */}
+                    <div className="col-md-12">
+                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์นักเรียน</label>
+                      <div className="d-flex align-items-start gap-4">
+                        <div className="text-center">
+                          {imagePreview ? (
+                            <img 
+                              src={imagePreview} 
+                              alt="รูปโปรไฟล์" 
+                              className="rounded-circle border border-3 border-warning"
+                              style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div 
+                              className="rounded-circle border border-3 border-secondary d-flex align-items-center justify-content-center bg-light"
+                              style={{ width: '120px', height: '120px' }}
+                            >
+                              <i className="bi bi-person-fill fs-1 text-secondary"></i>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-grow-1">
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="form-control rounded-0"
+                          />
+                          <small className="text-muted">รองรับไฟล์รูปภาพ .jpg, .png, .gif ขนาดไม่เกิน 5MB</small>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* รหัสนักศึกษา */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา <span className="text-danger">*</span></label>
@@ -424,7 +474,7 @@ export default function StudentAddBasicPage() {
               <button 
                 type="button"
                 className="btn btn-outline-primary rounded-0 text-uppercase fw-semibold px-5"
-                onClick={(e) => handleSave(e, false)}
+                onClick={handleSave}
                 disabled={saving}
               >
                 {saving ? (
@@ -441,7 +491,7 @@ export default function StudentAddBasicPage() {
               <button 
                 type="button"
                 className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
-                onClick={(e) => handleSave(e, true)}
+                onClick={handleSave}
                 disabled={saving}
               >
                 {saving ? (

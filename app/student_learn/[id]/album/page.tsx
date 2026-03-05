@@ -41,7 +41,7 @@ export default function PhotoAlbumPage() {
         }
 
         // Fetch photos
-        const photosResponse = await fetch(`/api/photos?planId=${params.id}`);
+        const photosResponse = await fetch(`/api/learn/photos?planId=${params.id}`);
         const photosResult = await photosResponse.json();
         
         if (photosResult.success) {
@@ -111,7 +111,7 @@ export default function PhotoAlbumPage() {
         formData.append(`photos[${index}]`, file);
       });
 
-      const response = await fetch('/api/photos', {
+      const response = await fetch('/api/learn/photos', {
         method: 'POST',
         body: formData,
       });
@@ -130,7 +130,7 @@ export default function PhotoAlbumPage() {
       alert(result.message || "อัปโหลดรูปภาพเรียบร้อยแล้ว");
       
       // Refresh photos
-      const photosResponse = await fetch(`/api/photos?planId=${params.id}`);
+      const photosResponse = await fetch(`/api/learn/photos?planId=${params.id}`);
       const photosResult = await photosResponse.json();
       
       if (photosResult.success) {
@@ -149,7 +149,7 @@ export default function PhotoAlbumPage() {
     if (!confirm("คุณต้องการลบรูปภาพนี้ใช่หรือไม่?")) return;
     
     try {
-      const response = await fetch(`/api/photos?planId=${params.id}&photoId=${photoId}`, {
+      const response = await fetch(`/api/learn/photos?planId=${params.id}&photoId=${photoId}`, {
         method: 'DELETE',
       });
       
