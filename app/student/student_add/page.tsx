@@ -14,7 +14,7 @@ interface BasicInfoFormData {
   birth_date: string;
   level: string;
   class_group: string;
-  class_number: string;  // ✅ เลขที่
+  class_number: string;  // 
   advisor_name: string;
   phone_number: string;
   religion: string;
@@ -23,6 +23,12 @@ interface BasicInfoFormData {
   height: string;
   blood_type: string;
   image: string;
+}
+
+interface Major {
+  _id: string;
+  major_id: number;
+  major_name: string;
 }
 
 export default function StudentAddBasicPage() {
@@ -37,7 +43,7 @@ export default function StudentAddBasicPage() {
     birth_date: "",
     level: "ปวช.1",
     class_group: "",
-    class_number: "",  // เลขที่
+    class_number: "1",  // 
     advisor_name: "",
     phone_number: "",
     religion: "พุทธ",
@@ -47,13 +53,26 @@ export default function StudentAddBasicPage() {
     blood_type: "B",
     image: "",
   });
+  const [majors, setMajors] = useState<Major[]>([]);
   const [saving, setSaving] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
   useEffect(() => {
- 
+    fetchMajors();
   }, []);
+
+  const fetchMajors = async () => {
+    try {
+      const response = await fetch("/api/major");
+      if (response.ok) {
+        const data = await response.json();
+        setMajors(data);
+      }
+    } catch (error) {
+      console.error("Error fetching majors:", error);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -323,17 +342,22 @@ export default function StudentAddBasicPage() {
                       </select>
                     </div>
 
-                    {/* กลุ่มเรียน */}
+                    {/* กลุ่มเรียน/สาขาวิชา */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน</label>
-                      <input 
-                        type="text" 
+                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน/สาขาวิชา</label>
+                      <select 
                         name="class_group"
-                        className="form-control rounded-0"
+                        className="form-select rounded-0"
                         value={formData.class_group}
                         onChange={handleInputChange}
-                        placeholder="เช่น ชฟ.1"
-                      />
+                      >
+                        <option value="">เลือกสาขาวิชา</option>
+                        {majors.map((major) => (
+                          <option key={major._id} value={major.major_name}>
+                            {major.major_id} - {major.major_name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* เลขที่ */}

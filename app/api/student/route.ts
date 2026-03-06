@@ -129,10 +129,23 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
+    console.log("🚀 GET /api/student เริ่มทำงาน");
     await connectDB();
+    console.log("✅ Database connected");
+    
     const students = await Student.find().sort({ createdAt: -1 });
-    return NextResponse.json({ success: true, data: students });
-  } catch (error) {
-    return NextResponse.json({ success: false, message: "Error" }, { status: 500 });
+    console.log(`📊 Found ${students.length} students`);
+    
+    return NextResponse.json({ 
+      success: true, 
+      data: students,
+      count: students.length 
+    });
+  } catch (error: any) {
+    console.error("❌ Error in GET /api/student:", error);
+    return NextResponse.json({ 
+      success: false, 
+      message: error.message || "Error fetching students" 
+    }, { status: 500 });
   }
 }

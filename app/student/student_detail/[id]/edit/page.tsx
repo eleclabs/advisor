@@ -28,6 +28,12 @@ interface StudentData {
   image: string;
 }
 
+interface Major {
+  _id: string;
+  major_id: number;
+  major_name: string;
+}
+
 export default function EditStudentPage() {
   const router = useRouter();
   const params = useParams();
@@ -40,6 +46,7 @@ export default function EditStudentPage() {
   const [error, setError] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [majors, setMajors] = useState<Major[]>([]);
   const [studentData, setStudentData] = useState<StudentData>({
     _id: studentDocId || "",
     id: "",
@@ -62,8 +69,20 @@ export default function EditStudentPage() {
     image: "",
   });
 
+  const fetchMajors = async () => {
+    try {
+      const response = await fetch("/api/major");
+      if (response.ok) {
+        const data = await response.json();
+        setMajors(data);
+      }
+    } catch (error) {
+      console.error("Error fetching majors:", error);
+    }
+  };
+
   useEffect(() => {
-   
+    fetchMajors();
   }, []);
 
   useEffect(() => {
@@ -425,18 +444,22 @@ export default function EditStudentPage() {
                     </div>
 
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน</label>
-                      <input 
-                        type="text" 
+                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน/สาขาวิชา</label>
+                      <select 
                         name="class_group"
-                        className="form-control rounded-0"
+                        className="form-select rounded-0"
                         value={studentData.class_group}
                         onChange={handleInputChange}
-                        placeholder="เช่น ชฟ.1"
-                      />
+                      >
+                        <option value="">เลือกสาขาวิชา</option>
+                        {majors.map((major) => (
+                          <option key={major._id} value={major.major_name}>
+                            {major.major_id} - {major.major_name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {/* ✅ เลขที่ - เพิ่มใหม่ */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
                       <input 

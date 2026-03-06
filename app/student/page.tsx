@@ -15,6 +15,7 @@ interface Student {
   status: string;
   advisor_name: string;
   class_group: string;
+  class_number: string;
   phone_number: string;
 }
 
@@ -62,6 +63,7 @@ export default function StudentListPage() {
           status: s.status || "ปกติ",
           advisor_name: s.advisor_name || "",
           class_group: s.class_group || "",
+          class_number: s.class_number || "",
           phone_number: s.phone_number || ""
         }));
         
@@ -95,13 +97,9 @@ export default function StudentListPage() {
       filtered = filtered.filter((s) => s.level === selectedLevel);
     }
 
-    if (selectedStatus) {
-      filtered = filtered.filter((s) => s.status === selectedStatus);
-    }
-
     setFilteredStudent(filtered);
     setCurrentPage(1);
-  }, [searchKeyword, selectedLevel, selectedStatus, student]);
+  }, [searchKeyword, selectedLevel, student]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -207,19 +205,7 @@ export default function StudentListPage() {
               <option value="ปวส.2">ปวส.2</option>
             </select>
           </div>
-          <div className="col-md-2">
-            <select 
-              className="form-select rounded-0"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-            >
-              <option value="">สถานะทั้งหมด</option>
-              <option value="ปกติ">ปกติ</option>
-              <option value="เสี่ยง">เสี่ยง</option>
-              <option value="มีปัญหา">มีปัญหา</option>
-            </select>
-          </div>
-          <div className="col-md-2">
+          <div className="col-md-3">
             <select 
               className="form-select rounded-0"
               value={selectedYear}
@@ -279,7 +265,7 @@ export default function StudentListPage() {
                       <th className="text-uppercase fw-semibold">ชื่อ-นามสกุล</th>
                       <th className="text-uppercase fw-semibold">ระดับชั้น</th>
                       <th className="text-uppercase fw-semibold">กลุ่ม</th>
-                      <th className="text-uppercase fw-semibold">สถานะ</th>
+                      <th className="text-uppercase fw-semibold">เลขที่</th>
                       <th className="text-uppercase fw-semibold">ครูที่ปรึกษา</th>
                       <th className="text-uppercase fw-semibold text-center">จัดการ</th>
                     </tr>
@@ -293,7 +279,7 @@ export default function StudentListPage() {
                           <td>
                             {student._id ? (
                               <Link 
-                                href={`/student/student_detail/${student._id}/interview`}
+                                href={`/student/student_detail/${student._id}/edit`}
                                 className="text-decoration-none text-primary"
                               >
                                 {student.name || `${student.prefix || ''}${student.first_name} ${student.last_name}`}
@@ -304,13 +290,7 @@ export default function StudentListPage() {
                           </td>
                           <td>{student.level}</td>
                           <td>{student.class_group || '-'}</td>
-                          <td>
-                            <span 
-                              className={`badge rounded-0 text-uppercase fw-semibold ${getStatusBadgeClass(student.status)}`}
-                            >
-                              {student.status || 'ปกติ'}
-                            </span>
-                          </td>
+                          <td>{student.class_number || '-'}</td>
                           <td>{student.advisor_name || '-'}</td>
                           <td className="text-center">
                             <div className="btn-group" role="group">
@@ -347,7 +327,7 @@ export default function StudentListPage() {
                     ) : (
                       <tr>
                         <td colSpan={8} className="text-center text-muted py-4">
-                          {searchKeyword || selectedLevel || selectedStatus 
+                          {searchKeyword || selectedLevel 
                             ? "ไม่พบข้อมูลที่ค้นหา" 
                             : "ไม่มีข้อมูลนักเรียน"}
                         </td>

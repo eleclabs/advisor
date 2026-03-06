@@ -23,6 +23,8 @@ export default function Sidebar({ role }: { role?: string }) {
     { name: "รายงานและสถิติ", href: "/student" },
     { name: "แบบฟอร์ม/เครื่องมือ", href: "/student" },
     { name: "แบบประเมินความพึงพอใจ", href: "/student" },
+    { name: "จัดการผู้ใช้งาน", href: "/user" },
+    { name: "สาขา", href: "/major" },
   ];
 
   const filteredRoleMenus = roleMenus.filter(m =>

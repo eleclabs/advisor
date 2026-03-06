@@ -164,22 +164,12 @@ export default function StudentBasicPage() {
                 ข้อมูลพื้นฐาน: {student.name}
               </h2>
               <div>
-                <span
-                  className={`badge rounded-0 text-uppercase fw-semibold p-2 me-2 ${
-                    student.status === "ปกติ"
-                      ? "bg-success"
-                      : student.status === "เสี่ยง"
-                      ? "bg-warning text-dark"
-                      : "bg-danger"
-                  }`}
-                >
-                  สถานะ: {student.status}
-                </span>
                 <Link
                   href={`/student/student_detail/${student._id}/interview`}
-                  className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
+                  className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
                 >
-                  <i className="bi bi-journal-text me-2"></i>ดูบันทึกการสัมภาษณ์
+                  <i className="bi bi-clipboard-check me-2"></i>
+                  ประเมินผู้เรียน
                 </Link>
                 <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
                   <i className="bi bi-printer me-2"></i>พิมพ์
@@ -223,17 +213,6 @@ export default function StudentBasicPage() {
                       <div className="flex-grow-1">
                         <h4 className="fw-bold mb-1">{student.name}</h4>
                         <p className="text-muted mb-2">รหัสนักศึกษา: {student.id}</p>
-                        <span
-                          className={`badge rounded-0 text-uppercase fw-semibold p-2 ${
-                            student.status === "ปกติ"
-                              ? "bg-success"
-                              : student.status === "เสี่ยง"
-                              ? "bg-warning text-dark"
-                              : "bg-danger"
-                          }`}
-                        >
-                          สถานะ: {student.status}
-                        </span>
                       </div>
                     </div>
                   </div>
