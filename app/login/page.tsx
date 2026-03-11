@@ -1,102 +1,227 @@
+// app/login/page.tsx
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function Login() {
+export default function LoginPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ LOGIN EMAIL PASSWORD
-  const handleCredentialsLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    setLoading(true);
     setError("");
+    setLoading(true);
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false, // สำคัญ
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    setLoading(false);
-
-    if (res?.error) {
-      setError("Email หรือ Password ไม่ถูกต้อง");
-      return;
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        router.push("/student"); // หรือ /dashboard ตามต้องการ
+      }
+    } catch (error) {
+      setError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    router.push("/dashboard");
+  // ฟังก์ชันสำหรับทดสอบ login เร็วๆ (เลือก role)
+  const quickLogin = async (role: string) => {
+    const testAccounts = {
+      ADMIN: { email: "admin@test.com", password: "123456" },
+      TEACHER: { email: "teacher@test.com", password: "123456" },
+      EXECUTIVE: { email: "executive@test.com", password: "123456" },
+      COMMITTEE: { email: "committee@test.com", password: "123456" },
+    };
+
+    const account = testAccounts[role as keyof typeof testAccounts];
+    setEmail(account.email);
+    setPassword(account.password);
+    
+    // Auto submit
+    setTimeout(() => {
+      document.getElementById("loginForm")?.dispatchEvent(
+        new Event("submit", { cancelable: true, bubbles: true })
+      );
+    }, 100);
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-md-6 col-lg-5">
+            <div className="card shadow-lg border-0 rounded-0">
+              {/* Header */}
+              <div className="card-header bg-dark text-white text-center py-4 rounded-0">
+                <h3 className="fw-bold mb-0">
+                  <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
+                  ระบบดูแลผู้เรียนรายบุคคล
+                </h3>
+                <p className="text-white-50 mb-0 mt-2">เข้าสู่ระบบ</p>
+              </div>
 
-      <div className="bg-white p-8 rounded-xl shadow w-[380px] space-y-4">
+              {/* Body */}
+              <div className="card-body p-5">
+                {error && (
+                  <div className="alert alert-danger rounded-0 d-flex align-items-center mb-4">
+                    <i className="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                    <span>{error}</span>
+                  </div>
+                )}
 
-        <h1 className="text-2xl font-bold text-center">
-          Student Support Login
-        </h1>
+                <form id="loginForm" onSubmit={handleSubmit}>
+                  {/* Email */}
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold small text-uppercase">
+                      <i className="bi bi-envelope me-2"></i>
+                      อีเมล
+                    </label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light border-end-0 rounded-0">
+                        <i className="bi bi-envelope text-secondary"></i>
+                      </span>
+                      <input
+                        type="email"
+                        className="form-control border-start-0 rounded-0"
+                        placeholder="example@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
 
-        {/* ERROR */}
-        {error && (
-          <p className="text-red-500 text-sm">{error}</p>
-        )}
+                  {/* Password */}
+                  <div className="mb-4">
+                    <label className="form-label fw-semibold small text-uppercase">
+                      <i className="bi bi-lock me-2"></i>
+                      รหัสผ่าน
+                    </label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light border-end-0 rounded-0">
+                        <i className="bi bi-lock text-secondary"></i>
+                      </span>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        className="form-control border-start-0 rounded-0"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={loading}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary border-start-0 rounded-0"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
+                      </button>
+                    </div>
+                  </div>
 
-        {/* EMAIL LOGIN */}
-        <form onSubmit={handleCredentialsLogin} className="space-y-3">
+                  {/* Remember & Forgot */}
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div className="form-check">
+                      <input
+                        type="checkbox"
+                        className="form-check-input rounded-0"
+                        id="remember"
+                      />
+                      <label className="form-check-label small" htmlFor="remember">
+                        จดจำฉันไว้
+                      </label>
+                    </div>
+                    <Link href="/forgot-password" className="text-decoration-none small">
+                      ลืมรหัสผ่าน?
+                    </Link>
+                  </div>
 
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full border p-2 rounded"
-            value={email}
-            onChange={(e)=>setEmail(e.target.value)}
-            required
-          />
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    className="btn btn-warning w-100 py-3 rounded-0 fw-bold text-uppercase mb-3"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        กำลังเข้าสู่ระบบ...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-box-arrow-in-right me-2"></i>
+                        เข้าสู่ระบบ
+                      </>
+                    )}
+                  </button>
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full border p-2 rounded"
-            value={password}
-            onChange={(e)=>setPassword(e.target.value)}
-            required
-          />
+                  {/* Register Link */}
+                  <div className="text-center">
+                    <span className="text-muted">ยังไม่มีบัญชี? </span>
+                    <Link href="/register" className="text-warning text-decoration-none fw-bold">
+                      สมัครสมาชิก
+                    </Link>
+                  </div>
+                </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white p-2 rounded"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+                {/* Quick Login - สำหรับทดสอบ (สามารถลบออกได้) */}
+                <div className="mt-5 pt-4 border-top">
+                  <p className="text-center small text-muted mb-3">ทดลองเข้าใช้งาน (สำหรับพัฒนา)</p>
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    <button
+                      onClick={() => quickLogin("ADMIN")}
+                      className="btn btn-sm btn-outline-danger rounded-0"
+                    >
+                      ADMIN
+                    </button>
+                    <button
+                      onClick={() => quickLogin("TEACHER")}
+                      className="btn btn-sm btn-outline-primary rounded-0"
+                    >
+                      TEACHER
+                    </button>
+                    <button
+                      onClick={() => quickLogin("EXECUTIVE")}
+                      className="btn btn-sm btn-outline-success rounded-0"
+                    >
+                      EXECUTIVE
+                    </button>
+                    <button
+                      onClick={() => quickLogin("COMMITTEE")}
+                      className="btn btn-sm btn-outline-warning rounded-0"
+                    >
+                      COMMITTEE
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-        <div className="text-center text-gray-400">OR</div>
-
-        {/* GOOGLE LOGIN */}
-        <button
-          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-          className="w-full bg-red-500 text-white p-2 rounded"
-        >
-          Login with Google
-        </button>
-
-        {/* FACEBOOK LOGIN */}
-        <button
-          onClick={() => signIn("facebook", { callbackUrl: "/dashboard" })}
-          className="w-full bg-blue-800 text-white p-2 rounded"
-        >
-          Login with Facebook
-        </button>
-
+              {/* Footer */}
+              <div className="card-footer bg-light text-center py-3 rounded-0">
+                <small className="text-muted">
+                  <i className="bi bi-c-circle me-1"></i>
+                  2568 ระบบดูแลผู้เรียนรายบุคคล
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

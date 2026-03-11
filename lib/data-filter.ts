@@ -3,14 +3,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { connectDB } from "./mongodb";
 import User from "@/models/User";
-import Student from "@/models/Student";
+
+export type CollectionType = "student" | "learn" | "problem" | "send" | "user";
 
 /**
- * ฟังก์ชันกรองข้อมูลตามสิทธิ์ของผู้ใช้
- * แก้ที่ไฟล์นี้ที่เดียว ใช้กับทุกหน้า
+ * กรอง query ตามสิทธิ์ผู้ใช้
+ * ใช้กับทุก API และ Page ในระบบ
  */
 export async function filterDataByUser(
-  collection: "student" | "activity" | "problem" | "report",
+  collection: CollectionType,
   query: any = {}
 ) {
   const session = await getServerSession(authOptions);
@@ -27,36 +28,32 @@ export async function filterDataByUser(
     return { filteredQuery: query };
   }
 
-  // ===== เริ่มกรองตาม Role และ Collection =====
+  // ===== เริ่มกรองตาม Role =====
   let filteredQuery = { ...query };
 
   switch (userRole) {
     case "TEACHER":
-      // ดึงข้อมูลครูเพื่อดูว่าสอนห้องอะไรบ้าง
+      // ดึงข้อมูลครูเพื่อดูว่าสอนห้องอะไร
       await connectDB();
       const teacher = await User.findById(userId);
       
-      if (!teacher) {
-        return { filteredQuery: { _id: null } };
-      }
-
       // กรองตาม collection
       switch (collection) {
         case "student":
           // TEACHER เห็นเฉพาะนักเรียนในที่ปรึกษา
           filteredQuery = {
             ...query,
-            advisor_id: userId  // กรองตาม advisor_id
+            advisor_id: userId
           };
           break;
 
-        case "activity":
+        case "learn":
           // TEACHER เห็นกิจกรรมที่ตัวเองสร้าง + กิจกรรมของนักเรียนในที่ปรึกษา
           filteredQuery = {
             ...query,
             $or: [
               { created_by: userId },
-              { "participants.student_id": { $in: teacher.students || [] } }
+              { "participants.advisor_id": userId }
             ]
           };
           break;
@@ -65,27 +62,34 @@ export async function filterDataByUser(
           // TEACHER เห็นปัญหาของนักเรียนในที่ปรึกษา
           filteredQuery = {
             ...query,
+            $or: [
+              { advisor_id: userId },
+              { created_by: userId }
+            ]
+          };
+          break;
+
+        case "send":
+          // TEACHER เห็นการส่งต่อของนักเรียนในที่ปรึกษา
+          filteredQuery = {
+            ...query,
             advisor_id: userId
           };
           break;
 
-        case "report":
-          // TEACHER เห็นรายงานเฉพาะห้องตัวเอง
+        case "user":
+          // TEACHER เห็นเฉพาะผู้ใช้ที่เป็นครูด้วยกัน (ไม่เห็น admin)
           filteredQuery = {
             ...query,
-            advisor_id: userId
+            role: { $in: ["TEACHER", "EXECUTIVE", "COMMITTEE"] }
           };
           break;
       }
       break;
 
     case "EXECUTIVE":
-      // ผู้บริหารเห็นทั้งหมด (อาจกรองตามภาควิชา)
-      filteredQuery = query; // หรือเพิ่มกรองตาม department
-      break;
-
     case "COMMITTEE":
-      // คณะกรรมการเห็นทั้งหมด (แบบอ่านอย่างเดียว)
+      // ผู้บริหารและกรรมการเห็นทั้งหมด (แบบอ่านอย่างเดียว)
       filteredQuery = query;
       break;
 
@@ -97,42 +101,65 @@ export async function filterDataByUser(
 }
 
 /**
- * ฟังก์ชันตรวจสอบว่าเข้าถึงข้อมูลเฉพาะรายการได้ไหม
+ * ตรวจสอบสิทธิ์เข้าถึงข้อมูลเฉพาะรายการ
  */
 export async function canAccessItem(
-  collection: "student" | "activity" | "problem",
-  itemId: string
+  collection: CollectionType,
+  itemId: string,
+  action: "view" | "edit" | "delete" = "view"
 ) {
   const session = await getServerSession(authOptions);
   
   if (!session) return false;
   if (session.user?.role === "ADMIN") return true;
 
+  const userRole = session.user?.role;
+  const userId = session.user?.id;
+
   await connectDB();
 
+  // ดึงข้อมูลตาม collection
+  let item = null;
   switch (collection) {
     case "student": {
-      const student = await Student.findById(itemId);
-      if (!student) return false;
-      
-      if (session.user?.role === "TEACHER") {
-        return student.advisor_id === session.user?.id;
-      }
-      return ["EXECUTIVE", "COMMITTEE"].includes(session.user?.role || "");
+      const Student = (await import("@/models/Student")).default;
+      item = await Student.findById(itemId);
+      break;
     }
+    case "learn": {
+      const Learn = (await import("@/models/Learn")).default;
+      item = await Learn.findById(itemId);
+      break;
+    }
+    case "problem": {
+      const Problem = (await import("@/models/Problem")).default;
+      item = await Problem.findById(itemId);
+      break;
+    }
+    case "send": {
+      const Send = (await import("@/models/Send")).default;
+      item = await Send.findById(itemId);
+      break;
+    }
+    default:
+      return false;
+  }
 
-    case "activity": {
-      // ตรวจสอบสิทธิ์เข้าถึงกิจกรรม
-      const Activity = (await import("@/models/Activity")).default;
-      const activity = await Activity.findById(itemId);
-      
-      if (!activity) return false;
-      
-      if (session.user?.role === "TEACHER") {
-        return activity.created_by === session.user?.id;
-      }
-      return ["EXECUTIVE", "COMMITTEE"].includes(session.user?.role || "");
-    }
+  if (!item) return false;
+
+  // ตรวจสอบตาม role
+  switch (userRole) {
+    case "TEACHER":
+      // ตรวจสอบ ownership
+      if (item.advisor_id) return item.advisor_id === userId;
+      if (item.created_by) return item.created_by === userId;
+      if (item.teacher_id) return item.teacher_id === userId;
+      return false;
+
+    case "EXECUTIVE":
+    case "COMMITTEE":
+      // ผู้บริหารและกรรมการดูได้อย่างเดียว
+      return action === "view";
 
     default:
       return false;

@@ -145,10 +145,37 @@ export default function StudentAnalyticsDashboard() {
   const teacher_name = "อาจารย์วิมลรัตน์ ใจดี";
   const academic_year = "2568";
 
-  // Fetch ALL student data for comprehensive analysis
+  // Fetch assigned student data for analysis
   const fetchAllStudentData = async () => {
     try {
       setLoading(true);
+      
+      // Get current user session
+      const sessionRes = await fetch('/api/auth/session');
+      const sessionData = await sessionRes.json();
+      
+      if (!sessionData?.user?.id) {
+        console.error('No user session found');
+        setLoading(false);
+        return;
+      }
+      
+      // Fetch assigned students for current user
+      const assignedRes = await fetch(`/api/user/${sessionData.user.id}/assign-students`);
+      const assignedData = await assignedRes.json();
+      
+      if (!assignedData.success || assignedData.data.length === 0) {
+        console.log('No assigned students found');
+        setStudents([]);
+        setFilteredStudents([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Get assigned student IDs
+      const assignedStudentIds = assignedData.data.map((a: any) => 
+        a.student_id?._id || a.student_id
+      );
       
       // Fetch data from available sources only
       const [problemRes, studentRes] = await Promise.all([
@@ -162,8 +189,13 @@ export default function StudentAnalyticsDashboard() {
       ]);
       
       if (problemData.success && studentData.success) {
-        // Comprehensive data integration
-        const comprehensiveStudents: Student[] = studentData.data.map((student: any) => {
+        // Filter students to only include assigned students
+        const assignedStudents = studentData.data.filter((student: any) => 
+          assignedStudentIds.includes(student._id)
+        );
+        
+        // Comprehensive data integration for assigned students only
+        const comprehensiveStudents: Student[] = assignedStudents.map((student: any) => {
           // Find related problem data
           const relatedProblem = problemData.data.find((p: any) => 
             p.student_id === student.id || p.student_name === `${student.prefix} ${student.first_name} ${student.last_name}`
@@ -293,12 +325,31 @@ export default function StudentAnalyticsDashboard() {
           };
         });
         
-        setStudents(comprehensiveStudents);
-        setFilteredStudents(comprehensiveStudents);
+        // Filter to show only assigned students with meaningful data for analytics
+        const meaningfulStudents = comprehensiveStudents.filter(student => {
+          const hasRealData = 
+            student.studentData?.student_group !== 'ไม่ระบุ' ||
+            (student.studentData?.risk_behaviors && student.studentData.risk_behaviors.length > 0) ||
+            (student.studentData?.family_status && student.studentData.family_status.length > 0) ||
+            student.studentData?.family_income !== 'ไม่ระบุ' ||
+            student.studentData?.parent_concerns !== 'ไม่มี' ||
+            student.studentData?.home_behavior !== 'ไม่ระบุ' ||
+            student.studentData?.chronic_disease !== 'ไม่มี' ||
+            (student.studentData?.assistance_needs && student.studentData.assistance_needs.length > 0) ||
+            student.problemData?.problem !== '' ||
+            (student.problemData?.evaluations && student.problemData.evaluations.length > 0);
+          
+          return hasRealData;
+        });
         
-        // Generate insights and recommendations based on real data only
-        const realDataAnalysis = filterAndAnalyzeStudents(comprehensiveStudents);
-        console.log('🎯 การวิเคราะห์ข้อมูลจริงเสร็จสิ้น');
+        setStudents(meaningfulStudents);
+        setFilteredStudents(meaningfulStudents);
+        
+        console.log(`📊 นักเรียนในความดูแลที่มีข้อมูลวิเคราะห์: ${meaningfulStudents.length} คน`);
+        
+        // Generate insights and recommendations based on assigned students only
+        const realDataAnalysis = filterAndAnalyzeStudents(meaningfulStudents);
+        console.log('🎯 การวิเคราะห์ข้อมูลนักเรียนในความดูแลเสร็จสิ้น');
         
       }
     } catch (error) {
@@ -1006,9 +1057,19 @@ export default function StudentAnalyticsDashboard() {
   if (students.length === 0) {
     return (
       <div className="container-fluid p-4">
-        <div className="alert alert-warning">
-          <h5><i className="bi bi-exclamation-triangle-fill me-2"></i>ไม่พบข้อมูลนักเรียน</h5>
-          <p>ไม่สามารถดึงข้อมูลนักเรียนจากระบบได้ กรุณาตรวจสอบการเชื่อมต่อฐานข้อมูล</p>
+        <div className="alert alert-info">
+          <h5><i className="bi bi-info-circle-fill me-2"></i>ไม่พบนักเรียนในความดูแล</h5>
+          <p>คุณยังไม่ได้เลือกนักเรียนในความดูแล หรือนักเรียนที่เลือกไม่มีข้อมูลความเสี่ยงที่ต้องการการวิเคราะห์</p>
+          <div className="d-flex gap-2">
+            <Link href="/student/student_filter" className="btn btn-primary">
+              <i className="bi bi-person-plus me-1"></i>
+              เลือกนักเรียนในความดูแล
+            </Link>
+            <Link href="/student" className="btn btn-outline-primary">
+              <i className="bi bi-house me-1"></i>
+              กลับหน้าหลัก
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -1025,6 +1086,10 @@ export default function StudentAnalyticsDashboard() {
           </h2>
           <p className="text-muted mb-0">
             ปีการศึกษา {academic_year} | ครูที่ปรึกษา: {teacher_name}
+          </p>
+          <p className="text-info small mb-0">
+            <i className="bi bi-info-circle me-1"></i>
+            แสดงเฉพาะนักเรียนในความดูแลที่มีข้อมูลความเสี่ยง พฤติกรรม หรือปัญหาที่ต้องการความช่วยเหลือ
           </p>
         </div>
         <div className="d-flex gap-2">

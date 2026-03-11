@@ -56,7 +56,7 @@ const UserSchema = new mongoose.Schema({
   teacher_id: {
     type: String,
     unique: true,
-    sparse: true, // อนุญาตให้มีค่า null หรือไม่ระบุได้
+    sparse: true,
     description: "รหัสประจำตัวครู (ถ้ามี)",
   },
   phone: {
@@ -151,17 +151,15 @@ const UserSchema = new mongoose.Schema({
     description: "ผู้ใช้ที่แก้ไขบัญชีนี้ล่าสุด",
   },
 }, {
-  timestamps: true, // สร้างฟิลด์ createdAt และ updatedAt อัตโนมัติ
-  collection: "users", // กำหนดชื่อ collection ใน MongoDB
+  timestamps: true,
+  collection: "users",
 });
 
-// สร้าง index เพื่อเพิ่มประสิทธิภาพการค้นหา
-UserSchema.index({ email: 1 });
+// ✅ คงไว้เฉพาะ index ที่จำเป็น (ไม่มี index ซ้ำ)
 UserSchema.index({ role: 1 });
-UserSchema.index({ teacher_id: 1 });
+// ❌ ลบอันนี้: UserSchema.index({ teacher_id: 1 });  // ซ้ำกับ unique:true
 UserSchema.index({ homeroom_level: 1, homeroom_class: 1 });
 UserSchema.index({ department: 1 });
 UserSchema.index({ "assigned_students.student_id": 1 });
 
-// ป้องกันการลงทะเบียน model ซ้ำ
 export default mongoose.models.User || mongoose.model("User", UserSchema);
