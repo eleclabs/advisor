@@ -16,7 +16,7 @@ export async function GET(
     
     await connectDB();
     
-    // ตรวจสอบ session และสิทธิ์
+    // ตรวจสอบ session
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ 
@@ -38,20 +38,43 @@ export async function GET(
       }, { status: 404 });
     }
     
-    // ตรวจสอบสิทธิ์การเข้าถึง (เฉพาะเจ้าของหรือ Admin)
-    if (!isAdmin && learn.created_by !== currentUser) {
-      return NextResponse.json({ 
-        success: false, 
-        message: "ไม่มีสิทธิ์เข้าถึงข้อมูลนี้" 
-      }, { status: 403 });
+    console.log("📋 Plan data:", {
+      id: learn._id,
+      title: learn.topic,
+      status: learn.status,
+      created_by: learn.created_by,
+      level: learn.level,
+      has_record: learn.has_record
+    });
+    
+    // ✅ Admin เห็นได้ทั้งหมด
+    if (isAdmin) {
+      console.log("✅ Admin access granted");
+      return NextResponse.json({ success: true, data: learn });
     }
     
-    console.log("GET learn.special_track:", learn.special_track);
+    // ✅ ถ้าเป็นร่าง: ต้องเป็นเจ้าของเท่านั้น
+    if (learn.status === 'draft' || learn.status === 'ร่าง') {
+      if (learn.created_by !== currentUser) {
+        console.log("❌ Draft plan - not owner");
+        return NextResponse.json({ 
+          success: false, 
+          message: "ไม่มีสิทธิ์เข้าถึงข้อมูลนี้" 
+        }, { status: 403 });
+      }
+      console.log("✅ Draft plan - owner access granted");
+      return NextResponse.json({ success: true, data: learn });
+    }
     
-    return NextResponse.json({ 
-      success: true, 
-      data: learn 
-    });
+    // ✅ ถ้าเป็นเผยแพร่: ให้ทุกคนเข้าถึงได้ (Public)
+    if (learn.status === 'published' || learn.status === 'เผยแพร่') {
+      console.log("✅ Published plan - public access granted");
+      return NextResponse.json({ success: true, data: learn });
+    }
+    
+    // ✅ กรณีอื่นๆ (เช่น มีค่า status แปลกๆ) ให้เข้าถึงได้
+    console.log("✅ Other status - access granted");
+    return NextResponse.json({ success: true, data: learn });
     
   } catch (error: any) {
     console.error("❌ Error:", error);
@@ -72,7 +95,7 @@ export async function PUT(
     
     await connectDB();
     
-    // ตรวจสอบ session และสิทธิ์
+    // ตรวจสอบ session
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ 
@@ -108,7 +131,7 @@ export async function PUT(
     // แปลง FormData เป็น Object
     const updateData: any = {};
     
-    // ฟิลด์ทั่วไป
+    // ฟิลด์ทั่วไป (เพิ่ม target_class_group และ target_class_numbers)
     const fields = [
       'level', 'semester', 'academicYear', 'week', 'time', 'topic',
       'checkAttendance', 'checkUniform', 'announceNews',
@@ -116,7 +139,8 @@ export async function PUT(
       'trackProblems', 'individualCounsel',
       'teacherNote', 'problems', 'special_track', 'sessionNote',
       'materialsNote', 'suggestions', 'individualFollowup',
-      'status', 'created_by'
+      'status', 'created_by',
+      'target_class_group' // ✅ เพิ่ม
     ];
     
     fields.forEach(field => {
@@ -126,6 +150,17 @@ export async function PUT(
         console.log(`  ${field}:`, value);
       }
     });
+    
+    // target_class_numbers (JSON string) ✅ เพิ่ม
+    const targetClassNumbers = formData.get('target_class_numbers');
+    if (targetClassNumbers) {
+      try {
+        updateData.target_class_numbers = JSON.parse(targetClassNumbers as string);
+        console.log(`  target_class_numbers:`, updateData.target_class_numbers);
+      } catch (e) {
+        updateData.target_class_numbers = [];
+      }
+    }
     
     // วัตถุประสงค์ (array)
     const objectives = [];
@@ -179,18 +214,15 @@ export async function PUT(
       }
     }
     
-    // รับไฟล์เดิมที่คงไว้ (มาในรูปแบบ JSON string หรือชื่อ/URL แยกกัน)
+    // รับไฟล์เดิมที่คงไว้
     const existingMaterials: { name: string, url: string }[] = [];
     for (let i = 0; formData.has(`existingMaterials[${i}]`); i++) {
       const materialData = formData.get(`existingMaterials[${i}]`) as string;
       if (materialData) {
         try {
-          // ตรวจสอบว่าเป็น JSON หรือไม่ (กรณีส่งมาเป็น object string)
           const parsed = JSON.parse(materialData);
           existingMaterials.push(parsed);
         } catch (e) {
-          // ถ้าไม่ใช่ JSON (กรณีส่งมาเป็น URL เฉพาะสำหรับข้อมูลเก่า) 
-          // ให้พยายามหาชื่อไฟล์จาก URL
           existingMaterials.push({
             name: materialData.split('/').pop() || 'ไฟล์เดิม',
             url: materialData
@@ -204,9 +236,8 @@ export async function PUT(
     
     if (allMaterials.length > 0) {
       updateData.materials = allMaterials;
-      console.log(`🔗 Final materials array (${allMaterials.length} files):`, allMaterials);
+      console.log(`🔗 Final materials array (${allMaterials.length} files)`);
     } else if (formData.get('materials_clear') === 'true') {
-      // กรณีต้องการลบไฟล์ทั้งหมด
       updateData.materials = [];
       console.log(`🔗 Cleared all materials`);
     }
@@ -254,7 +285,7 @@ export async function DELETE(
     
     await connectDB();
     
-    // ตรวจสอบ session และสิทธิ์
+    // ตรวจสอบ session
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ 
@@ -284,14 +315,7 @@ export async function DELETE(
       }, { status: 403 });
     }
     
-    const learn = await Learn.findByIdAndDelete(id);
-    
-    if (!learn) {
-      return NextResponse.json({ 
-        success: false, 
-        message: "ไม่พบข้อมูลแผนกิจกรรม" 
-      }, { status: 404 });
-    }
+    await Learn.findByIdAndDelete(id);
     
     return NextResponse.json({ 
       success: true, 

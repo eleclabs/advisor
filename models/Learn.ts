@@ -11,6 +11,10 @@ const LearnSchema = new mongoose.Schema({
   topic: { type: String },
   objectives: [{ type: String }],
   
+  // ✅ เพิ่มฟิลด์กลุ่มเป้าหมาย
+  target_class_group: { type: String },           // กลุ่มเรียนที่เลือก
+  target_class_numbers: [{ type: String }],       // เลขที่ที่เลือก (array)
+  
   // ช่วงที่ 1: การจัดการระเบียบและวินัย
   checkAttendance: { type: String },
   checkUniform: { type: String },

@@ -1,6 +1,10 @@
+// D:\advisor-main\app\api\student\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Student from "@/models/Student";
+import User from "@/models/User";
 import cloudinary from "@/lib/cloudinary";
 
 export async function POST(req: NextRequest) {
@@ -8,6 +12,16 @@ export async function POST(req: NextRequest) {
   
   try {
     await connectDB();
+    
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
     const formData = await req.formData();
     
     // ✅ Debug: ดูทุกค่าที่ได้รับ
@@ -26,7 +40,7 @@ export async function POST(req: NextRequest) {
     const birth_date = formData.get("birth_date") as string;
     const level = formData.get("level") as string;
     const class_group = formData.get("class_group") as string;
-    const class_number = formData.get("class_number") as string;  // ✅ ต้องมี
+    const class_number = formData.get("class_number") as string;
     const advisor_name = formData.get("advisor_name") as string;
     const phone_number = formData.get("phone_number") as string;
     const religion = formData.get("religion") as string;
@@ -36,7 +50,7 @@ export async function POST(req: NextRequest) {
     const blood_type = formData.get("blood_type") as string;
     const bmi = formData.get("bmi") as string;
 
-    console.log("🔍 class_number =", class_number); // ✅ ดูว่าได้ค่ามั้ย
+    console.log("🔍 class_number =", class_number);
 
     // ตรวจสอบข้อมูลจำเป็น
     if (!id || !first_name || !last_name || !level) {
@@ -91,7 +105,7 @@ export async function POST(req: NextRequest) {
       birth_date: birth_date || "",
       level,
       class_group: class_group || "",
-      class_number: class_number || "",  // ✅ ต้องมี
+      class_number: class_number || "",
       advisor_name: advisor_name || "",
       phone_number: phone_number || "",
       religion: religion || "",
@@ -100,7 +114,7 @@ export async function POST(req: NextRequest) {
       height: height || "",
       blood_type: blood_type || "",
       bmi: bmi || "",
-      image: imageUrl, // ✅ เพิ่มรูปภาพ
+      image: imageUrl,
       email: `${id}@student.com`,
       status: "นักเรียนปกติ",
       created_at: new Date().toISOString(),
@@ -127,20 +141,83 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+// ✅ GET students (แก้ไขให้รองรับ assigned_only)
+export async function GET(request: NextRequest) {
   try {
     console.log("🚀 GET /api/student เริ่มทำงาน");
     await connectDB();
-    console.log("✅ Database connected");
     
-    const students = await Student.find().sort({ createdAt: -1 });
-    console.log(`📊 Found ${students.length} students`);
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const { searchParams } = new URL(request.url);
+    const assignedOnly = searchParams.get('assigned_only') === 'true';
+    const level = searchParams.get('level');
+    const classGroup = searchParams.get('class_group');
+    const classNumber = searchParams.get('class_number');
+    
+    const userRole = session.user.role;
+    const userId = session.user.id;
+    const isAdmin = userRole === 'ADMIN';
+    
+    let students = [];
+    let query: any = {};
+    
+    // กรองตาม level, class_group, class_number ถ้ามี
+    if (level) query.level = level;
+    if (classGroup) query.class_group = classGroup;
+    if (classNumber) query.class_number = classNumber;
+    
+    if (assignedOnly && !isAdmin && userId) {
+      // ✅ ดึงเฉพาะนักเรียนที่ครูคนนี้ดูแล
+      console.log("📊 Fetching assigned students only for user:", userId);
+      
+      const user = await User.findById(userId).populate({
+        path: 'assigned_students.student_id',
+        model: Student
+      });
+      
+      if (user && user.assigned_students && user.assigned_students.length > 0) {
+        // ดึงข้อมูลนักเรียนจาก assigned_students
+        students = user.assigned_students
+          .filter((item: any) => item.student_id)
+          .map((item: any) => item.student_id);
+        
+        // กรองเพิ่มเติมตาม query ถ้ามี
+        if (Object.keys(query).length > 0) {
+          students = students.filter((s: any) => {
+            let match = true;
+            if (query.level && s.level !== query.level) match = false;
+            if (query.class_group && s.class_group !== query.class_group) match = false;
+            if (query.class_number && s.class_number !== query.class_number) match = false;
+            return match;
+          });
+        }
+        
+        console.log(`✅ Found ${students.length} assigned students`);
+      } else {
+        console.log("👤 No assigned students found");
+        students = [];
+      }
+    } else {
+      // ✅ Admin หรือ ไม่ได้ระบุ assignedOnly: ดึงนักเรียนทั้งหมดตาม query
+      console.log("📊 Fetching all students with query:", query);
+      students = await Student.find(query).sort({ level: 1, class_group: 1, class_number: 1 });
+      console.log(`✅ Found ${students.length} students`);
+    }
     
     return NextResponse.json({ 
       success: true, 
       data: students,
       count: students.length 
     });
+    
   } catch (error: any) {
     console.error("❌ Error in GET /api/student:", error);
     return NextResponse.json({ 

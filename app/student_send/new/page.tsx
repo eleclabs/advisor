@@ -34,17 +34,18 @@ export default function NewReferralPage() {
     loadStudents();
   }, []);
 
-  const loadStudents = async () => {
-    try {
-      const response = await fetch('/api/student');
-      const data = await response.json();
-      if (data.success) {
-        setStudents(data.data);
-      }
-    } catch (error) {
-      console.error('Error loading students:', error);
+  // ใน loadStudents function
+const loadStudents = async () => {
+  try {
+    const response = await fetch('/api/student?assigned_only=true'); // เพิ่ม query param
+    const data = await response.json();
+    if (data.success) {
+      setStudents(data.data);
     }
-  };
+  } catch (error) {
+    console.error('Error loading students:', error);
+  }
+};
 
   const handleStudentSelect = (student: any) => {
     setForm({
