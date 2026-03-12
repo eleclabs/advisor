@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Learn from "@/models/Learn";
 import Student from "@/models/Student";
 import cloudinary from "@/lib/cloudinary";
@@ -8,6 +10,21 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
+    // ตรวจสอบ session และสิทธิ์
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
+    const userRole = session.user.role;
+    
+    // Admin เห็นได้ทั้งหมด แต่ Teacher เห็นเฉพาะของตัวเอง
+    const isAdmin = userRole === 'ADMIN';
+    
     const { searchParams } = new URL(request.url);
     const level = searchParams.get('level');
     const semester = searchParams.get('semester');
@@ -15,9 +32,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const hasRecord = searchParams.get('hasRecord');
     const search = searchParams.get('search');
-    const type = searchParams.get('type'); // ✅ เพิ่ม type เพื่อแยกประเภทการค้นหา
+    const type = searchParams.get('type'); // เพิ่ม type เพื่อแยกประเภทการค้นหา
     
-    // ✅ ถ้า type = 'student' ให้ค้นหานักเรียน
+    // ถ้า type = 'student' ให้ค้นหานักเรียน
     if (type === 'student') {
       console.log("🔍 Searching for student with query:", search);
       
@@ -40,7 +57,7 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // ✅ ค้นหาแผนกิจกรรมปกติ (ส่วนเดิม)
+    // ค้นหาแผนกิจกรรมปกติ (ส่วนเดิม)
     let query: any = {};
     
     if (level) query.level = level;
@@ -62,7 +79,13 @@ export async function GET(request: NextRequest) {
       ];
     }
     
-    console.log(" Query:", query);
+    // กรองตามผู้สร้าง (ถ้าไม่ใช่ Admin)
+    if (!isAdmin && currentUser) {
+      query.created_by = currentUser;
+    }
+    
+    console.log("🔍 Query:", query);
+    console.log("👤 Current user:", currentUser, "Role:", userRole, "Admin:", isAdmin);
     
     const learns = await Learn.find(query).sort({ createdAt: -1 });
     
@@ -77,8 +100,9 @@ export async function GET(request: NextRequest) {
       status: learn.status === 'published' ? 'เผยแพร่' : 
               learn.status === 'draft' ? 'ร่าง' : learn.status || 'ร่าง',
       has_record: learn.has_record || false,
-      date: learn.createdAt ? new Date(learn.createdAt).toISOString().split('T')[0] : "",
-      materials: learn.materials || []
+      date: learn.createdAt ? new Date(learn.createdAt).toISOString().split('T')[0] : "-",
+      materials: learn.materials || [],
+      created_by: learn.created_by || "-"
     }));
     
     return NextResponse.json({ 
@@ -95,10 +119,30 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST function คงเดิม
+// POST function
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+    
+    // ตรวจสอบ session และสิทธิ์
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
+    const userRole = session.user.role;
+    
+    // เฉพาะ Teacher และ Admin เท่านั้นที่สร้างแผนได้
+    if (userRole !== 'TEACHER' && userRole !== 'ADMIN') {
+      return NextResponse.json({ 
+        success: false, 
+        message: "ไม่มีสิทธิ์สร้างแผนกิจกรรม" 
+      }, { status: 403 });
+    }
     
     const formData = await request.formData();
     
@@ -181,7 +225,10 @@ export async function POST(request: NextRequest) {
       console.log(` Final materials array (${materials.length} files):`, materials);
     }
     
-    // Timestamps
+    // ใช้ชื่อผู้ใช้จาก session แทนที่จะส่งมาจากฟอร์ม
+    data.created_by = currentUser;
+    
+    console.log("👤 Creating plan for user:", currentUser, "Role:", userRole);
     const now = new Date().toLocaleDateString('th-TH');
     data.created_at = now;
     data.updated_at = now;

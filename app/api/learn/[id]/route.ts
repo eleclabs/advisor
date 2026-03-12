@@ -1,6 +1,8 @@
 // D:\advisor-main\app\api\learn\[id]\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Learn from "@/models/Learn";
 import cloudinary from "@/lib/cloudinary";
 
@@ -14,6 +16,19 @@ export async function GET(
     
     await connectDB();
     
+    // ตรวจสอบ session และสิทธิ์
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
+    const userRole = session.user.role;
+    const isAdmin = userRole === 'ADMIN';
+    
     const learn = await Learn.findById(id).lean().exec();
     
     if (!learn) {
@@ -21,6 +36,14 @@ export async function GET(
         success: false, 
         message: "ไม่พบข้อมูลแผนกิจกรรม" 
       }, { status: 404 });
+    }
+    
+    // ตรวจสอบสิทธิ์การเข้าถึง (เฉพาะเจ้าของหรือ Admin)
+    if (!isAdmin && learn.created_by !== currentUser) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "ไม่มีสิทธิ์เข้าถึงข้อมูลนี้" 
+      }, { status: 403 });
     }
     
     console.log("GET learn.special_track:", learn.special_track);
@@ -48,6 +71,36 @@ export async function PUT(
     console.log("🔍 PUT /api/learn/[id] - ID:", id);
     
     await connectDB();
+    
+    // ตรวจสอบ session และสิทธิ์
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
+    const userRole = session.user.role;
+    const isAdmin = userRole === 'ADMIN';
+    
+    // ตรวจสอบว่าแผนนี้มีอยู่จริง
+    const existingLearn = await Learn.findById(id);
+    if (!existingLearn) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "ไม่พบข้อมูลแผนกิจกรรม" 
+      }, { status: 404 });
+    }
+    
+    // ตรวจสอบสิทธิ์การแก้ไข (เฉพาะเจ้าของหรือ Admin)
+    if (!isAdmin && existingLearn.created_by !== currentUser) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "ไม่มีสิทธิ์แก้ไขข้อมูลนี้" 
+      }, { status: 403 });
+    }
     
     const formData = await request.formData();
     console.log("📦 FormData received");
@@ -200,6 +253,36 @@ export async function DELETE(
     console.log("🔍 DELETE /api/learn/[id] - ID:", id);
     
     await connectDB();
+    
+    // ตรวจสอบ session และสิทธิ์
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
+    const userRole = session.user.role;
+    const isAdmin = userRole === 'ADMIN';
+    
+    // ตรวจสอบว่าแผนนี้มีอยู่จริง
+    const existingLearn = await Learn.findById(id);
+    if (!existingLearn) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "ไม่พบข้อมูลแผนกิจกรรม" 
+      }, { status: 404 });
+    }
+    
+    // ตรวจสอบสิทธิ์การลบ (เฉพาะเจ้าของหรือ Admin)
+    if (!isAdmin && existingLearn.created_by !== currentUser) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "ไม่มีสิทธิ์ลบข้อมูลนี้" 
+      }, { status: 403 });
+    }
     
     const learn = await Learn.findByIdAndDelete(id);
     

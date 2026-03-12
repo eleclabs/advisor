@@ -1,11 +1,12 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function CreateHomeroomPlanPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
@@ -56,7 +57,8 @@ export default function CreateHomeroomPlanPage() {
     status: "draft"
   });
 
-  const teacher_name = "อาจารย์วิมลรัตน์";
+  const teacher_name = session?.user?.name || "ไม่พบชื่อผู้ใช้";
+  const userRole = session?.user?.role || "";
 
   const [newFiles, setNewFiles] = useState<File[]>([]);
 
@@ -478,7 +480,7 @@ export default function CreateHomeroomPlanPage() {
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-6 small"><i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล</div>
-            <div className="col-md-6 text-end small"><span className="me-3">เวอร์ชัน 2.0.0</span><span>เข้าสู่ระบบ: {teacher_name}</span></div>
+            <div className="col-md-6 text-end small"><span className="me-3">เวอร์ชัน 2.0.0</span><span>เข้าสู่ระบบ: {teacher_name} ({userRole})</span></div>
           </div>
         </div>
       </footer>

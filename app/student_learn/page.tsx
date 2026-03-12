@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface HomeroomPlan {
   id: string;
@@ -16,9 +17,11 @@ interface HomeroomPlan {
   status: string;
   has_record?: boolean; // เพิ่มฟิลด์นี้
   date?: string;
+  created_by?: string; // ✅ เพิ่มฟิลด์นี้
 }
 
 export default function StudentLearnPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [plans, setPlans] = useState<HomeroomPlan[]>([]);
   const [filteredPlans, setFilteredPlans] = useState<HomeroomPlan[]>([]);
@@ -29,13 +32,14 @@ export default function StudentLearnPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
-  
+
   // Calendar state
   const [calendarLevel, setCalendarLevel] = useState<"day" | "month" | "year">("day");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarEvents, setCalendarEvents] = useState<{[key: string]: HomeroomPlan[]}>({});
 
-  const teacher_name = "อาจารย์วิมลรัตน์";
+  const teacher_name = session?.user?.name || "ไม่พบชื่อผู้ใช้";
+  const userRole = session?.user?.role || "";
   const academic_year = "2568";
 
   // Load Bootstrap
@@ -218,6 +222,15 @@ useEffect(() => {
 
   const buddhistYear = selectedDate.getFullYear() + 543;
 
+  // ฟังก์ชันตรวจสอบสิทธิ์การแก้ไข/ลบ
+  const canEditPlan = (plan: HomeroomPlan) => {
+    // Admin ทำได้ทั้งหมด
+    if (userRole === 'ADMIN') return true;
+    // Teacher ต้องเป็นเจ้าของแผนเท่านั้น (ถ้า created_by เป็น - หรือว่าง ให้ใครก็แก้ไขได้)
+    if (!plan.created_by || plan.created_by === "-") return true;
+    return plan.created_by === teacher_name;
+  };
+
   return (
     <div className="min-vh-100 bg-light">
     
@@ -232,7 +245,7 @@ useEffect(() => {
                 แผนกิจกรรมโฮมรูม
               </h2>
               <div>
-                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name}</span>
+                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name} ({userRole})</span>
                 <span className="badge bg-dark text-white rounded-0">ปีการศึกษา {academic_year}</span>
               </div>
             </div>
@@ -379,36 +392,44 @@ useEffect(() => {
                                 >
                                   <i className="bi bi-eye"></i>
                                 </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-warning rounded-0"
-                                  onClick={() => router.push(`/student_learn/${plan.id}/edit`)}
-                                  title="แก้ไข"
-                                >
-                                  <i className="bi bi-pencil"></i>
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-success rounded-0"
-                                  onClick={() => router.push(`/student_learn/${plan.id}/record`)}
-                                  title="บันทึกผลกิจกรรม"
-                                >
-                                  <i className="bi bi-check-circle"></i>
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-info rounded-0"
-                                  onClick={() => router.push(`/student_learn/${plan.id}/album`)}
-                                  title="อัลบัมรูปภาพ"
-                                >
-                                  <i className="bi bi-images"></i>
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-danger rounded-0"
-                                  title="ลบ"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#deleteModal"
-                                  onClick={() => setDeleteId(plan.id)}
-                                >
-                                  <i className="bi bi-trash"></i>
-                                </button>
+                                {canEditPlan(plan) && (
+                                  <button 
+                                    className="btn btn-sm btn-outline-warning rounded-0"
+                                    onClick={() => router.push(`/student_learn/${plan.id}/edit`)}
+                                    title="แก้ไข"
+                                  >
+                                    <i className="bi bi-pencil"></i>
+                                  </button>
+                                )}
+                                {canEditPlan(plan) && (
+                                  <button 
+                                    className="btn btn-sm btn-outline-success rounded-0"
+                                    onClick={() => router.push(`/student_learn/${plan.id}/record`)}
+                                    title="บันทึกผลกิจกรรม"
+                                  >
+                                    <i className="bi bi-check-circle"></i>
+                                  </button>
+                                )}
+                                {canEditPlan(plan) && (
+                                  <button 
+                                    className="btn btn-sm btn-outline-info rounded-0"
+                                    onClick={() => router.push(`/student_learn/${plan.id}/album`)}
+                                    title="อัลบัมรูปภาพ"
+                                  >
+                                    <i className="bi bi-images"></i>
+                                  </button>
+                                )}
+                                {canEditPlan(plan) && (
+                                  <button 
+                                    className="btn btn-sm btn-outline-danger rounded-0"
+                                    title="ลบ"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal"
+                                    onClick={() => setDeleteId(plan.id)}
+                                  >
+                                    <i className="bi bi-trash"></i>
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>

@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface EditPlan {
   level: string;
@@ -53,11 +54,13 @@ interface EditPlan {
 }
 
 export default function EditHomeroomPlanPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState("");
+  const [planData, setPlanData] = useState<any>(null);
   
   const [formData, setFormData] = useState<EditPlan>({
     level: "",
@@ -100,7 +103,7 @@ export default function EditHomeroomPlanPage() {
 
   const [materials, setMaterials] = useState<File[]>([]);
   const [existingMaterials, setExistingMaterials] = useState<{ name: string; url: string }[]>([]);
-  const teacher_name = "อาจารย์วิมลรัตน์";
+  const teacher_name = session?.user?.name || "ไม่พบชื่อผู้ใช้";
 
   useEffect(() => {
   
@@ -114,6 +117,19 @@ export default function EditHomeroomPlanPage() {
         const result = await response.json();
         
         if (result.success) {
+          // ตรวจสอบสิทธิ์การแก้ไข
+          const currentUser = session?.user?.name;
+          const userRole = session?.user?.role;
+          const isAdmin = userRole === 'ADMIN';
+          const planOwner = result.data.created_by;
+          
+          // ถ้า created_by เป็น - หรือว่าง ให้ใครก็แก้ไขได้ (ข้อมูลเก่า)
+          if (!isAdmin && planOwner && planOwner !== "-" && planOwner !== currentUser) {
+            setError("ไม่มีสิทธิ์แก้ไขแผนกิจกรรมนี้");
+            return;
+          }
+          
+          setPlanData(result.data);
           setFormData(result.data);
           setExistingMaterials(result.data.materials || []);
         } else {
@@ -127,10 +143,10 @@ export default function EditHomeroomPlanPage() {
       }
     };
 
-    if (params.id) {
+    if (params.id && session) {
       fetchPlanData();
     }
-  }, [params.id]);
+  }, [params.id, session]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

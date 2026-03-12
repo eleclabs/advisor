@@ -1,559 +1,538 @@
-// D:\advisor-main\app\student_problem\add\page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { withPermission } from "@/app/components/withPermission"; // ✅ เพิ่ม
 
-interface Activity {
-  _id: string;
-  name: string;
-  duration: number;
-  materials: string;
-  steps: string;
-  ice_breaking: string;
-  group_task: string;
-  debrief: string;
-  activity_date: string;
-}
-
-interface Student {
-  _id: string;
+interface BasicInfoFormData {
   id: string;
   prefix: string;
   first_name: string;
   last_name: string;
+  nickname: string;
+  gender: string;
+  birth_date: string;
   level: string;
   class_group: string;
-  status: string;
+  class_number: string;
+  advisor_name: string;
+  phone_number: string;
+  religion: string;
+  address: string;
+  weight: string;
+  height: string;
+  blood_type: string;
+  image: string;
 }
 
-export default function AddProblemPage() {
-  const { data: session } = useSession();
+interface Major {
+  _id: string;
+  major_id: number;
+  major_name: string;
+}
+
+function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export default เป็น function
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  
-  // State สำหรับค้นหานักเรียน
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Student[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [assignedStudents, setAssignedStudents] = useState<Student[]>([]);
-  
-  const [student, setStudent] = useState<any>(null);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
-  const [activitySearchTerm, setActivitySearchTerm] = useState("");
-  const [formData, setFormData] = useState({
-    problem: "",
-    goal: "",
-    counseling: false,
-    behavioral_contract: false,
-    home_visit: false,
-    referral: false,
-    duration: "",
-    responsible: ""
+  const [formData, setFormData] = useState<BasicInfoFormData>({
+    id: "",
+    prefix: "นาย",
+    first_name: "",
+    last_name: "",
+    nickname: "",
+    gender: "ชาย",
+    birth_date: "",
+    level: "ปวช.1",
+    class_group: "",
+    class_number: "1",
+    advisor_name: "",
+    phone_number: "",
+    religion: "พุทธ",
+    address: "",
+    weight: "",
+    height: "",
+    blood_type: "B",
+    image: "",
   });
+  const [majors, setMajors] = useState<Major[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
-  // โหลดข้อมูลนักเรียนที่ครูคนนี้ดูแล
   useEffect(() => {
-    if (session?.user?.id) {
-      fetchAssignedStudents();
-    }
-    fetchActivities();
-  }, [session]);
+    fetchMajors();
+  }, []);
 
-  // ค้นหานักเรียนจาก assignedStudents
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setSearchResults([]);
-      return;
-    }
-
-    const filtered = assignedStudents.filter(student => {
-      const fullName = `${student.prefix || ''} ${student.first_name || ''} ${student.last_name || ''}`.toLowerCase();
-      const studentId = student.id?.toLowerCase() || '';
-      const query = searchQuery.toLowerCase();
-      
-      return fullName.includes(query) || studentId.includes(query);
-    });
-
-    setSearchResults(filtered);
-  }, [searchQuery, assignedStudents]);
-
-  const fetchAssignedStudents = async () => {
+  const fetchMajors = async () => {
     try {
-      setSearching(true);
-      const response = await fetch(`/api/user/${session.user.id}/assign-students`);
-      const data = await response.json();
-      
-      if (data.success) {
-        const students = data.data
-          .filter((item: any) => item.student_id) // กรองเฉพาะที่มี student_id
-          .map((item: any) => ({
-            _id: item.student_id._id,
-            id: item.student_id.id,
-            prefix: item.student_id.prefix || '',
-            first_name: item.student_id.first_name || '',
-            last_name: item.student_id.last_name || '',
-            level: item.student_id.level || '',
-            class_group: item.student_id.class_group || '',
-            status: item.student_id.status || 'ปกติ'
-          }));
-        
-        setAssignedStudents(students);
+      const response = await fetch("/api/major");
+      if (response.ok) {
+        const data = await response.json();
+        setMajors(data);
       }
     } catch (error) {
-      console.error("Error fetching assigned students:", error);
-    } finally {
-      setSearching(false);
+      console.error("Error fetching majors:", error);
     }
   };
 
-  const fetchActivities = async () => {
-    try {
-      const res = await fetch("/api/problem/activity");
-      const data = await res.json();
-      setActivities(data.data || []);
-    } catch (error) {
-      console.error("Error fetching activities:", error);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const selectStudent = (selectedStudent: Student) => {
-    setStudent(selectedStudent);
-    setSearchQuery("");
-    setSearchResults([]);
-    setStep(2);
+  const calculateBMI = () => {
+    if (formData.weight && formData.height) {
+      const weight = parseFloat(formData.weight);
+      const height = parseFloat(formData.height) / 100;
+      if (weight > 0 && height > 0) {
+        return (weight / Math.pow(height, 2)).toFixed(1);
+      }
+    }
+    return "";
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!student) return;
+    setSaving(true);
     
-    setLoading(true);
     try {
-      const res = await fetch("/api/problem/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          student_id: student.id,
-          ...formData,
-          activity_ids: selectedActivities
-        })
-      });
+      const bmiValue = calculateBMI();
       
-      const data = await res.json();
-      if (res.ok) {
-        alert("เพิ่มแผนการช่วยเหลือเรียบร้อย");
-        router.push("/student_problem");
+      console.log("📤 Data to send:", {
+        id: formData.id,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        class_number: formData.class_number,
+      });
+
+      const formDataToSend = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key !== 'image' && value !== undefined && value !== null) {
+          formDataToSend.append(key, String(value));
+          console.log(`📤 Appending ${key}:`, value);
+        }
+      });
+      formDataToSend.append("bmi", bmiValue);
+
+      if (profileImage) {
+        formDataToSend.append("profileImage", profileImage);
+        console.log("📤 Appending profileImage:", profileImage.name);
+      }
+
+      console.log("📦 FormData entries:");
+      for (let pair of formDataToSend.entries()) {
+        console.log(`   ${pair[0]}: ${pair[1]}`);
+      }
+
+      const response = await fetch("/api/student", {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      const result = await response.json();
+      console.log(" Response:", result);
+
+      if (response.ok && result.success) {
+        router.push(`/student/student_detail/${result.data._id || result.data.id}`);
       } else {
-        alert(data.error || "เกิดข้อผิดพลาด");
+        alert(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("เกิดข้อผิดพลาดในการบันทึก");
+      console.error("Error saving student:", error);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleActivity = (activityId: string) => {
-    setSelectedActivities(prev => 
-      prev.includes(activityId)
-        ? prev.filter(id => id !== activityId)
-        : [...prev, activityId]
-    );
-  };
-
-  const filteredActivities = activities.filter(act => 
-    act.name.toLowerCase().includes(activitySearchTerm.toLowerCase())
-  );
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    try {
-      return new Date(dateString).toLocaleDateString('th-TH');
-    } catch {
-      return '-';
+      setSaving(false);
     }
   };
 
   return (
-    <div className="container py-4">
-      <div className="row justify-content-center">
-        <div className="col-md-10">
-          <div className="card">
-            <div className="card-header bg-dark text-white">
-              <h4 className="mb-0">
-                <i className="bi bi-plus-circle me-2"></i>
-                เพิ่มแผนการช่วยเหลือนักเรียน
-              </h4>
-            </div>
-            <div className="card-body">
-              {/* ขั้นตอนที่ 1: ค้นหาและเลือกนักเรียน */}
-              {step === 1 && (
-                <div>
-                  <div className="text-center mb-4">
-                    <div className="badge bg-warning text-dark p-2">ขั้นตอนที่ 1</div>
-                    <h5 className="mt-2">ค้นหาและเลือกนักเรียนในความดูแล</h5>
-                    <p className="text-muted">พิมพ์ชื่อหรือรหัสนักเรียนเพื่อค้นหา (เฉพาะนักเรียนที่คุณดูแล)</p>
-                  </div>
-                  
-                  {/* ช่องค้นหา */}
-                  <div className="mb-4">
-                    <label className="form-label fw-bold">ค้นหานักเรียน</label>
-                    <div className="input-group">
-                      <span className="input-group-text bg-dark text-white">
-                        <i className="bi bi-search"></i>
-                      </span>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        autoFocus
-                      />
-                      {searchQuery && (
-                        <button
-                          className="btn btn-outline-secondary"
-                          type="button"
-                          onClick={() => {
-                            setSearchQuery("");
-                            setSearchResults([]);
-                          }}
-                        >
-                          <i className="bi bi-x"></i>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* แสดงสถานะกำลังโหลด */}
-                  {searching && (
-                    <div className="text-center py-4">
-                      <div className="spinner-border text-warning" role="status">
-                        <span className="visually-hidden">กำลังโหลด...</span>
-                      </div>
-                      <p className="mt-2 text-muted">กำลังโหลดข้อมูล...</p>
-                    </div>
-                  )}
-
-                  {/* แสดงผลการค้นหา */}
-                  {!searching && searchResults.length > 0 && (
-                    <div className="table-responsive">
-                      <table className="table table-bordered table-hover">
-                        <thead className="table-light">
-                          <tr>
-                            <th>รหัสนักศึกษา</th>
-                            <th>ชื่อ-นามสกุล</th>
-                            <th>ระดับชั้น</th>
-                            <th>กลุ่มเรียน</th>
-                            <th>สถานะ</th>
-                            <th>จัดการ</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {searchResults.map((student) => (
-                            <tr key={student._id}>
-                              <td className="align-middle">
-                                <span className="fw-bold">{student.id}</span>
-                              </td>
-                              <td className="align-middle">
-                                {student.prefix} {student.first_name} {student.last_name}
-                              </td>
-                              <td className="align-middle">{student.level}</td>
-                              <td className="align-middle">{student.class_group}</td>
-                              <td className="align-middle">
-                                <span className={`badge bg-${student.status === 'เสี่ยง' ? 'warning' : 'danger'} rounded-0`}>
-                                  {student.status || 'ปกติ'}
-                                </span>
-                              </td>
-                              <td className="align-middle">
-                                <button
-                                  className="btn btn-sm btn-warning rounded-0"
-                                  onClick={() => selectStudent(student)}
-                                >
-                                  <i className="bi bi-plus-circle me-1"></i>เลือก
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* แสดงเมื่อไม่พบข้อมูล */}
-                  {!searching && searchQuery.length >= 1 && searchResults.length === 0 && (
-                    <div className="text-center py-5">
-                      <i className="bi bi-emoji-frown fs-1 text-muted d-block mb-3"></i>
-                      <p className="text-muted mb-1">ไม่พบนักเรียน "{searchQuery}" ในความดูแลของคุณ</p>
-                      <small className="text-muted">ลองค้นหาด้วยชื่อหรือรหัสนักเรียนอื่น</small>
-                    </div>
-                  )}
-
-                  {/* แสดงตารางว่างเมื่อยังไม่ได้ค้นหา */}
-                  {!searching && searchQuery.length === 0 && (
-                    <div className="text-center py-5">
-                      <i className="bi bi-search fs-1 text-muted d-block mb-3"></i>
-                      <p className="text-muted">พิมพ์ชื่อหรือรหัสนักเรียนเพื่อค้นหา (เฉพาะนักเรียนที่คุณดูแล)</p>
-                      <p className="text-muted small">
-                        คุณมีนักเรียนในความดูแลทั้งหมด {assignedStudents.length} คน
-                      </p>
-                    </div>
-                  )}
-                  
-                  <div className="text-center mt-4">
-                    <Link href="/student_problem" className="btn btn-secondary">
-                      ยกเลิก
-                    </Link>
-                  </div>
+    <div className="min-vh-100 bg-light">
+      <div className="container-fluid py-4">
+        {/* Page Header */}
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
+              <div>
+                <h2 className="text-uppercase fw-bold m-0">
+                  <i className="bi bi-plus-circle-fill me-2 text-warning"></i>
+                  เพิ่มผู้เรียนใหม่
+                </h2>
+                <div className="mt-2">
+                  <span className="badge bg-primary rounded-0 p-2">เพิ่มข้อมูลนักเรียนใหม่</span>
                 </div>
-              )}
-
-              {/* ขั้นตอนที่ 2: กรอกฟอร์มแผนและเลือกกิจกรรม */}
-              {step === 2 && student && (
-                <div>
-                  <div className="text-center mb-4">
-                    <div className="badge bg-warning text-dark p-2">ขั้นตอนที่ 2</div>
-                    <h5 className="mt-2">กรอกแผนการช่วยเหลือและเลือกกิจกรรม</h5>
-                  </div>
-
-                  {/* ข้อมูลนักเรียนที่เลือก */}
-                  <div className="alert alert-info mb-4">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <div className="fw-bold fs-5">
-                          {student.prefix} {student.first_name} {student.last_name}
-                        </div>
-                        <div className="d-flex gap-3 mt-2">
-                          <span className="badge bg-dark rounded-0">
-                            <i className="bi bi-person-badge me-1"></i>
-                            รหัส {student.id}
-                          </span>
-                          <span className="badge bg-dark rounded-0">
-                            <i className="bi bi-book me-1"></i>
-                            {student.level} {student.class_group}
-                          </span>
-                          <span className={`badge bg-${student.status === 'เสี่ยง' ? 'warning' : 'danger'} rounded-0`}>
-                            {student.status || 'ปกติ'}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={() => {
-                          setStep(1);
-                          setStudent(null);
-                        }}
-                      >
-                        <i className="bi bi-arrow-left me-1"></i>เปลี่ยนนักเรียน
-                      </button>
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleSubmit}>
-                    <div className="row">
-                      {/* ฟอร์มแผน ISP */}
-                      <div className="col-md-6">
-                        <h5 className="border-bottom pb-2 mb-3">📋 แผน ISP</h5>
-                        
-                        <div className="mb-3">
-                          <label className="form-label fw-bold">ปัญหาที่พบ</label>
-                          <textarea
-                            className="form-control"
-                            rows={2}
-                            placeholder="เช่น ขาดเรียนบ่อย, ซึมเศร้า, ติดเกม, ก้าวร้าว"
-                            value={formData.problem}
-                            onChange={(e) => setFormData({...formData, problem: e.target.value})}
-                            required
-                          />
-                        </div>
-
-                        <div className="mb-3">
-                          <label className="form-label fw-bold">เป้าหมาย</label>
-                          <textarea
-                            className="form-control"
-                            rows={2}
-                            placeholder="เช่น ลดสถิติการขาดเรียน, พัฒนาทักษะการควบคุมอารมณ์"
-                            value={formData.goal}
-                            onChange={(e) => setFormData({...formData, goal: e.target.value})}
-                            required
-                          />
-                        </div>
-
-                        <div className="mb-3">
-                          <label className="form-label fw-bold">วิธีการแก้ไข</label>
-                          <div className="border p-3">
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="counseling"
-                                checked={formData.counseling}
-                                onChange={(e) => setFormData({...formData, counseling: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="counseling">
-                                การให้คำปรึกษาเบื้องต้น
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="behavioral"
-                                checked={formData.behavioral_contract}
-                                onChange={(e) => setFormData({...formData, behavioral_contract: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="behavioral">
-                                กิจกรรมปรับเปลี่ยนพฤติกรรม
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="homevisit"
-                                checked={formData.home_visit}
-                                onChange={(e) => setFormData({...formData, home_visit: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="homevisit">
-                                การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="referral"
-                                checked={formData.referral}
-                                onChange={(e) => setFormData({...formData, referral: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="referral">
-                                การส่งต่อ
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="row">
-                          <div className="col-md-6 mb-3">
-                            <label className="form-label fw-bold">ระยะเวลาดำเนินการ</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="เช่น 3 เดือน"
-                              value={formData.duration}
-                              onChange={(e) => setFormData({...formData, duration: e.target.value})}
-                            />
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <label className="form-label fw-bold">ผู้รับผิดชอบ</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="ชื่อผู้รับผิดชอบ"
-                              value={formData.responsible}
-                              onChange={(e) => setFormData({...formData, responsible: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* ส่วนเลือกกิจกรรม */}
-                      <div className="col-md-6">
-                        <h5 className="border-bottom pb-2 mb-3">🎯 เลือกกิจกรรมที่เข้าร่วม</h5>
-                        
-                        <div className="mb-3">
-                          <div className="input-group">
-                            <span className="input-group-text bg-dark text-white">
-                              <i className="bi bi-search"></i>
-                            </span>
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="ค้นหากิจกรรม..."
-                              value={activitySearchTerm}
-                              onChange={(e) => setActivitySearchTerm(e.target.value)}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="border p-3" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                          {filteredActivities.length === 0 ? (
-                            <p className="text-muted text-center py-4">ไม่มีกิจกรรม</p>
-                          ) : (
-                            filteredActivities.map((act) => (
-                              <div key={act._id} className="card mb-2 border-0 bg-light">
-                                <div className="card-body p-2">
-                                  <div className="form-check">
-                                    <input
-                                      type="checkbox"
-                                      className="form-check-input"
-                                      id={act._id}
-                                      checked={selectedActivities.includes(act._id)}
-                                      onChange={() => toggleActivity(act._id)}
-                                    />
-                                    <label className="form-check-label w-100" htmlFor={act._id}>
-                                      <div className="d-flex justify-content-between">
-                                        <span className="fw-bold">{act.name}</span>
-                                        <small className="text-muted">{act.duration} นาที</small>
-                                      </div>
-                                      <small className="text-muted d-block">
-                                        วันที่: {formatDate(act.activity_date)}
-                                      </small>
-                                    </label>
-                                  </div>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-
-                        {selectedActivities.length > 0 && (
-                          <div className="mt-2 text-success">
-                            <i className="bi bi-check-circle me-1"></i>
-                            เลือกแล้ว {selectedActivities.length} กิจกรรม
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="d-flex justify-content-end gap-2 mt-4">
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => {
-                          setStep(1);
-                          setStudent(null);
-                        }}
-                      >
-                        กลับ
-                      </button>
-                      <button type="submit" className="btn btn-warning" disabled={loading}>
-                        {loading ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2"></span>
-                            กำลังบันทึก...
-                          </>
-                        ) : (
-                          <>
-                            <i className="bi bi-save me-2"></i>
-                            บันทึกแผน
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
+              </div>
+              <Link href="/student" className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
+                <i className="bi bi-arrow-left me-2"></i>กลับ
+              </Link>
             </div>
           </div>
         </div>
+
+        <form>
+          {/* Basic Information Card */}
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="border bg-white">
+                <div className="p-3 border-bottom bg-dark">
+                  <h5 className="text-uppercase fw-semibold m-0 text-white">
+                    <i className="bi bi-info-circle me-2 text-warning"></i>
+                    ข้อมูลพื้นฐาน <span className="text-warning small ms-2">(กรอกข้อมูลที่จำเป็น)</span>
+                  </h5>
+                </div>
+                <div className="p-4">
+                  <div className="row g-3">
+                    {/* รูปโปรไฟล์ */}
+                    <div className="col-md-12">
+                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์นักเรียน</label>
+                      <div className="d-flex align-items-start gap-4">
+                        <div className="text-center">
+                          {imagePreview ? (
+                            <img 
+                              src={imagePreview} 
+                              alt="รูปโปรไฟล์" 
+                              className="rounded-circle border border-3 border-warning"
+                              style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                            />
+                          ) : (
+                            <div 
+                              className="rounded-circle border border-3 border-secondary d-flex align-items-center justify-content-center bg-light"
+                              style={{ width: '120px', height: '120px' }}
+                            >
+                              <i className="bi bi-person-fill fs-1 text-secondary"></i>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-grow-1">
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="form-control rounded-0"
+                          />
+                          <small className="text-muted">รองรับไฟล์รูปภาพ .jpg, .png, .gif ขนาดไม่เกิน 5MB</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* รหัสนักศึกษา */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        name="id"
+                        className="form-control rounded-0" 
+                        value={formData.id}
+                        onChange={handleInputChange}
+                        placeholder="เช่น 66001"
+                        required
+                      />
+                    </div>
+
+                    {/* คำนำหน้า */}
+                    <div className="col-md-2">
+                      <label className="form-label text-uppercase fw-semibold small">คำนำหน้า <span className="text-danger">*</span></label>
+                      <select 
+                        name="prefix"
+                        className="form-select rounded-0"
+                        value={formData.prefix}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option>นาย</option>
+                        <option>นางสาว</option>
+                        <option>นาง</option>
+                      </select>
+                    </div>
+
+                    {/* ชื่อ */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">ชื่อ <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        name="first_name"
+                        className="form-control rounded-0"
+                        value={formData.first_name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    {/* นามสกุล */}
+                    <div className="col-md-4">
+                      <label className="form-label text-uppercase fw-semibold small">นามสกุล <span className="text-danger">*</span></label>
+                      <input 
+                        type="text" 
+                        name="last_name"
+                        className="form-control rounded-0"
+                        value={formData.last_name}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+
+                    {/* ชื่อเล่น */}
+                    <div className="col-md-2">
+                      <label className="form-label text-uppercase fw-semibold small">ชื่อเล่น</label>
+                      <input 
+                        type="text" 
+                        name="nickname"
+                        className="form-control rounded-0"
+                        value={formData.nickname}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
+                    {/* เพศ */}
+                    <div className="col-md-2">
+                      <label className="form-label text-uppercase fw-semibold small">เพศ</label>
+                      <select 
+                        name="gender"
+                        className="form-select rounded-0"
+                        value={formData.gender}
+                        onChange={handleInputChange}
+                      >
+                        <option>ชาย</option>
+                        <option>หญิง</option>
+                        <option>ไม่ระบุ</option>
+                      </select>
+                    </div>
+
+                    {/* วันเกิด */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">วันเกิด</label>
+                      <input 
+                        type="date" 
+                        name="birth_date"
+                        className="form-control rounded-0"
+                        value={formData.birth_date}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
+                    {/* ระดับชั้น */}
+                    <div className="col-md-2">
+                      <label className="form-label text-uppercase fw-semibold small">ระดับชั้น <span className="text-danger">*</span></label>
+                      <select 
+                        name="level"
+                        className="form-select rounded-0"
+                        value={formData.level}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option>ปวช.1</option>
+                        <option>ปวช.2</option>
+                        <option>ปวช.3</option>
+                        <option>ปวส.1</option>
+                        <option>ปวส.2</option>
+                      </select>
+                    </div>
+
+                    {/* กลุ่มเรียน/สาขาวิชา */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน/สาขาวิชา</label>
+                      <select 
+                        name="class_group"
+                        className="form-select rounded-0"
+                        value={formData.class_group}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">เลือกสาขาวิชา</option>
+                        {majors.map((major) => (
+                          <option key={major._id} value={major.major_name}>
+                            {major.major_id} - {major.major_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* เลขที่ */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
+                      <input 
+                        type="text" 
+                        name="class_number"
+                        className="form-control rounded-0"
+                        value={formData.class_number}
+                        onChange={handleInputChange}
+                        placeholder="เช่น 1, 2, 3"
+                      />
+                    </div>
+
+                    {/* ครูที่ปรึกษา */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
+                      <input 
+                        type="text" 
+                        name="advisor_name"
+                        className="form-control rounded-0"
+                        value={formData.advisor_name}
+                        onChange={handleInputChange}
+                        placeholder="ชื่ออาจารย์ที่ปรึกษา"
+                      />
+                    </div>
+
+                    {/* เบอร์มือถือ */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">เบอร์มือถือ</label>
+                      <input 
+                        type="tel" 
+                        name="phone_number"
+                        className="form-control rounded-0"
+                        value={formData.phone_number}
+                        onChange={handleInputChange}
+                        placeholder="081-234-5678"
+                      />
+                    </div>
+
+                    {/* ศาสนา */}
+                    <div className="col-md-2">
+                      <label className="form-label text-uppercase fw-semibold small">ศาสนา</label>
+                      <select 
+                        name="religion"
+                        className="form-select rounded-0"
+                        value={formData.religion}
+                        onChange={handleInputChange}
+                      >
+                        <option>พุทธ</option>
+                        <option>อิสลาม</option>
+                        <option>คริสต์</option>
+                        <option>อื่นๆ</option>
+                      </select>
+                    </div>
+
+                    {/* ที่อยู่ */}
+                    <div className="col-12">
+                      <label className="form-label text-uppercase fw-semibold small">ที่อยู่</label>
+                      <textarea 
+                        name="address"
+                        className="form-control rounded-0" 
+                        rows={3}
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                      />
+                    </div>
+
+                    {/* น้ำหนัก */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">น้ำหนัก (กก.)</label>
+                      <input 
+                        type="number" 
+                        name="weight"
+                        className="form-control rounded-0"
+                        value={formData.weight}
+                        onChange={handleInputChange}
+                        step="0.1"
+                      />
+                    </div>
+
+                    {/* ส่วนสูง */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">ส่วนสูง (ซม.)</label>
+                      <input 
+                        type="number" 
+                        name="height"
+                        className="form-control rounded-0"
+                        value={formData.height}
+                        onChange={handleInputChange}
+                        step="0.1"
+                      />
+                    </div>
+
+                    {/* BMI */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">BMI</label>
+                      <input 
+                        type="text" 
+                        className="form-control rounded-0 bg-light"
+                        value={calculateBMI()}
+                        readOnly
+                      />
+                    </div>
+
+                    {/* หมู่เลือด */}
+                    <div className="col-md-3">
+                      <label className="form-label text-uppercase fw-semibold small">หมู่เลือด</label>
+                      <select 
+                        name="blood_type"
+                        className="form-select rounded-0"
+                        value={formData.blood_type}
+                        onChange={handleInputChange}
+                      >
+                        <option>A</option>
+                        <option>B</option>
+                        <option>AB</option>
+                        <option>O</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="row mb-4">
+            <div className="col-12 d-flex justify-content-center gap-3">
+              <Link
+                href="/student"
+                className="btn btn-secondary rounded-0 text-uppercase fw-semibold px-5"
+              >
+                <i className="bi bi-x-circle me-2"></i>ยกเลิก
+              </Link>
+              <button 
+                type="button"
+                className="btn btn-outline-primary rounded-0 text-uppercase fw-semibold px-5"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-save me-2"></i>บันทึกข้อมูล
+                  </>
+                )}
+              </button>
+              <button 
+                type="button"
+                className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    กำลังบันทึก...
+                  </>
+                ) : (
+                  <>
+                    บันทึกและถัดไป <i className="bi bi-arrow-right ms-2"></i>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
+
+// ✅ เพิ่มบรรทัดนี้
+export default withPermission(StudentAddBasicPage, "STUDENT_CREATE");
