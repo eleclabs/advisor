@@ -26,13 +26,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const roles = [
-    { value: "TEACHER", label: "อาจารย์", color: "primary" },
-    { value: "EXECUTIVE", label: "ผู้บริหาร", color: "success" },
-    { value: "COMMITTEE", label: "คณะกรรมการ", color: "warning" },
-    { value: "ADMIN", label: "ผู้ดูแลระบบ", color: "danger" },
-  ];
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -104,29 +98,11 @@ export default function RegisterPage() {
                 )}
 
                 <form onSubmit={handleSubmit}>
-                  {/* เลือกบทบาท */}
+                  {/* แสดงบทบาทที่กำหนด */}
                   <div className="mb-4">
-                    <label className="form-label fw-semibold small text-uppercase">
-                      <i className="bi bi-person-badge me-2"></i>
-                      บทบาท <span className="text-danger">*</span>
-                    </label>
-                    <div className="row g-2">
-                      {roles.map((role) => (
-                        <div className="col-6 col-md-3" key={role.value}>
-                          <div
-                            className={`border p-3 text-center rounded-0 cursor-pointer ${
-                              formData.role === role.value
-                                ? `bg-${role.color} text-white border-${role.color}`
-                                : "bg-light"
-                            }`}
-                            onClick={() => setFormData({ ...formData, role: role.value })}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <i className={`bi bi-person-fill d-block fs-4 mb-2`}></i>
-                            <span className="small fw-bold">{role.label}</span>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="alert alert-info rounded-0 d-flex align-items-center">
+                      <i className="bi bi-info-circle-fill me-2 fs-5"></i>
+                      <span>บัญชีของคุณจะถูกสร้างในฐานะ <strong>อาจารย์</strong></span>
                     </div>
                   </div>
 

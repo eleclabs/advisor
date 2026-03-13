@@ -312,9 +312,9 @@ export default function StudentAnalyticsDashboard() {
               // Additional analysis fields
               economic_risk: student.family_income && parseInt(student.family_income) < 10000,
               family_instability: student.family_status && (
-                student.family_status.includes('แยก') || 
+                student.family_status.includes('แยกกันอยู่') || 
                 student.family_status.includes('เสียชีวิต') ||
-                student.family_status.includes('หย่า')
+                student.family_status.includes('หย่าร้าง')
               ),
               behavior_risk: student.risk_behaviors && student.risk_behaviors.length > 0,
               health_risk: student.chronic_disease && student.chronic_disease !== 'ไม่มี',
@@ -919,7 +919,7 @@ export default function StudentAnalyticsDashboard() {
       riskLevel: [],
       studentGroup: [],
       riskBehavior: [],
-      familyStatus: ['พ่อแม่แยกทาง', 'บิดาเสียชีวิต', 'มารดาเสียชีวิต', 'อยู่กับญาติ'],
+      familyStatus: ['หย่าร้าง', 'แยกกันอยู่', 'บิดาเสียชีวิต', 'มารดาเสียชีวิต', 'พ่อแม่แยกทาง', 'อยู่กับญาติ'],
       economicStatus: [],
       healthStatus: [],
       livingSituation: [],
@@ -1158,7 +1158,7 @@ export default function StudentAnalyticsDashboard() {
           <div className="btn-group" role="group">
             <button className="btn btn-outline-danger" onClick={quickFilterHighRisk}>
               <i className="bi bi-exclamation-triangle me-1"></i>
-              ความเสี่ยงสูง-วิกฤต
+              มีปัญหา-วิกฤต
             </button>
             <button className="btn btn-outline-warning" onClick={quickFilterRiskBehavior}>
               <i className="bi bi-lightning me-1"></i>

@@ -63,8 +63,8 @@ export async function proxy(req: NextRequest) {
   const token = await getToken({ req });
   const path = req.nextUrl.pathname;
 
-  // หน้าที่ไม่ต้องล็อกอิน
-  if (path === '/login' || path === '/register' || path === '/') {
+  // หน้าและ API ที่ไม่ต้องล็อกอิน
+  if (path === '/login' || path === '/register' || path === '/' || path.startsWith('/api/register')) {
     return NextResponse.next();
   }
 
