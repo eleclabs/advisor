@@ -169,6 +169,14 @@ export default function StudentAnalyticsDashboard() {
         setStudents([]);
         setFilteredStudents([]);
         setLoading(false);
+        
+        // Show message for teachers with no assigned students
+        if (sessionData.user.role === 'TEACHER') {
+          alert('คุณยังไม่มีนักเรียนที่ถูกมอบหมาย กรุณาติดต่อ Admin');
+          router.push('/dashboard');
+          return;
+        }
+        
         return;
       }
       

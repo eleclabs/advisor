@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface UserData {
   _id: string;
@@ -519,125 +520,35 @@ export default function UserEditPage() {
           </div>
         </div>
 
-        {/* Access Management */}
+        {/* Access Management - Link to Student Assignment */}
         <div className="row mt-4">
           <div className="col-12">
             <div className="card border-0 shadow-sm">
               <div className="card-header bg-dark text-white">
-                <h5 className="mb-0">
-                  <i className="bi bi-sliders me-2"></i>
-                  กำหนดการเข้าถึงนักเรียน
-                </h5>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">
+                    <i className="bi bi-sliders me-2"></i>
+                    การจัดการนักเรียน
+                  </h5>
+                  <Link
+                    href={`/user/${params.id}/assign-students`}
+                    className="btn btn-primary btn-sm"
+                  >
+                    <i className="bi bi-people-fill me-2"></i>
+                    มอบหมายนักเรียน
+                  </Link>
+                </div>
               </div>
               <div className="card-body">
-                <div className="mb-3">
-                  <label className="form-label">ระดับชั้น</label>
-                  <select
-                    className="form-select rounded-0"
-                    value={selectedLevel}
-                    onChange={(e) => {
-                      setSelectedLevel(e.target.value);
-                      setSelectedClassGroup("");
-                      setSelectedClassNumber([]);
-                    }}
-                  >
-                    <option value="">เลือกระดับชั้น</option>
-                    <option value="ปวช.1">ปวช.1</option>
-                    <option value="ปวช.2">ปวช.2</option>
-                    <option value="ปวช.3">ปวช.3</option>
-                    <option value="ปวส.1">ปวส.1</option>
-                    <option value="ปวส.2">ปวส.2</option>
-                  </select>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">กลุ่มเรียน</label>
-                  <select
-                    className="form-select rounded-0"
-                    value={selectedClassGroup}
-                    onChange={(e) => {
-                      setSelectedClassGroup(e.target.value);
-                      setSelectedClassNumber([]);
-                    }}
-                  >
-                    <option value="">เลือกกลุ่มเรียน</option>
-                    {majors.map((major) => (
-                      <option key={major._id} value={major.major_name}>
-                        {major.major_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">เลขที่</label>
-                  <input
-                    type="text"
-                    className="form-control rounded-0"
-                    value={selectedClassNumber.join(', ')}
-                    onChange={(e) => setSelectedClassNumber(e.target.value.split(',').map(n => n.trim()).filter(n => n))}
-                    placeholder="พิมพ์เลขที่ เช่น 1, 2, 3"
-                  />
-                </div>
-
-                <div className="alert alert-info">
+                <div className="alert alert-info mb-0">
                   <i className="bi bi-info-circle me-2"></i>
-                  <small>
-                    {isCreating ? "การกำหนดการเข้าถึงจะถูกบันทึกพร้อมกับการสร้างผู้ใช้" : "การกำหนดการเข้าถึงจะถูกบันทึกพร้อมกับการอัปเดตข้อมูลผู้ใช้"}
-                  </small>
+                  <strong>การจัดการนักเรียน:</strong>
+                  <ul className="mb-0 mt-2">
+                    <li>คลิกปุ่ม "มอบหมายนักเรียน" เพื่อเลือกนักเรียนที่จะมอบหมายให้ครูคนนี้</li>
+                    <li>สามารถเลือกนักเรียนได้ทีละหลายคนพร้อมกัน</li>
+                    <li>ระบบจะบันทึกการมอบหมายและอัปเดตข้อมูลการเข้าถึงโดยอัตโนมัติ</li>
+                  </ul>
                 </div>
-
-                {/* Students Preview */}
-                {(selectedLevel || selectedClassGroup || selectedClassNumber) && (
-                  <div className="mt-3">
-                    <h6 className="mb-2">นักเรียนที่จะเข้าถึงได้:</h6>
-                    <div className="border rounded p-2" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                      {loadingStudents ? (
-                        <div className="text-center py-2">
-                          <div className="spinner-border spinner-border-sm" role="status">
-                            <span className="visually-hidden">กำลังโหลด...</span>
-                          </div>
-                        </div>
-                      ) : getStudentsForSelection().length > 0 ? (
-                        getStudentsForSelection().slice(0, 5).map((student: StudentData) => (
-                          <div key={student._id} className="d-flex align-items-center mb-2">
-                            {student.image ? (
-                              <img
-                                src={student.image}
-                                alt={`${student.prefix} ${student.first_name} ${student.last_name}`}
-                                className="rounded-circle me-2"
-                                style={{ width: '30px', height: '30px', objectFit: 'cover' }}
-                              />
-                            ) : (
-                              <div
-                                className="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-2"
-                                style={{ width: '30px', height: '30px', fontSize: '12px' }}
-                              >
-                                <i className="bi bi-person-fill"></i>
-                              </div>
-                            )}
-                            <div className="flex-grow-1">
-                              <div className="small fw-bold">{student.id}</div>
-                              <div className="small text-muted">{student.prefix} {student.first_name}</div>
-                            </div>
-                            <span className={`badge bg-${getStatusBadge(student.status || '')}`} style={{ fontSize: '10px' }}>
-                              {student.status || '-'}
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-2">
-                          <small className="text-muted">ไม่พบนักเรียนในเงื่อนไขที่เลือก</small>
-                        </div>
-                      )}
-                      {getStudentsForSelection().length > 5 && (
-                        <div className="text-center mt-2">
-                          <small className="text-muted">และอีก {getStudentsForSelection().length - 5} คน...</small>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>

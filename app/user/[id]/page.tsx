@@ -25,17 +25,36 @@ interface UserData {
   updatedAt: string;
 }
 
-interface AccessData {
-  user_id: string;
-  level: string;
-  class_group: string;
+interface AssignedStudent {
+  _id: string;
+  student_id: {
+    _id: string;
+    id: string;
+    prefix: string;
+    first_name: string;
+    last_name: string;
+    level: string;
+    class_group: string;
+    class_number: string;
+  };
+  student_name: string;
   class_number: string;
+  assigned_date: string;
+  is_active: boolean;
+}
+
+interface AssignmentSummary {
+  levels: string[];
+  class_groups: string[];
+  class_numbers: string[];
+  total_students: number;
 }
 
 export default function UserDetailPage() {
   const params = useParams();
   const [user, setUser] = useState<UserData | null>(null);
-  const [accessData, setAccessData] = useState<AccessData | null>(null);
+  const [assignedStudents, setAssignedStudents] = useState<AssignedStudent[]>([]);
+  const [assignmentSummary, setAssignmentSummary] = useState<AssignmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,26 +84,38 @@ export default function UserDetailPage() {
     }
   };
 
-  // Fetch access data for this user
-  const fetchAccessData = async () => {
+  // Fetch assigned students for this user
+  const fetchAssignedStudents = async () => {
     try {
-      const response = await fetch(`/api/user-access?user_id=${params.id}`);
+      const response = await fetch(`/api/user/${params.id}/assign-students`);
       
       if (response.ok) {
         const result = await response.json();
         if (result.success && result.data) {
-          setAccessData(result.data);
+          setAssignedStudents(result.data);
+          
+          // Calculate assignment summary
+          const levels = [...new Set(result.data.map((item: AssignedStudent) => item.student_id?.level).filter((level: any) => level) as string[])];
+          const classGroups = [...new Set(result.data.map((item: AssignedStudent) => item.student_id?.class_group).filter((group: any) => group) as string[])];
+          const classNumbers = [...new Set(result.data.map((item: AssignedStudent) => item.student_id?.class_number).filter((number: any) => number) as string[])];
+          
+          setAssignmentSummary({
+            levels,
+            class_groups: classGroups,
+            class_numbers: classNumbers,
+            total_students: result.data.length
+          });
         }
       }
     } catch (error) {
-      console.log("No access data or error fetching:", error);
+      console.log("No assigned students or error fetching:", error);
     }
   };
 
   useEffect(() => {
     if (params.id) {
       fetchUser();
-      fetchAccessData();
+      fetchAssignedStudents();
     }
   }, [params.id]);
 
@@ -230,15 +261,21 @@ export default function UserDetailPage() {
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label text-muted">ระดับชั้นที่รับผิดชอบ</label>
-                    <p className="form-control-plaintext fw-bold">{accessData?.level || '-'}</p>
+                    <p className="form-control-plaintext fw-bold">
+                      {assignmentSummary?.levels.length ? assignmentSummary.levels.join(', ') : '-'}
+                    </p>
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label text-muted">กลุ่มเรียนที่รับผิดชอบ</label>
-                    <p className="form-control-plaintext fw-bold">{accessData?.class_group || '-'}</p>
+                    <p className="form-control-plaintext fw-bold">
+                      {assignmentSummary?.class_groups.length ? assignmentSummary.class_groups.join(', ') : '-'}
+                    </p>
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label text-muted">เลขที่ที่รับผิดชอบ</label>
-                    <p className="form-control-plaintext fw-bold">{accessData?.class_number || '-'}</p>
+                    <p className="form-control-plaintext fw-bold">
+                      {assignmentSummary?.class_numbers.length ? assignmentSummary.class_numbers.join(', ') : '-'}
+                    </p>
                   </div>
                   <div className="col-md-6 mb-3">
                     <label className="form-label text-muted">บทบาท</label>
@@ -273,6 +310,63 @@ export default function UserDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Assigned Students Table - Show only for TEACHER role */}
+        {user.role === 'TEACHER' && assignedStudents.length > 0 && (
+          <div className="row mt-4">
+            <div className="col-12">
+              <div className="card border-0 shadow-sm">
+                <div className="card-header bg-primary text-white">
+                  <h5 className="mb-0">
+                    <i className="bi bi-people-fill me-2"></i>
+                    นักเรียนที่รับผิดชอบ ({assignmentSummary?.total_students || 0} คน)
+                  </h5>
+                </div>
+                <div className="card-body p-0">
+                  <div className="table-responsive">
+                    <table className="table table-hover mb-0">
+                      <thead className="table-light">
+                        <tr>
+                          <th className="border-0">รหัส</th>
+                          <th className="border-0">ชื่อ-นามสกุล</th>
+                          <th className="border-0">ระดับชั้น</th>
+                          <th className="border-0">กลุ่มเรียน</th>
+                          <th className="border-0">เลขที่</th>
+                          <th className="border-0">วันที่มอบหมาย</th>
+                          <th className="border-0">สถานะ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {assignedStudents.map((student, index) => (
+                          <tr key={student._id || index}>
+                            <td>{student.student_id?.id || '-'}</td>
+                            <td>
+                              {student.student_id?.prefix} {student.student_id?.first_name} {student.student_id?.last_name}
+                            </td>
+                            <td>{student.student_id?.level || '-'}</td>
+                            <td>{student.student_id?.class_group || '-'}</td>
+                            <td>{student.student_id?.class_number || '-'}</td>
+                            <td>
+                              {student.assigned_date 
+                                ? new Date(student.assigned_date).toLocaleDateString('th-TH')
+                                : '-'
+                              }
+                            </td>
+                            <td>
+                              <span className={`badge ${student.is_active ? 'bg-success' : 'bg-secondary'}`}>
+                                {student.is_active ? 'กำลังดูแล' : 'ไม่ใช้งาน'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

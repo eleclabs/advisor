@@ -18,6 +18,7 @@ export default function Sidebar() {
   const roleMenus = [
     { name: "Dashboard", href: "/dashboard", icon: "bi-speedometer2", roles: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"] },
     { name: "จัดการผู้ใช้", href: "/user", icon: "bi-people", roles: ["ADMIN", "EXECUTIVE"] },
+    { name: "จัดการการมอบหมายนักเรียน", href: "/student_assignment", icon: "bi-people-fill", roles: ["ADMIN"] },
     { name: "สาขา", href: "/major", icon: "bi-building", roles: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"] },
     { name: "รายงาน", href: "/committees/plan", icon: "bi-file-text", roles: ["ADMIN", "EXECUTIVE", "COMMITTEE"] },
   ];
@@ -33,8 +34,6 @@ export default function Sidebar() {
     { id: "report", name: "📈 รายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
     { id: "forms", name: "📋 แบบฟอร์ม/เครื่องมือ", href: "/student/forms", icon: "bi-file-earmark-text" },
     { id: "evaluation", name: "⭐ แบบประเมินความพึงพอใจ", href: "/student/evaluation", icon: "bi-star" },
-    { id: "users", name: "จัดการผู้ใช้งาน", href: "/user", icon: "bi-people" },
-    { id: "major", name: "สาขา", href: "/major", icon: "bi-building" },
   ];
 
   // กรองเมนูตาม role

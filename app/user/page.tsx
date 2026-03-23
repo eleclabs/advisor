@@ -425,6 +425,16 @@ export default function UserManagementPage() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  router.push(`/user/${user._id}/assign-students`);
+                                }}
+                                className="btn btn-sm btn-outline-primary rounded-0"
+                                title="มอบหมายนักเรียน"
+                              >
+                                <i className="bi bi-people-fill"></i>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleDeleteUser(user._id);
                                 }}
                                 className="btn btn-sm btn-outline-danger rounded-0"
