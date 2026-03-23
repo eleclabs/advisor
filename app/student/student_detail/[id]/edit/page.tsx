@@ -15,7 +15,7 @@ interface StudentData {
   birth_date: string;
   level: string;
   class_group: string;
-  class_number: string;  // เพิ่มเลขที่
+  class_number: string;  // เพิ่มห้อง
   advisor_name: string;
   phone_number: string;
   religion: string;
@@ -34,6 +34,17 @@ interface Major {
   major_name: string;
 }
 
+interface Teacher {
+  _id: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  department?: string;
+  assigned_students?: any[];
+}
+
 export default function EditStudentPage() {
   const router = useRouter();
   const params = useParams();
@@ -47,6 +58,7 @@ export default function EditStudentPage() {
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [majors, setMajors] = useState<Major[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [studentData, setStudentData] = useState<StudentData>({
     _id: studentDocId || "",
     id: "",
@@ -58,7 +70,7 @@ export default function EditStudentPage() {
     birth_date: "",
     level: "",
     class_group: "",
-    class_number: "",  // ✅ เพิ่มเลขที่
+    class_number: "",  // ✅ เพิ่มห้อง
     advisor_name: "",
     phone_number: "",
     religion: "",
@@ -81,9 +93,69 @@ export default function EditStudentPage() {
     }
   };
 
+  const fetchTeachers = async () => {
+    try {
+      // ดึงข้อมูลครูทั้งหมด
+      const response = await fetch("/api/user?role=TEACHER");
+      const data = await response.json();
+      console.log("Teachers API response:", data); // Debug log
+      
+      if (data.success) {
+        let allTeachers = data.data;
+        
+        // หาครูที่ได้รับมอบหมายนักเรียนคนนี้
+        const assignedTeachers = [];
+        
+        for (const teacher of allTeachers) {
+          try {
+            // ดึงข้อมูลนักเรียนที่ครูคนนี้รับผิดชอบ
+            const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
+            if (assignedRes.ok) {
+              const assignedData = await assignedRes.json();
+              if (assignedData.success && assignedData.data) {
+                // ตรวจสอบว่านักเรียนคนนี้อยู่ในรายการที่ครูคนนี้รับผิดชอบหรือไม่
+                const isAssigned = assignedData.data.some((assignment: any) => {
+                  const studentId = assignment.student_id?._id || assignment.student_id;
+                  return studentId === studentDocId;
+                });
+                
+                if (isAssigned) {
+                  assignedTeachers.push(teacher);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`Error checking assignments for teacher ${teacher._id}:`, error);
+          }
+        }
+        
+        setTeachers(assignedTeachers);
+        console.log("Assigned teachers loaded:", assignedTeachers); // Debug log
+        
+        // ถ้ามีครูที่ได้รับมอบหมาย ให้ตั้งค่า advisor_name เป็นครูคนแรก (หรือรวมชื่อทุกคน)
+        if (assignedTeachers.length > 0) {
+          const advisorNames = assignedTeachers.map(teacher => 
+            `${teacher.prefix} ${teacher.first_name} ${teacher.last_name}`
+          ).join(', ');
+          setStudentData(prev => ({ ...prev, advisor_name: advisorNames }));
+        }
+      } else {
+        console.error("Teachers API failed:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    }
+  };
+
   useEffect(() => {
     fetchMajors();
   }, []);
+
+  useEffect(() => {
+    if (studentDocId) {
+      fetchTeachers();
+    }
+  }, [studentDocId]);
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -119,7 +191,7 @@ export default function EditStudentPage() {
             birth_date: foundStudent.birth_date || "",
             level: foundStudent.level || "",
             class_group: foundStudent.class_group || "",
-            class_number: foundStudent.class_number || "",  // ✅ เพิ่มเลขที่
+            class_number: foundStudent.class_number || "",  // ✅ เพิ่มห้อง
             advisor_name: foundStudent.advisor_name || "",
             phone_number: foundStudent.phone_number || "",
             religion: foundStudent.religion || "",
@@ -263,8 +335,6 @@ export default function EditStudentPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-    
-
       <div className="container-fluid py-4">
         <div className="row mb-4">
           <div className="col-12">
@@ -444,7 +514,7 @@ export default function EditStudentPage() {
                     </div>
 
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน/สาขาวิชา</label>
+                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชา</label>
                       <select 
                         name="class_group"
                         className="form-select rounded-0"
@@ -461,7 +531,7 @@ export default function EditStudentPage() {
                     </div>
 
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
+                      <label className="form-label text-uppercase fw-semibold small">ห้อง</label>
                       <input 
                         type="text" 
                         name="class_number"
@@ -474,14 +544,24 @@ export default function EditStudentPage() {
 
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
-                      <input 
-                        type="text" 
-                        name="advisor_name"
-                        className="form-control rounded-0"
-                        value={studentData.advisor_name}
-                        onChange={handleInputChange}
-                        placeholder="ชื่ออาจารย์ที่ปรึกษา"
-                      />
+                      <div className="form-control rounded-0 bg-light">
+                        {teachers && teachers.length > 0 ? (
+                          <div>
+                            {teachers.map((teacher, index) => (
+                              <div key={teacher._id}>
+                                {teacher.prefix} {teacher.first_name} {teacher.last_name}
+                                {teacher.department && ` (${teacher.department})`}
+                                {index < teachers.length - 1 && ', '}
+                              </div>
+                            ))}
+                            <small className="text-muted d-block mt-1">
+                              {teachers.length} ครูที่ได้รับมอบหมาย
+                            </small>
+                          </div>
+                        ) : (
+                          <span className="text-muted">ไม่มีครูที่ได้รับมอบหมายนักเรียนคนนี้</span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="col-md-3">
@@ -520,7 +600,7 @@ export default function EditStudentPage() {
                         rows={3}
                         value={studentData.address}
                         onChange={handleInputChange}
-                        placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                        placeholder="บ้านห้อง หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
                       />
                     </div>
 
@@ -607,8 +687,6 @@ export default function EditStudentPage() {
           </div>
         </form>
       </div>
-
-      
     </div>
   );
 }

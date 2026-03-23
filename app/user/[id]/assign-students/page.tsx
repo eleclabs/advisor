@@ -356,7 +356,7 @@ export default function UserAssignStudentsPage() {
                                   รหัส: {student.id} | {student.level} {student.class_group}
                                 </div>
                                 {student.class_number && (
-                                  <div className="text-muted small">เลขที่: {student.class_number}</div>
+                                  <div className="text-muted small">ห้อง: {student.class_number}</div>
                                 )}
                               </div>
                             </div>

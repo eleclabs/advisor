@@ -414,7 +414,7 @@ export default function NewUserPage() {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">กลุ่มเรียน</label>
+                  <label className="form-label">สาขาวิชา</label>
                   <select
                     className="form-select rounded-0"
                     value={selectedClassGroup}
@@ -423,7 +423,7 @@ export default function NewUserPage() {
                       setSelectedClassNumber("");
                     }}
                   >
-                    <option value="">เลือกกลุ่มเรียน</option>
+                    <option value="">เลือกสาขาวิชา</option>
                     {majors.map((major) => (
                       <option key={major._id} value={major.major_name}>
                         {major.major_name}
@@ -433,13 +433,13 @@ export default function NewUserPage() {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">เลขที่</label>
+                  <label className="form-label">ห้อง</label>
                   <input
                     type="text"
                     className="form-control rounded-0"
                     value={selectedClassNumber}
                     onChange={(e) => setSelectedClassNumber(e.target.value)}
-                    placeholder="พิมพ์เลขที่ เช่น 1, 2, 3"
+                    placeholder="พิมพ์ห้อง เช่น 1, 2, 3"
                   />
                 </div>
 

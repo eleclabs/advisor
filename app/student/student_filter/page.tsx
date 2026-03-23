@@ -204,7 +204,7 @@ function StudentFilterPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-funnel me-2 text-warning"></i>
-                เลือกนักเรียนในความดูแล
+                เลือกสาขาวิชาในความดูแล
               </h2>
               <div>
                 <span className="badge bg-info rounded-0 p-2 me-2">
@@ -247,7 +247,7 @@ function StudentFilterPage() {
                   </div>
                   
                   <div className="col-md-3">
-                    <label className="form-label text-uppercase small fw-semibold">กลุ่มเรียน</label>
+                    <label className="form-label text-uppercase small fw-semibold">สาขาวิชา</label>
                     <select
                       className="form-select rounded-0"
                       value={selectedClassGroup}
@@ -263,7 +263,7 @@ function StudentFilterPage() {
                   </div>
                   
                   <div className="col-md-3">
-                    <label className="form-label text-uppercase small fw-semibold">เลขที่</label>
+                    <label className="form-label text-uppercase small fw-semibold">ห้อง</label>
                     <input
                       type="text"
                       className="form-control rounded-0"
@@ -320,8 +320,8 @@ function StudentFilterPage() {
                         <th>รหัส</th>
                         <th>ชื่อ-นามสกุล</th>
                         <th>ระดับชั้น</th>
-                        <th>กลุ่มเรียน</th>
-                        <th>เลขที่</th>
+                        <th>สาขาวิชา</th>
+                        <th>ห้อง</th>
                         <th>สถานะ</th>
                       </tr>
                     </thead>

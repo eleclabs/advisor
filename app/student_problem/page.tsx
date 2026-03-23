@@ -346,7 +346,7 @@ export default function StudentProblemPage() {
         <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center rounded-0">
           <h5 className="mb-0">
             <i className="bi bi-activity me-2 text-warning"></i>
-            จัดการกิจกรรมกลุ่มสัมพันธ์
+            จัดการกิจกรรมสาขาวิชา
           </h5>
           <Link href="/student_problem/activity/add" className="btn btn-warning btn-sm rounded-0">
             <i className="bi bi-plus-circle me-2"></i>เพิ่มกิจกรรม

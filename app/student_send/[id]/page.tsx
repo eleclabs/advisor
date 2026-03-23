@@ -114,7 +114,7 @@ export default function ViewReferralPage() {
     }
   };
 
-  // ฟังก์ชันจัดกลุ่มการติดตามผลตามวันที่ (เรียงจากล่าสุดไปเก่าสุด)
+  // ฟังก์ชันจัดสาขาวิชาการติดตามผลตามวันที่ (เรียงจากล่าสุดไปเก่าสุด)
   const getResultBadgeClass = (result: string) => {
     switch(result) {
       case "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย": return "success";
@@ -216,7 +216,7 @@ export default function ViewReferralPage() {
                   <p className="mb-2"><strong>รหัสนักเรียน:</strong> {referral.student_id}</p>
                   <p className="mb-2"><strong>ชื่อ:</strong> {referral.student_name}</p>
                   <p className="mb-2"><strong>ระดับ:</strong> {referral.student_level}</p>
-                  <p className="mb-0"><strong>ชั้น/เลขที่:</strong> {referral.student_class}/{referral.student_number}</p>
+                  <p className="mb-0"><strong>ชั้น/ห้อง:</strong> {referral.student_class}/{referral.student_number}</p>
                 </div>
               </div>
 

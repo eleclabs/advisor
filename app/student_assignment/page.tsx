@@ -39,6 +39,10 @@ export default function StudentAssignmentPage() {
   const [teachers, setTeachers] = useState<User[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedTeachers, setSelectedTeachers] = useState<Set<string>>(new Set());
+  const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [selectedClassGroup, setSelectedClassGroup] = useState<string>('');
+  const [selectedClassNumber, setSelectedClassNumber] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -46,6 +50,7 @@ export default function StudentAssignmentPage() {
   const [searchStudent, setSearchStudent] = useState('');
   const [assignmentResults, setAssignmentResults] = useState<AssignmentResult[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [groupBy, setGroupBy] = useState<'none' | 'level' | 'major' | 'class'>('none'); // เพิ่ม state สำหรับการจัดกลุ่ม
 
   useEffect(() => {
     fetchData();
@@ -123,6 +128,35 @@ export default function StudentAssignmentPage() {
     }
   };
 
+  // จัดกลุ่มนักเรียนตามระดับชั้น สาขาวิชาและห้อง
+  const groupStudents = (students: Student[]) => {
+    if (groupBy === 'none') return students;
+    
+    const grouped = students.reduce((acc, student) => {
+      if (groupBy === 'level') {
+        const key = student.level || 'ไม่ระบุระดับชั้น';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(student);
+      } else if (groupBy === 'major') {
+        const key = student.class_group || 'ไม่ระบุสาขา';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(student);
+      } else if (groupBy === 'class') {
+        const key = `${student.level} ${student.class_group || ''} ${student.class_number || ''}`.trim();
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(student);
+      }
+      return acc;
+    }, {} as Record<string, Student[]>);
+    
+    return grouped;
+  };
+
+  // คำนวณจำนวนนักเรียนในแต่ละกลุ่ม
+  const getGroupCount = (group: Record<string, Student[]>) => {
+    return Object.values(group).reduce((total, students) => total + students.length, 0);
+  };
+
   const handleSaveAssignments = async () => {
     if (selectedTeachers.size === 0 || selectedStudents.size === 0) {
       alert('กรุณาเลือกอย่างน้อย 1 ครู และ 1 นักเรียน');
@@ -150,7 +184,31 @@ export default function StudentAssignmentPage() {
         setAssignmentResults(data.data.results);
         setShowResults(true);
         
-        // Clear selections after successful assignment
+        // จัดกลุ่มนักเรียนตามสาขาวิชาและห้อง
+        const groupStudents = (students: Student[]) => {
+          if (groupBy === 'none') return students;
+          
+          const grouped = students.reduce((acc, student) => {
+            if (groupBy === 'major') {
+              const key = student.class_group || 'ไม่ระบุสาขา';
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(student);
+            } else if (groupBy === 'class') {
+              const key = `${student.level} ${student.class_group || ''} ${student.class_number || ''}`.trim();
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(student);
+            }
+            return acc;
+          }, {} as Record<string, Student[]>);
+          
+          return grouped;
+        };
+
+        // คำนวณจำนวนนักเรียนในแต่ละกลุ่ม
+        const getGroupCount = (group: Record<string, Student[]>) => {
+          return Object.values(group).reduce((total, students) => total + students.length, 0);
+        };
+
         setSelectedTeachers(new Set());
         setSelectedStudents(new Set());
         
@@ -207,6 +265,12 @@ export default function StudentAssignmentPage() {
               <p className="mb-0 text-white-50">เลือกครูและนักเรียนเพื่อมอบหมายความรับผิดชอบ</p>
             </div>
             <div className="col-auto">
+              <Link
+                href="/student_assignment/manage"
+                className="btn btn-outline-warning rounded-0 me-2"
+              >
+                <i className="bi bi-gear me-2"></i>จัดการการมอบหมาย
+              </Link>
               <Link
                 href="/dashboard"
                 className="btn btn-outline-light rounded-0"
@@ -337,6 +401,23 @@ export default function StudentAssignmentPage() {
                 </div>
               </div>
               <div className="card-body p-0">
+                {/* Grouping Controls */}
+                <div className="p-3 border-bottom bg-light">
+                  <div className="d-flex gap-2 align-items-center">
+                    <label className="form-label mb-0 me-2">จัดกลุ่มตาม:</label>
+                    <select
+                      className="form-select form-select-sm"
+                      value={groupBy}
+                      onChange={(e) => setGroupBy(e.target.value as any)}
+                    >
+                      <option value="none">ไม่จัดกลุ่ม</option>
+                      <option value="level">จัดกลุ่มตามระดับชั้น</option>
+                      <option value="major">จัดกลุ่มตามสาขาวิชา</option>
+                      <option value="class">จัดกลุ่มตามชั้น/สาขา/ห้อง</option>
+                    </select>
+                  </div>
+                </div>
+
                 {/* Search Students */}
                 <div className="p-3 border-bottom">
                   <div className="input-group">
@@ -368,38 +449,82 @@ export default function StudentAssignmentPage() {
 
                 {/* Students List */}
                 <div className="overflow-auto" style={{ maxHeight: '400px' }}>
-                  {filteredStudents.map((student) => (
-                    <div key={student._id} className="p-3 border-bottom hover-bg-light">
-                      <label className="form-check mb-0 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedStudents.has(student._id)}
-                          onChange={() => handleStudentSelect(student._id)}
-                          className="form-check-input"
-                        />
-                        <div className="form-check-label ms-2 w-100">
-                          <div className="d-flex justify-content-between align-items-start">
-                            <div>
-                              <div className="fw-medium">
-                                {student.prefix} {student.first_name} {student.last_name}
+                  {groupBy === 'none' ? (
+                    // แสดงปกติเมื่อไม่จัดกลุ่ม
+                    filteredStudents.map((student) => (
+                      <div key={student._id} className="p-3 border-bottom hover-bg-light">
+                        <label className="form-check mb-0 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedStudents.has(student._id)}
+                            onChange={() => handleStudentSelect(student._id)}
+                            className="form-check-input"
+                          />
+                          <div className="form-check-label ms-2 w-100">
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <div className="fw-medium">
+                                  {student.prefix} {student.first_name} {student.last_name}
+                                </div>
+                                <div className="text-muted small">
+                                  รหัส: {student.id} | {student.level} {student.class_group}
+                                </div>
+                                {student.class_number && (
+                                  <div className="text-muted small">ห้อง: {student.class_number}</div>
+                                )}
                               </div>
-                              <div className="text-muted small">
-                                รหัส: {student.id} | {student.level} {student.class_group}
-                              </div>
-                              {student.class_number && (
-                                <div className="text-muted small">เลขที่: {student.class_number}</div>
-                              )}
                             </div>
+                            {student.advisor_name && (
+                              <span className="badge bg-warning text-dark small">
+                                ที่ปรึกษา: {student.advisor_name}
+                              </span>
+                            )}
                           </div>
-                          {student.advisor_name && (
-                            <span className="badge bg-warning text-dark small">
-                              ที่ปรึกษา: {student.advisor_name}
-                            </span>
-                          )}
+                        </label>
+                      </div>
+                    ))
+                  ) : (
+                    // แสดงแบบจัดกลุ่ม
+                    Object.entries(groupStudents(filteredStudents)).map(([groupName, groupStudents]) => (
+                      <div key={groupName} className="border-bottom">
+                        <div className="p-2 bg-light">
+                          <h6 className="mb-2 text-primary">
+                            <i className="bi bi-folder me-2"></i>
+                            {groupName} ({groupStudents.length} คน)
+                          </h6>
                         </div>
-                      </label>
-                    </div>
-                  ))}
+                        {groupStudents.map((student: Student) => (
+                          <div key={student._id} className="p-3 border-bottom hover-bg-light ms-3">
+                            <label className="form-check mb-0 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedStudents.has(student._id)}
+                                onChange={() => handleStudentSelect(student._id)}
+                                className="form-check-input"
+                              />
+                              <div className="form-check-label ms-2 w-100">
+                                <div className="d-flex justify-content-between align-items-start">
+                                  <div>
+                                    <div className="fw-medium">
+                                      {student.prefix} {student.first_name} {student.last_name}
+                                    </div>
+                                    <div className="text-muted small">
+                                      รหัส: {student.id} | {student.level}
+                                    </div>
+                                  </div>
+                                </div>
+                                {student.advisor_name && (
+                                  <span className="badge bg-warning text-dark small">
+                                    ที่ปรึกษา: {student.advisor_name}
+                                  </span>
+                                )}
+                              </div>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

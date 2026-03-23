@@ -17,7 +17,7 @@ interface StudentBasic {
   birth_date: string;
   level: string;
   class_group: string;
-  class_number: string;  // ✅ เพิ่มเลขที่
+  class_number: string;  // ✅ เพิ่มห้อง
   advisor_name: string;
   phone_number: string;
   religion: string;
@@ -30,6 +30,17 @@ interface StudentBasic {
   email?: string;
 }
 
+interface Teacher {
+  _id: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  department?: string;
+  assigned_students?: any[];
+}
+
 export default function StudentBasicPage() {
   const router = useRouter();
   const params = useParams();
@@ -38,12 +49,61 @@ export default function StudentBasicPage() {
   console.log("📝 Student _id from params:", studentDocId);
 
   const [student, setStudent] = useState<StudentBasic | null>(null);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchTeachers = async () => {
+    try {
+      // ดึงข้อมูลครูทั้งหมด
+      const response = await fetch("/api/user?role=TEACHER");
+      const data = await response.json();
+      console.log("Teachers API response:", data); // Debug log
+      
+      if (data.success) {
+        let allTeachers = data.data;
+        
+        // หาครูที่ได้รับมอบหมายนักเรียนคนนี้
+        const assignedTeachers = [];
+        
+        for (const teacher of allTeachers) {
+          try {
+            // ดึงข้อมูลนักเรียนที่ครูคนนี้รับผิดชอบ
+            const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
+            if (assignedRes.ok) {
+              const assignedData = await assignedRes.json();
+              if (assignedData.success && assignedData.data) {
+                // ตรวจสอบว่านักเรียนคนนี้อยู่ในรายการที่ครูคนนี้รับผิดชอบหรือไม่
+                const isAssigned = assignedData.data.some((assignment: any) => {
+                  const studentId = assignment.student_id?._id || assignment.student_id;
+                  return studentId === studentDocId;
+                });
+                
+                if (isAssigned) {
+                  assignedTeachers.push(teacher);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`Error checking assignments for teacher ${teacher._id}:`, error);
+          }
+        }
+        
+        setTeachers(assignedTeachers);
+        console.log("Assigned teachers loaded:", assignedTeachers); // Debug log
+      } else {
+        console.error("Teachers API failed:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    }
+  };
+
   useEffect(() => {
-  
-  }, []);
+    if (studentDocId) {
+      fetchTeachers();
+    }
+  }, [studentDocId]);
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -83,7 +143,7 @@ export default function StudentBasicPage() {
             birth_date: foundStudent.birth_date || "",
             level: foundStudent.level || "",
             class_group: foundStudent.class_group || "",
-            class_number: foundStudent.class_number || "",  // ✅ เพิ่มเลขที่
+            class_number: foundStudent.class_number || "",  // ✅ เพิ่มห้อง
             advisor_name: foundStudent.advisor_name || "",
             phone_number: foundStudent.phone_number || "",
             religion: foundStudent.religion || "",
@@ -238,16 +298,28 @@ export default function StudentBasicPage() {
                     <p>{student.level}</p>
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">กลุ่มเรียน</label>
+                    <label className="form-label text-uppercase fw-semibold small text-muted">สาขาวิชา</label>
                     <p>{student.class_group || "-"}</p>
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">เลขที่</label>  {/* ✅ เพิ่มเลขที่ */}
+                    <label className="form-label text-uppercase fw-semibold small text-muted">ห้อง</label>  {/* ✅ เพิ่มห้อง */}
                     <p className="fw-bold">{student.class_number || "-"}</p>
                   </div>
                   <div className="col-md-3">
                     <label className="form-label text-uppercase fw-semibold small text-muted">ครูที่ปรึกษา</label>
-                    <p>{student.advisor_name || "-"}</p>
+                    {teachers && teachers.length > 0 ? (
+                      <div>
+                        {teachers.map((teacher, index) => (
+                          <p key={teacher._id} className="mb-1">
+                            {teacher.prefix} {teacher.first_name} {teacher.last_name}
+                            {teacher.department && <small className="text-muted"> ({teacher.department})</small>}
+                          </p>
+                        ))}
+                        <small className="text-muted">{teachers.length} ครูที่ได้รับมอบหมาย</small>
+                      </div>
+                    ) : (
+                      <p className="text-muted">ไม่มีครูที่ได้รับมอบหมายนักเรียนคนนี้</p>
+                    )}
                   </div>
                   <div className="col-md-3">
                     <label className="form-label text-uppercase fw-semibold small text-muted">เบอร์โทรศัพท์</label>

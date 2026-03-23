@@ -152,7 +152,7 @@ export default function StudentSendPage() {
                           {referrals.map(ref => (
                             <tr key={ref._id}>
                               <td>{ref.student_name}</td>
-                              <td>{ref.student_level}/{ref.student_class} เลขที่ {ref.student_number}</td>
+                              <td>{ref.student_level}/{ref.student_class} ห้อง {ref.student_number}</td>
                               <td>
                                 <span className={`badge bg-${ref.type === 'internal' ? 'info' : 'primary'} rounded-0`}>
                                   {ref.type === 'internal' ? 'ภายใน' : 'ภายนอก'}

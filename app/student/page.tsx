@@ -322,14 +322,14 @@ function StudentListPage() {
             </select>
           </div>
           
-          {/* กลุ่มเรียน/สาขาวิชา */}
+          {/* สาขาวิชา */}
           <div className="col-md-2">
             <select 
               className="form-select rounded-0"
               value={selectedClassGroup}
               onChange={(e) => setSelectedClassGroup(e.target.value)}
             >
-              <option value="">กลุ่มเรียนทั้งหมด</option>
+              <option value="">สาขาวิชา</option>
               {majors.map((major) => (
                 <option key={major._id} value={major.major_name}>
                   {major.major_name}
@@ -338,12 +338,12 @@ function StudentListPage() {
             </select>
           </div>
           
-          {/* เลขที่ */}
+          {/* ห้อง */}
           <div className="col-md-2">
             <input
               type="text"
               className="form-control rounded-0"
-              placeholder="เลขที่ เช่น 1, 2, 3"
+              placeholder="ห้อง เช่น 1, 2, 3"
               value={selectedClassNumber}
               onChange={(e) => setSelectedClassNumber(e.target.value)}
             />
@@ -442,8 +442,8 @@ function StudentListPage() {
                       <th className="text-uppercase fw-semibold">รหัสนักศึกษา</th>
                       <th className="text-uppercase fw-semibold">ชื่อ-นามสกุล</th>
                       <th className="text-uppercase fw-semibold">ระดับชั้น</th>
-                      <th className="text-uppercase fw-semibold">กลุ่ม</th>
-                      <th className="text-uppercase fw-semibold">เลขที่</th>
+                      <th className="text-uppercase fw-semibold">สาขาวิชา</th>
+                      <th className="text-uppercase fw-semibold">ห้อง</th>
                       <th className="text-uppercase fw-semibold">ครูที่ปรึกษา</th>
                       <th className="text-uppercase fw-semibold text-center">จัดการ</th>
                     </tr>

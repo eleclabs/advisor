@@ -40,7 +40,7 @@ export default function CreateHomeroomPlanPage() {
     topic: "",
     objectives: ["", ""],
     
-    // กลุ่มเป้าหมาย
+    // สาขาวิชาเป้าหมาย
     target_class_group: "",
     target_class_numbers: [] as string[],
     
@@ -148,7 +148,7 @@ export default function CreateHomeroomPlanPage() {
     setFilteredStudents(filtered);
   }, [formData.level, formData.target_class_group, formData.target_class_numbers, assignedStudents]);
 
-  // จัดการการเลือกเลขที่ทั้งหมด
+  // จัดการการเลือกห้องทั้งหมด
   useEffect(() => {
     if (formData.level && formData.target_class_group) {
       const studentsInClass = assignedStudents.filter(
@@ -356,7 +356,7 @@ export default function CreateHomeroomPlanPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* แถวที่ 1: ระดับชั้น, กลุ่มเรียน, เลขที่, ดูรายชื่อ */}
+          {/* แถวที่ 1: ระดับชั้น, สาขาวิชาเรียน, ห้อง, ดูรายชื่อ */}
           <div className="row g-3 mb-4">
             <div className="col-md-3">
               <label className="form-label fw-semibold">
@@ -380,7 +380,7 @@ export default function CreateHomeroomPlanPage() {
             
             <div className="col-md-3">
               <label className="form-label fw-semibold">
-                2. กลุ่มเรียน
+                2. สาขาวิชาเรียน
               </label>
               <select
                 className="form-select rounded-0"
@@ -389,7 +389,7 @@ export default function CreateHomeroomPlanPage() {
                 onChange={handleClassGroupChange}
                 disabled={!formData.level}
               >
-                <option value="">-- กรุณาเลือกกลุ่มเรียน --</option>
+                <option value="">-- กรุณาเลือกสาขาวิชาเรียน --</option>
                 {majors.map(major => (
                   <option key={major._id} value={major.major_name}>
                      {major.major_name}
@@ -400,7 +400,7 @@ export default function CreateHomeroomPlanPage() {
             
             <div className="col-md-3">
               <label className="form-label fw-semibold">
-                3. เลขที่ (เลือกได้หลายหมายเลข)
+                3. ห้อง (เลือกได้หลายหมายเลข)
               </label>
               <div 
                 className="form-control rounded-0 overflow-auto" 
@@ -441,10 +441,10 @@ export default function CreateHomeroomPlanPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-muted small py-1">ไม่มีนักเรียนในกลุ่มนี้</div>
+                    <div className="text-muted small py-1">ไม่มีนักเรียนในสาขาวิชานี้</div>
                   )
                 ) : (
-                  <div className="text-muted small py-1">กรุณาเลือกระดับชั้นและกลุ่มเรียนก่อน</div>
+                  <div className="text-muted small py-1">กรุณาเลือกระดับชั้นและสาขาวิชาเรียนก่อน</div>
                 )}
               </div>
             </div>
@@ -501,10 +501,10 @@ export default function CreateHomeroomPlanPage() {
                     <span className="fw-bold">
                       <i className="bi bi-people-fill me-2 text-info"></i>
                       รายชื่อนักเรียน
-                      {formData.target_class_group && <span className="badge bg-dark ms-2">กลุ่ม {formData.target_class_group}</span>}
+                      {formData.target_class_group && <span className="badge bg-dark ms-2">สาขาวิชา {formData.target_class_group}</span>}
                       {formData.target_class_numbers.length > 0 && (
                         <span className="badge bg-dark ms-2">
-                          เลขที่ {formData.target_class_numbers.length > 5 
+                          ห้อง {formData.target_class_numbers.length > 5 
                             ? `${formData.target_class_numbers[0]} - ${formData.target_class_numbers[formData.target_class_numbers.length-1]}`
                             : formData.target_class_numbers.join(', ')}
                         </span>
@@ -523,8 +523,8 @@ export default function CreateHomeroomPlanPage() {
                             <th>รหัสนักเรียน</th>
                             <th>ชื่อ-นามสกุล</th>
                             <th>ระดับชั้น</th>
-                            <th>กลุ่มเรียน</th>
-                            <th>เลขที่</th>
+                            <th>สาขาวิชาเรียน</th>
+                            <th>ห้อง</th>
                           </tr>
                         </thead>
                         <tbody>

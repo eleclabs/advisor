@@ -32,7 +32,18 @@ interface Major {
   major_name: string;
 }
 
-function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export default เป็น function
+interface Teacher {
+  _id: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  department?: string;
+  assigned_students?: any[];
+}
+
+function StudentAddBasicPage() {  
   const router = useRouter();
   const [formData, setFormData] = useState<BasicInfoFormData>({
     id: "",
@@ -55,12 +66,14 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
     image: "",
   });
   const [majors, setMajors] = useState<Major[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [saving, setSaving] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
   useEffect(() => {
     fetchMajors();
+    fetchTeachers();
   }, []);
 
   const fetchMajors = async () => {
@@ -72,6 +85,18 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
       }
     } catch (error) {
       console.error("Error fetching majors:", error);
+    }
+  };
+
+  const fetchTeachers = async () => {
+    try {
+      const response = await fetch("/api/user?role=TEACHER");
+      const data = await response.json();
+      if (data.success) {
+        setTeachers(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
     }
   };
 
@@ -110,7 +135,7 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
     try {
       const bmiValue = calculateBMI();
       
-      console.log("📤 Data to send:", {
+      console.log(" Data to send:", {
         id: formData.id,
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -121,17 +146,17 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
       Object.entries(formData).forEach(([key, value]) => {
         if (key !== 'image' && value !== undefined && value !== null) {
           formDataToSend.append(key, String(value));
-          console.log(`📤 Appending ${key}:`, value);
+          console.log(` Appending ${key}:`, value);
         }
       });
       formDataToSend.append("bmi", bmiValue);
 
       if (profileImage) {
         formDataToSend.append("profileImage", profileImage);
-        console.log("📤 Appending profileImage:", profileImage.name);
+        console.log(" Appending profileImage:", profileImage.name);
       }
 
-      console.log("📦 FormData entries:");
+      console.log(" FormData entries:");
       for (let pair of formDataToSend.entries()) {
         console.log(`   ${pair[0]}: ${pair[1]}`);
       }
@@ -339,9 +364,9 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
                       </select>
                     </div>
 
-                    {/* กลุ่มเรียน/สาขาวิชา */}
+                    {/* สาขาวิชา */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน/สาขาวิชา</label>
+                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชา</label>
                       <select 
                         name="class_group"
                         className="form-select rounded-0"
@@ -357,9 +382,9 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
                       </select>
                     </div>
 
-                    {/* เลขที่ */}
+                    {/* ห้อง */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
+                      <label className="form-label text-uppercase fw-semibold small">ห้อง</label>
                       <input 
                         type="text" 
                         name="class_number"
@@ -373,14 +398,23 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
                     {/* ครูที่ปรึกษา */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
-                      <input 
-                        type="text" 
+                      <select 
                         name="advisor_name"
-                        className="form-control rounded-0"
+                        className="form-select rounded-0"
                         value={formData.advisor_name}
                         onChange={handleInputChange}
-                        placeholder="ชื่ออาจารย์ที่ปรึกษา"
-                      />
+                      >
+                        <option value="">เลือกครูที่ปรึกษา</option>
+                        {teachers.filter(teacher => teacher.role === 'TEACHER').map((teacher) => (
+                          <option key={teacher._id} value={`${teacher.prefix} ${teacher.first_name} ${teacher.last_name}`}>
+                            {teacher.prefix} {teacher.first_name} {teacher.last_name}
+                            {teacher.department && ` (${teacher.department})`}
+                            {teacher.assigned_students && teacher.assigned_students.length > 0 && 
+                              ` - รับผิดชอบ ${teacher.assigned_students.length} คน`
+                            }
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* เบอร์มือถือ */}
@@ -421,7 +455,7 @@ function StudentAddBasicPage() {  // ✅ เปลี่ยนจาก export d
                         rows={3}
                         value={formData.address}
                         onChange={handleInputChange}
-                        placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                        placeholder="บ้านห้อง หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
                       />
                     </div>
 

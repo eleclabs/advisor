@@ -239,8 +239,8 @@ export default function StudentAnalyticsDashboard() {
           
           // Enhanced status determination with student group consideration
           let status = "ปกติ";
-          if (student.student_group === "กลุ่มเสี่ยง") status = "เสี่ยง";
-          else if (student.student_group === "กลุ่มมีปัญหา") status = "มีปัญหา";
+          if (student.student_group === "สาขาวิชาเสี่ยง") status = "เสี่ยง";
+          else if (student.student_group === "สาขาวิชามีปัญหา") status = "มีปัญหา";
           else if (riskLevel === 'critical') status = "มีปัญหา";
           else if (riskLevel === 'high') status = "มีปัญหา";
           else if (riskLevel === 'medium') status = "เสี่ยง";
@@ -395,9 +395,9 @@ export default function StudentAnalyticsDashboard() {
       
       // Student Group Analysis
       studentGroups: {
-        'กลุ่มเสี่ยง': meaningfulStudents.filter(s => s.studentData?.student_group === 'กลุ่มเสี่ยง').length,
-        'กลุ่มมีปัญหา': meaningfulStudents.filter(s => s.studentData?.student_group === 'กลุ่มมีปัญหา').length,
-        'กลุ่มปกติ': meaningfulStudents.filter(s => s.studentData?.student_group === 'กลุ่มปกติ').length,
+        'สาขาวิชาเสี่ยง': meaningfulStudents.filter(s => s.studentData?.student_group === 'สาขาวิชาเสี่ยง').length,
+        'สาขาวิชามีปัญหา': meaningfulStudents.filter(s => s.studentData?.student_group === 'สาขาวิชามีปัญหา').length,
+        'สาขาวิชาปกติ': meaningfulStudents.filter(s => s.studentData?.student_group === 'สาขาวิชาปกติ').length,
         'ไม่ระบุ': meaningfulStudents.filter(s => s.studentData?.student_group === 'ไม่ระบุ').length
       },
       
@@ -589,7 +589,7 @@ export default function StudentAnalyticsDashboard() {
       .filter(student => {
         // Priority based on actual data, not random
         return (
-          student.studentData?.student_group === 'กลุ่มมีปัญหา' ||
+          student.studentData?.student_group === 'สาขาวิชามีปัญหา' ||
           (student.studentData?.risk_behaviors && student.studentData.risk_behaviors.length >= 2) ||
           student.studentData?.family_instability ||
           student.studentData?.economic_risk ||
@@ -603,8 +603,8 @@ export default function StudentAnalyticsDashboard() {
         let aScore = 0;
         let bScore = 0;
         
-        if (a.studentData?.student_group === 'กลุ่มมีปัญหา') aScore += 3;
-        if (b.studentData?.student_group === 'กลุ่มมีปัญหา') bScore += 3;
+        if (a.studentData?.student_group === 'สาขาวิชามีปัญหา') aScore += 3;
+        if (b.studentData?.student_group === 'สาขาวิชามีปัญหา') bScore += 3;
         
         if (a.studentData?.risk_behaviors) aScore += a.studentData.risk_behaviors.length;
         if (b.studentData?.risk_behaviors) bScore += b.studentData.risk_behaviors.length;
@@ -636,8 +636,8 @@ export default function StudentAnalyticsDashboard() {
   const calculatePriorityScore = (student: Student): number => {
     let score = 0;
     
-    if (student.studentData?.student_group === 'กลุ่มมีปัญหา') score += 10;
-    if (student.studentData?.student_group === 'กลุ่มเสี่ยง') score += 5;
+    if (student.studentData?.student_group === 'สาขาวิชามีปัญหา') score += 10;
+    if (student.studentData?.student_group === 'สาขาวิชาเสี่ยง') score += 5;
     
     if (student.studentData?.risk_behaviors) score += student.studentData.risk_behaviors.length * 3;
     
@@ -1260,25 +1260,25 @@ export default function StudentAnalyticsDashboard() {
 
               {/* Student Group Filter */}
               <div className="col-md-3 mb-3">
-                <label className="form-label fw-bold">กลุ่มนักเรียน</label>
+                <label className="form-label fw-bold">สาขาวิชานักเรียน</label>
                 <div className="form-check">
                   <input className="form-check-input" type="checkbox"
-                    checked={filterCriteria.studentGroup.includes('กลุ่มปกติ')}
-                    onChange={() => handleFilterChange('studentGroup', 'กลุ่มปกติ')}
+                    checked={filterCriteria.studentGroup.includes('สาขาวิชาปกติ')}
+                    onChange={() => handleFilterChange('studentGroup', 'สาขาวิชาปกติ')}
                   />
                   <label className="form-check-label">ปกติ</label>
                 </div>
                 <div className="form-check">
                   <input className="form-check-input" type="checkbox"
-                    checked={filterCriteria.studentGroup.includes('กลุ่มเสี่ยง')}
-                    onChange={() => handleFilterChange('studentGroup', 'กลุ่มเสี่ยง')}
+                    checked={filterCriteria.studentGroup.includes('สาขาวิชาเสี่ยง')}
+                    onChange={() => handleFilterChange('studentGroup', 'สาขาวิชาเสี่ยง')}
                   />
                   <label className="form-check-label">เสี่ยง</label>
                 </div>
                 <div className="form-check">
                   <input className="form-check-input" type="checkbox"
-                    checked={filterCriteria.studentGroup.includes('กลุ่มมีปัญหา')}
-                    onChange={() => handleFilterChange('studentGroup', 'กลุ่มมีปัญหา')}
+                    checked={filterCriteria.studentGroup.includes('สาขาวิชามีปัญหา')}
+                    onChange={() => handleFilterChange('studentGroup', 'สาขาวิชามีปัญหา')}
                   />
                   <label className="form-check-label">มีปัญหา</label>
                 </div>
@@ -1428,7 +1428,7 @@ export default function StudentAnalyticsDashboard() {
                   {viewMode === 'detailed' && <th>แนวโน้ม</th>}
                   {viewMode === 'analytics' && <th>SDQ</th>}
                   {viewMode === 'analytics' && <th>DASS-2</th>}
-                  {viewMode === 'analytics' && <th>กลุ่ม</th>}
+                  {viewMode === 'analytics' && <th>สาขาวิชา</th>}
                   {viewMode === 'analytics' && <th>พฤติกรรมเสี่ยง</th>}
                   <th>จัดการ</th>
                 </tr>
@@ -1595,7 +1595,7 @@ export default function StudentAnalyticsDashboard() {
                               <tr><td>ครูที่ปรึกษา</td><td>{selectedStudent.advisorName}</td></tr>
                               <tr><td>สถานะ</td><td><span className={`badge bg-${getRiskLevelColor(selectedStudent.status)}`}>{selectedStudent.status}</span></td></tr>
                               <tr><td>ระดับความเสี่ยง</td><td><span className={`badge bg-${getRiskLevelColor(selectedStudent.riskLevel)}`}>{selectedStudent.riskLevel}</span></td></tr>
-                              <tr><td>กลุ่มนักเรียน</td><td>{selectedStudent.studentData?.student_group || 'ไม่ระบุ'}</td></tr>
+                              <tr><td>สาขาวิชานักเรียน</td><td>{selectedStudent.studentData?.student_group || 'ไม่ระบุ'}</td></tr>
                               <tr><td>เพศ</td><td>{selectedStudent.studentData?.gender || 'ไม่ระบุ'}</td></tr>
                               <tr><td>วันเกิด</td><td>{selectedStudent.studentData?.birth_date || 'ไม่ระบุ'}</td></tr>
                             </tbody>

@@ -617,7 +617,7 @@ export default function UserManagementPage() {
                       </select>
                     </div>
                     <div className="col-md-4">
-                      <label className="form-label">แผนก/กลุ่มสาระ</label>
+                      <label className="form-label">แผนก/สาขาวิชา</label>
                       <input
                         type="text"
                         className="form-control rounded-0"
@@ -636,7 +636,7 @@ export default function UserManagementPage() {
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label">กลุ่มเรียนที่รับผิดชอบ</label>
+                      <label className="form-label">สาขาวิชาที่รับผิดชอบ</label>
                       <input
                         type="text"
                         className="form-control rounded-0"
@@ -803,7 +803,7 @@ export default function UserManagementPage() {
                       </select>
                     </div>
                     <div className="col-md-4">
-                      <label className="form-label">แผนก/กลุ่มสาระ</label>
+                      <label className="form-label">แผนก/สาขาวิชา</label>
                       <input
                         type="text"
                         className="form-control rounded-0"
@@ -822,7 +822,7 @@ export default function UserManagementPage() {
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label">กลุ่มเรียนที่รับผิดชอบ</label>
+                      <label className="form-label">สาขาวิชาที่รับผิดชอบ</label>
                       <input
                         type="text"
                         className="form-control rounded-0"

@@ -278,7 +278,7 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                   <label className="form-label fw-bold">สรุปผลการช่วยเหลือ</label>
                   <div className="border p-3 bg-light">
                     {[
-                      { value: 'ยุติการช่วยเหลือ', desc: 'กลับสู่กลุ่มปกติ' },
+                      { value: 'ยุติการช่วยเหลือ', desc: 'กลับสู่สาขาวิชาปกติ' },
                       { value: 'ดำเนินการต่อ', desc: 'ยังคงดูแลต่อ' },
                       { value: 'ส่งต่อผู้เชี่ยวชาญ', desc: 'ส่งไปยังผู้เชี่ยวชาญเฉพาะทาง' }
                     ].map((option) => (

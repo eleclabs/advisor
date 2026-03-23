@@ -195,7 +195,7 @@ export default function AccessPage() {
                   disabled={!selectedLevel}
                 >
                   <i className="bi bi-collection me-2"></i>
-                  Tab 2: กลุ่มเรียน
+                  Tab 2: สาขาวิชา
                   {selectedLevel && <span className="badge bg-primary ms-2">{selectedLevel}</span>}
                 </button>
               </li>
@@ -206,7 +206,7 @@ export default function AccessPage() {
                   disabled={!selectedClassGroup}
                 >
                   <i className="bi bi-list-ol me-2"></i>
-                  Tab 3: เลขที่
+                  Tab 3: ห้อง
                   {selectedClassGroup && <span className="badge bg-info ms-2">{selectedClassGroup}</span>}
                 </button>
               </li>
@@ -266,7 +266,7 @@ export default function AccessPage() {
                   <div>
                     <h4 className="mb-3">
                       <i className="bi bi-collection me-2 text-info"></i>
-                      กลุ่มเรียนในระดับชั้น {selectedLevel}
+                      สาขาวิชาในระดับชั้น {selectedLevel}
                     </h4>
                     <div className="row">
                       {getClassGroups().map((classGroup) => (
@@ -285,7 +285,7 @@ export default function AccessPage() {
                       {getClassGroups().length === 0 && (
                         <div className="col-12 text-center py-5">
                           <i className="bi bi-inbox display-1 text-muted"></i>
-                          <h4 className="mt-3">ไม่พบข้อมูลกลุ่มเรียนในระดับชั้น {selectedLevel}</h4>
+                          <h4 className="mt-3">ไม่พบข้อมูลสาขาวิชาในระดับชั้น {selectedLevel}</h4>
                         </div>
                       )}
                     </div>
@@ -297,7 +297,7 @@ export default function AccessPage() {
                   <div>
                     <h4 className="mb-3">
                       <i className="bi bi-list-ol me-2 text-warning"></i>
-                      เลขที่ในกลุ่มเรียน {selectedClassGroup} ระดับชั้น {selectedLevel}
+                      ห้องในสาขาวิชา {selectedClassGroup} ระดับชั้น {selectedLevel}
                     </h4>
                     <div className="row">
                       {getClassNumbers().map((classNumber) => (
@@ -320,7 +320,7 @@ export default function AccessPage() {
                       {getClassNumbers().length === 0 && (
                         <div className="col-12 text-center py-5">
                           <i className="bi bi-inbox display-1 text-muted"></i>
-                          <h4 className="mt-3">ไม่พบข้อมูลเลขที่ในกลุ่มเรียน {selectedClassGroup}</h4>
+                          <h4 className="mt-3">ไม่พบข้อมูลห้องในสาขาวิชา {selectedClassGroup}</h4>
                         </div>
                       )}
                     </div>
@@ -332,7 +332,7 @@ export default function AccessPage() {
                   <div>
                     <h4 className="mb-3">
                       <i className="bi bi-person-badge me-2 text-success"></i>
-                      รหัสนักเรียนในเลขที่ {selectedClassNumber} กลุ่มเรียน {selectedClassGroup} ระดับชั้น {selectedLevel}
+                      รหัสนักเรียนในห้อง {selectedClassNumber} สาขาวิชา {selectedClassGroup} ระดับชั้น {selectedLevel}
                     </h4>
                     <div className="row">
                       {getStudentsForSelection().map((student) => (
@@ -370,7 +370,7 @@ export default function AccessPage() {
                       {getStudentsForSelection().length === 0 && (
                         <div className="col-12 text-center py-5">
                           <i className="bi bi-inbox display-1 text-muted"></i>
-                          <h4 className="mt-3">ไม่พบข้อมูลนักเรียนในเลขที่ {selectedClassNumber}</h4>
+                          <h4 className="mt-3">ไม่พบข้อมูลนักเรียนในห้อง {selectedClassNumber}</h4>
                         </div>
                       )}
                     </div>

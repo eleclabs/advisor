@@ -169,14 +169,14 @@ export default function HomeroomPlanDetailPage() {
       if (result.success) {
         let filteredStudents = result.data;
         
-        // กรองตามกลุ่มเรียน ถ้ามี
+        // กรองตามสาขาวิชาเรียน ถ้ามี
         if (planData.target_class_group) {
           filteredStudents = filteredStudents.filter((s: any) => 
             s.class_group === planData.target_class_group
           );
         }
         
-        // กรองตามเลขที่ ถ้ามี
+        // กรองตามห้อง ถ้ามี
         if (planData.target_class_numbers && planData.target_class_numbers.length > 0) {
           filteredStudents = filteredStudents.filter((s: any) => 
             planData.target_class_numbers.includes(s.class_number)
@@ -439,13 +439,13 @@ export default function HomeroomPlanDetailPage() {
       <div className="d-flex flex-wrap gap-2 mb-2">
         <span className="badge bg-dark rounded-0 p-2">ระดับชั้น: {plan.level || '-'}</span>
         
-        {/* ✅ กลุ่มเรียนและเลขที่ ใช้สีดำเหมือนกัน */}
+        {/* ✅ สาขาวิชาเรียนและห้อง ใช้สีดำเหมือนกัน */}
         {plan.target_class_group && (
-          <span className="badge bg-dark rounded-0 p-2">กลุ่ม: {plan.target_class_group}</span>
+          <span className="badge bg-dark rounded-0 p-2">สาขาวิชา: {plan.target_class_group}</span>
         )}
         {plan.target_class_numbers && plan.target_class_numbers.length > 0 && (
           <span className="badge bg-dark rounded-0 p-2">
-            เลขที่: {plan.target_class_numbers.length > 5 
+            ห้อง: {plan.target_class_numbers.length > 5 
               ? `${plan.target_class_numbers[0]} - ${plan.target_class_numbers[plan.target_class_numbers.length-1]}`
               : plan.target_class_numbers.join(', ')}
           </span>
@@ -523,19 +523,19 @@ export default function HomeroomPlanDetailPage() {
                   </div>
                   {plan.target_class_group && (
                     <div className="col-md-4">
-                      <strong>กลุ่มเรียน:</strong> {plan.target_class_group}
+                      <strong>สาขาวิชาเรียน:</strong> {plan.target_class_group}
                     </div>
                   )}
                   {plan.target_class_numbers && plan.target_class_numbers.length > 0 && (
                     <div className="col-md-4">
-                      <strong>เลขที่:</strong> {plan.target_class_numbers.join(', ')}
+                      <strong>ห้อง:</strong> {plan.target_class_numbers.join(', ')}
                     </div>
                   )}
                 </div>
                 {!plan.target_class_group && !plan.target_class_numbers?.length && (
                   <div className="text-muted mt-2">
                     <i className="bi bi-info-circle me-2"></i>
-                    แผนนี้ไม่ได้ระบุกลุ่มเรียนหรือเลขที่เฉพาะเจาะจง แสดงนักเรียนทั้งหมดในระดับชั้น {plan.level}
+                    แผนนี้ไม่ได้ระบุสาขาวิชาเรียนหรือห้องเฉพาะเจาะจง แสดงนักเรียนทั้งหมดในระดับชั้น {plan.level}
                   </div>
                 )}
               </div>
@@ -556,8 +556,8 @@ export default function HomeroomPlanDetailPage() {
                           <th>รหัสนักเรียน</th>
                           <th>ชื่อ-นามสกุล</th>
                           <th>ระดับชั้น</th>
-                          <th>กลุ่มเรียน</th>
-                          <th>เลขที่</th>
+                          <th>สาขาวิชาเรียน</th>
+                          <th>ห้อง</th>
                         </tr>
                       </thead>
                       <tbody>

@@ -449,7 +449,7 @@ export default function ViewActivityPage() {
             <div className="card-header bg-primary text-white">
               <h6 className="mb-0">
                 <i className="bi bi-people me-2"></i>
-                โจทย์กลุ่ม
+                สาขาวิชา
               </h6>
             </div>
             <div className="card-body">

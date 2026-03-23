@@ -75,6 +75,67 @@ export async function POST(
   }
 }
 
+// DELETE - ลบ assigned students ที่ระบุ
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
+    }
+
+    // ตรวจสอบว่าเป็น user เดียวกันหรือ ADMIN
+    if (session.user?.id !== id && session.user?.role !== "ADMIN") {
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์" }, { status: 403 });
+    }
+
+    await connectDB();
+    
+    const { studentIds } = await req.json();
+    
+    if (!Array.isArray(studentIds)) {
+      return NextResponse.json({ success: false, message: "รูปแบบข้อมูลไม่ถูกต้อง" }, { status: 400 });
+    }
+
+    // ดึงข้อมูลผู้ใช้ปัจจุบัน
+    const user = await User.findById(id);
+    if (!user) {
+      return NextResponse.json({ success: false, message: "ไม่พบผู้ใช้" }, { status: 404 });
+    }
+
+    // กรองนักเรียนที่ไม่ต้องการลบออก
+    const updatedAssignedStudents = user.assigned_students?.filter(
+      assignment => !studentIds.includes(assignment.student_id?.toString())
+    ) || [];
+
+    // อัปเดตผู้ใช้
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { assigned_students: updatedAssignedStudents },
+      { new: true, returnDocument: 'after' }
+    );
+
+    console.log(`✅ ลบนักเรียน ${studentIds.length} คน จากผู้ใช้ ${id}`);
+
+    return NextResponse.json({
+      success: true,
+      data: updatedAssignedStudents,
+      message: `ลบนักเรียน ${studentIds.length} คน สำเร็จ`
+    });
+
+  } catch (error: any) {
+    console.error("❌ Error removing students:", error);
+    return NextResponse.json(
+      { success: false, message: error.message || "เกิดข้อผิดพลาด" },
+      { status: 500 }
+    );
+  }
+}
+
 // GET - ดึง assigned students ของ user
 export async function GET(
   req: NextRequest,

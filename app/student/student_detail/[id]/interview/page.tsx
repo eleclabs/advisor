@@ -338,11 +338,11 @@ export default function InterviewViewPage() {
                   <p className="mb-0">{interviewData.parent_phone}</p>
                 </div>
                 <div className="col-md-2">
-                  <span className="text-uppercase fw-semibold small">ระดับชั้น/กลุ่ม:</span>
+                  <span className="text-uppercase fw-semibold small">ระดับชั้น/สาขาวิชา:</span>
                   <p className="mb-0">{interviewData.student_level}/{interviewData.student_class}</p>
                 </div>
                 <div className="col-md-2">
-                  <span className="text-uppercase fw-semibold small">เลขที่:</span>
+                  <span className="text-uppercase fw-semibold small">ห้อง:</span>
                   <p className="mb-0">{interviewData.student_number}</p>
                 </div>
               </div>
@@ -475,7 +475,7 @@ export default function InterviewViewPage() {
               <div className="p-3">
                 <div className="row g-3">
                   <div className="col-md-2">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">กลุ่มนักเรียน</label>
+                    <label className="form-label text-uppercase fw-semibold small text-muted">สาขาวิชานักเรียน</label>
                     <p>
                       <span className={`badge bg-${getStatusColor(interviewData.student_group)} rounded-0 p-2`}>
                         {interviewData.student_group}

@@ -266,13 +266,13 @@ export default function UserDetailPage() {
                     </p>
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label text-muted">กลุ่มเรียนที่รับผิดชอบ</label>
+                    <label className="form-label text-muted">สาขาวิชาที่รับผิดชอบ</label>
                     <p className="form-control-plaintext fw-bold">
                       {assignmentSummary?.class_groups.length ? assignmentSummary.class_groups.join(', ') : '-'}
                     </p>
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label text-muted">เลขที่ที่รับผิดชอบ</label>
+                    <label className="form-label text-muted">ห้องที่รับผิดชอบ</label>
                     <p className="form-control-plaintext fw-bold">
                       {assignmentSummary?.class_numbers.length ? assignmentSummary.class_numbers.join(', ') : '-'}
                     </p>
@@ -330,8 +330,8 @@ export default function UserDetailPage() {
                           <th className="border-0">รหัส</th>
                           <th className="border-0">ชื่อ-นามสกุล</th>
                           <th className="border-0">ระดับชั้น</th>
-                          <th className="border-0">กลุ่มเรียน</th>
-                          <th className="border-0">เลขที่</th>
+                          <th className="border-0">สาขาวิชา</th>
+                          <th className="border-0">ห้อง</th>
                           <th className="border-0">วันที่มอบหมาย</th>
                           <th className="border-0">สถานะ</th>
                         </tr>

@@ -254,7 +254,7 @@ useEffect(() => {
             const hasLevel = assignedStudents.some(s => s.level === plan.level);
             if (!hasLevel) return false;
             
-            // ถ้าแผนระบุกลุ่มเรียน
+            // ถ้าแผนระบุสาขาวิชาเรียน
             if (plan.target_class_group) {
               const hasGroup = assignedStudents.some(s => 
                 s.level === plan.level && 
@@ -263,7 +263,7 @@ useEffect(() => {
               if (!hasGroup) return false;
             }
             
-            // ถ้าแผนระบุเลขที่
+            // ถ้าแผนระบุห้อง
             if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
               const hasNumber = assignedStudents.some(s => 
                 s.level === plan.level &&
@@ -323,14 +323,14 @@ useEffect(() => {
       if (result.success) {
         let students = result.data;
         
-        // กรองตามกลุ่มเรียน ถ้ามี
+        // กรองตามสาขาวิชาเรียน ถ้ามี
         if (plan.target_class_group) {
           students = students.filter((s: any) => 
             s.class_group === plan.target_class_group
           );
         }
         
-        // กรองตามเลขที่ ถ้ามี
+        // กรองตามห้อง ถ้ามี
         if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
           students = students.filter((s: any) => 
             plan.target_class_numbers?.includes(s.class_number)
@@ -422,13 +422,13 @@ useEffect(() => {
   const getPlanTargetText = (plan: HomeroomPlan) => {
     let text = `ระดับชั้น ${plan.level}`;
     if (plan.target_class_group) {
-      text += `, กลุ่ม ${plan.target_class_group}`;
+      text += `, สาขาวิชา ${plan.target_class_group}`;
     }
     if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
       const numbers = plan.target_class_numbers.length > 5 
         ? `${plan.target_class_numbers[0]} - ${plan.target_class_numbers[plan.target_class_numbers.length-1]}`
         : plan.target_class_numbers.join(', ');
-      text += `, เลขที่ ${numbers}`;
+      text += `, ห้อง ${numbers}`;
     }
     return text;
   };
@@ -559,7 +559,7 @@ useEffect(() => {
                         <th className="text-uppercase fw-semibold">สัปดาห์ที่</th>
                         <th className="text-uppercase fw-semibold">วันที่จัดกิจกรรม</th>
                         <th className="text-uppercase fw-semibold">สถานะ</th>
-                        <th className="text-uppercase fw-semibold">กลุ่มเป้าหมาย</th>
+                        <th className="text-uppercase fw-semibold">สาขาวิชาเป้าหมาย</th>
                         <th className="text-uppercase fw-semibold">จัดการ</th>
                       </tr>
                     </thead>
@@ -670,8 +670,8 @@ useEffect(() => {
                                               <th>รหัสนักเรียน</th>
                                               <th>ชื่อ-นามสกุล</th>
                                               <th>ระดับชั้น</th>
-                                              <th>กลุ่มเรียน</th>
-                                              <th>เลขที่</th>
+                                              <th>สาขาวิชาเรียน</th>
+                                              <th>ห้อง</th>
                                             </tr>
                                           </thead>
                                           <tbody>
