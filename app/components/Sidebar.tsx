@@ -33,7 +33,7 @@ export default function Sidebar() {
     { id: "send", name: "📤 ส่งต่อผู้เรียน", href: "/student_send", icon: "bi-send" },
     { id: "report", name: "📈 รายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
     { id: "forms", name: "📋 แบบฟอร์ม/เครื่องมือ", href: "/student/forms", icon: "bi-file-earmark-text" },
-    { id: "evaluation", name: "⭐ แบบประเมินความพึงพอใจ", href: "/student/evaluation", icon: "bi-star" },
+    { id: "evaluation", name: "⭐ แบบประเมินความพึงพอใจ", href: "/evaluation", icon: "bi-star" },
   ];
 
   // กรองเมนูตาม role
