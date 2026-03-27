@@ -35,6 +35,10 @@ export async function POST(
       return NextResponse.json({ success: false, message: "รูปแบบข้อมูลไม่ถูกต้อง" }, { status: 400 });
     }
 
+    // ดึงข้อมูลผู้ใช้ที่จะมอบหมาย
+    const teacher = await User.findById(id);
+    const teacherName = `${teacher.prefix} ${teacher.first_name} ${teacher.last_name}`;
+    
     // ดึงข้อมูลนักเรียนทั้งหมดที่ถูกเลือก
     const students = await Student.find({ _id: { $in: studentIds } });
     
@@ -54,11 +58,20 @@ export async function POST(
       { new: true, returnDocument: 'after' }
     );
 
+    // อัปเดตข้อมูลครูที่ปรึกษาให้นักเรียนทุกคน
+    await Student.updateMany(
+      { _id: { $in: studentIds } },
+      { 
+        advisor_name: teacherName,
+        advisor_id: id
+      }
+    );
+
     if (!updatedUser) {
       return NextResponse.json({ success: false, message: "ไม่พบผู้ใช้" }, { status: 404 });
     }
 
-    console.log(`✅ มอบหมายนักเรียน ${assignedStudents.length} คน ให้ผู้ใช้ ${id}`);
+    console.log(`✅ มอบหมายนักเรียน ${assignedStudents.length} คน ให้ผู้ใช้ ${id} และอัปเดตข้อมูลครูที่ปรึกษา`);
 
     return NextResponse.json({
       success: true,
@@ -119,7 +132,16 @@ export async function DELETE(
       { new: true, returnDocument: 'after' }
     );
 
-    console.log(`✅ ลบนักเรียน ${studentIds.length} คน จากผู้ใช้ ${id}`);
+    // เคลียร์ข้อมูลครูที่ปรึกษาของนักเรียนที่ถูกลบ
+    await Student.updateMany(
+      { _id: { $in: studentIds } },
+      { 
+        advisor_name: "",
+        advisor_id: ""
+      }
+    );
+
+    console.log(`✅ ลบนักเรียน ${studentIds.length} คน จากผู้ใช้ ${id} และเคลียร์ข้อมูลครูที่ปรึกษา`);
 
     return NextResponse.json({
       success: true,

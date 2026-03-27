@@ -21,6 +21,7 @@ export default function Sidebar() {
     { name: "จัดการการมอบหมายนักเรียน", href: "/student_assignment", icon: "bi-people-fill", roles: ["ADMIN"] },
     { name: "สาขา", href: "/major", icon: "bi-building", roles: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"] },
     { name: "รายงาน", href: "/committees/plan", icon: "bi-file-text", roles: ["ADMIN", "EXECUTIVE", "COMMITTEE"] },
+   
   ];
 
   // เมนู Student - แก้ให้ href ไม่ซ้ำกัน
@@ -32,7 +33,7 @@ export default function Sidebar() {
     { id: "problem", name: "🛡️ ป้องกันและแก้ปัญหา", href: "/student_problem", icon: "bi-shield" },
     { id: "send", name: "📤 ส่งต่อผู้เรียน", href: "/student_send", icon: "bi-send" },
     { id: "report", name: "📈 รายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
-    { id: "forms", name: "📋 แบบฟอร์ม/เครื่องมือ", href: "/student/forms", icon: "bi-file-earmark-text" },
+    { id: "forms", name: "📋 แบบฟอร์ม/เครื่องมือ", href: "/forms", icon: "bi-file-earmark-text" },
     { id: "evaluation", name: "⭐ แบบประเมินความพึงพอใจ", href: "/evaluation", icon: "bi-star" },
   ];
 

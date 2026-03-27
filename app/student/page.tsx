@@ -102,24 +102,28 @@ function StudentListPage() {
           setFilteredStudent(formattedData);
         }
         
-        // ✅ TEACHER: เห็นเฉพาะ assigned students
+        // TEACHER: เห็นเฉพาะ assigned students
         else if (userRole === "TEACHER" && session?.user?.id) {
           const assignedRes = await fetch(`/api/user/${session.user.id}/assign-students`);
           const assignedData = await assignedRes.json();
           
           if (assignedData.success && assignedData.data.length > 0) {
+            const teacherName = session?.user?.name || "อาจารย์";
+            console.log("Session user:", session?.user); // Debug log
+            console.log("Teacher name from session:", teacherName); // Debug log
             const formattedData = assignedData.data.map((item: any) => {
               const s = item.student_id;
+              console.log("Student advisor_name from DB:", s.advisor_name); // Debug log
               return {
                 _id: s._id,
-                id: s.id || "",
+                id: s.id || s._id,
                 prefix: s.prefix || "",
                 first_name: s.first_name || "",
                 last_name: s.last_name || "",
-                name: `${s.prefix || ''}${s.first_name} ${s.last_name}`.trim(),
+                name: s.first_name && s.last_name ? `${s.prefix || ''}${s.first_name} ${s.last_name}` : s.name || "",
                 level: s.level || "",
                 status: s.status || "ปกติ",
-                advisor_name: s.advisor_name || "",
+                advisor_name: teacherName,
                 class_group: s.class_group || "",
                 class_number: s.class_number || "",
                 phone_number: s.phone_number || "",
@@ -501,7 +505,15 @@ function StudentListPage() {
                                 <i className="bi bi-pencil"></i>
                               </button>
                             )}
-                            
+                            {(userRole === "ADMIN" || userRole === "TEACHER") && (
+                              <button 
+                                className="btn -clipboard-check btn-outline-success rounded-0"
+                                onClick={() => router.push(`/student/student_detail/${student._id}/interview`)}
+                                title="แบบประเมินผู้ปกครอง"
+                              >
+                                <i className="bi bi-clipboard-check"></i>
+                              </button>
+                            )}
                             {userRole === "ADMIN" && (
                               <button 
                                 className="btn btn-sm btn-outline-danger rounded-0"

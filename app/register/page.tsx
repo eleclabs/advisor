@@ -17,6 +17,8 @@ export default function RegisterPage() {
     nickname: "",
     teacher_id: "",
     phone: "",
+    gender: "",
+    birthDate: "",
     role: "TEACHER", // ค่าเริ่มต้น
   });
   
@@ -240,8 +242,40 @@ export default function RegisterPage() {
                       />
                     </div>
 
-                    {/* รหัสครู */}
+                    {/* เพศ */}
+                    <div className="col-md-3 mb-3">
+                      <label className="form-label fw-semibold small text-uppercase">
+                        เพศ
+                      </label>
+                      <select
+                        name="gender"
+                        className="form-select rounded-0"
+                        value={formData.gender}
+                        onChange={handleChange}
+                      >
+                        <option value="">เลือก</option>
+                        <option value="male">ชาย</option>
+                        <option value="female">หญิง</option>
+                        <option value="other">อื่นๆ</option>
+                      </select>
+                    </div>
+
+                    {/* วันเกิด */}
                     <div className="col-md-4 mb-3">
+                      <label className="form-label fw-semibold small text-uppercase">
+                        วันเกิด
+                      </label>
+                      <input
+                        type="date"
+                        name="birthDate"
+                        className="form-control rounded-0"
+                        value={formData.birthDate}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                    {/* รหัสครู */}
+                    <div className="col-md-5 mb-3">
                       <label className="form-label fw-semibold small text-uppercase">
                         รหัสประจำตัวครู
                       </label>
@@ -252,21 +286,6 @@ export default function RegisterPage() {
                         value={formData.teacher_id}
                         onChange={handleChange}
                         placeholder="(ถ้ามี)"
-                      />
-                    </div>
-
-                    {/* เบอร์โทร */}
-                    <div className="col-md-5 mb-3">
-                      <label className="form-label fw-semibold small text-uppercase">
-                        เบอร์โทรศัพท์
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        className="form-control rounded-0"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="081-234-5678"
                       />
                     </div>
                   </div>

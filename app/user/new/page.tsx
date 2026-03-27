@@ -42,6 +42,8 @@ export default function NewUserPage() {
     teacher_id: "",
     phone: "",
     line_id: "",
+    gender: "",
+    birthDate: "",
     role: "TEACHER",
     is_active: true,
   });
@@ -315,6 +317,28 @@ export default function NewUserPage() {
                         className="form-control rounded-0"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">เพศ</label>
+                      <select
+                        className="form-select rounded-0"
+                        value={formData.gender}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      >
+                        <option value="">เลือก</option>
+                        <option value="male">ชาย</option>
+                        <option value="female">หญิง</option>
+                        <option value="other">อื่นๆ</option>
+                      </select>
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">วันเกิด</label>
+                      <input
+                        type="date"
+                        className="form-control rounded-0"
+                        value={formData.birthDate}
+                        onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
                       />
                     </div>
                     <div className="col-md-4">

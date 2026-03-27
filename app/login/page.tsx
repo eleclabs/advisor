@@ -29,6 +29,21 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
+        // ดึงข้อมูลผู้ใช้และเก็บไว้ใน localStorage
+        try {
+          const response = await fetch('/api/auth/me');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user) {
+              console.log('🔐 Login successful, storing user data:', data.user);
+              localStorage.setItem('currentUser', JSON.stringify(data.user));
+              localStorage.setItem('token', 'authenticated'); // สำหรับตรวจสอบ
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user data after login:', error);
+        }
+        
         router.push("/student"); // หรือ /dashboard ตามต้องการ
       }
     } catch (error) {

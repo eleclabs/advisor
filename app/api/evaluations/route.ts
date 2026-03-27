@@ -1,23 +1,26 @@
-// D:\advisor-main\app\api\evaluation\route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import Evaluation from '@/models/Evaluation';
-import User from '@/models/User';
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
+import Evaluation from "@/models/Evaluation";
+import User from "@/models/User";
 
-// GET - ดึงข้อมูลการประเมินทั้งหมด
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    await dbConnect();
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    await connectDB();
 
-    let evaluations;
-    if (userId) {
-      evaluations = await Evaluation.find({ userId }).populate('userId', 'first_name last_name role').sort({ evaluationDate: -1 });
-    } else {
-      evaluations = await Evaluation.find({}).populate('userId', 'first_name last_name role').sort({ evaluationDate: -1 });
-    }
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
 
+    // ดึงข้อมูลการประเมินทั้งหมดพร้อมข้อมูลผู้ใช้
+    const evaluations = await Evaluation.find({})
+      .populate('userId', 'first_name last_name email role')
+      .sort({ createdAt: -1 })
+      .limit(limit * page)
+      .skip((page - 1) * limit);
+
+    const total = await Evaluation.countDocuments();
+
+    // คำนวณสถิติ
     const stats = {
       total: evaluations.length,
       averageOverall: evaluations.length > 0 ? evaluations.reduce((sum: number, e: any) => sum + e.overallRating, 0) / evaluations.length : 0,
@@ -45,53 +48,58 @@ export async function GET(request: NextRequest) {
       }, 0) / evaluations.length : 0,
     };
 
-    return NextResponse.json({ success: true, evaluations, stats });
-  } catch (error) {
+    return NextResponse.json({
+      success: true,
+      evaluations,
+      stats,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+
+  } catch (error: any) {
     console.error('Error fetching evaluations:', error);
-    return NextResponse.json({ success: false, error: 'Failed to fetch evaluations' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch evaluations' },
+      { status: 500 }
+    );
   }
 }
 
-// POST - บันทึกการประเมินใหม่
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    await dbConnect();
-    const body = await request.json();
-
-    // ✅ Validate userId
-    if (!body.userId) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Missing required field: userId' 
-      }, { status: 400 });
-    }
-
-    // ✅ Validate user exists
-    const user = await User.findById(body.userId);
-    if (!user) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'User not found' 
-      }, { status: 404 });
-    }
+    await connectDB();
+    const body = await req.json();
 
     // Validate required fields
-    if (!body.studentName || !body.gender || !body.ageRange) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Missing required fields: studentName, gender, ageRange' 
-      }, { status: 400 });
+    if (!body.userId || !body.studentName || !body.gender || !body.ageRange) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Validate user exists
+    const user = await User.findById(body.userId);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
     }
 
     // Validate nested objects
     if (!body.functionRequirement || !body.functionality || !body.usability || !body.performance) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Missing evaluation data sections' 
-      }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Missing evaluation data sections' },
+        { status: 400 }
+      );
     }
 
-    // คำนวณคะแนนรวมเฉลี่ย
+    // Calculate averages
     const functionReqAvg = (body.functionRequirement.dataAccess + body.functionRequirement.dataAdd + 
                             body.functionRequirement.dataUpdate + body.functionRequirement.dataPresentation + 
                             body.functionRequirement.dataAccuracy) / 5;
@@ -108,8 +116,8 @@ export async function POST(request: NextRequest) {
 
     const overallRating = (functionReqAvg + functionalityAvg + usabilityAvg + performanceAvg) / 4;
 
-    // ✅ Map frontend fields to backend schema
-    const evaluationData = {
+    // Create evaluation
+    const evaluation = await Evaluation.create({
       userId: body.userId,
       studentName: body.studentName,
       studentCode: body.studentCode || `STU_${Date.now()}`,
@@ -124,11 +132,13 @@ export async function POST(request: NextRequest) {
       additionalSuggestions: body.additionalSuggestions || '',
       overallRating: Math.round(overallRating * 10) / 10,
       evaluationDate: new Date()
-    };
+    });
 
-    const evaluation = await Evaluation.create(evaluationData);
+    return NextResponse.json({
+      success: true,
+      evaluation
+    }, { status: 201 });
 
-    return NextResponse.json({ success: true, evaluation }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating evaluation:', error);
     return NextResponse.json({

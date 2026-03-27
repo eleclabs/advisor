@@ -22,6 +22,8 @@ interface UserData {
   teacher_id: string;
   nickname: string;
   line_id: string;
+  gender: string;
+  birthDate: string;
 }
 
 interface MajorData {
@@ -60,6 +62,8 @@ export default function UserEditPage() {
     teacher_id: "",
     phone: "",
     line_id: "",
+    gender: "",
+    birthDate: "",
     role: "TEACHER",
     is_active: true,
   });
@@ -109,6 +113,8 @@ export default function UserEditPage() {
           teacher_id: result.data.teacher_id || "",
           phone: result.data.phone || "",
           line_id: result.data.line_id || "",
+          gender: result.data.gender || "",
+          birthDate: result.data.birthDate ? new Date(result.data.birthDate).toISOString().split('T')[0] : "",
           role: result.data.role || "TEACHER",
           is_active: result.data.is_active ?? true,
         });
@@ -127,10 +133,14 @@ export default function UserEditPage() {
       prefix: "นาย",
       first_name: "",
       last_name: "",
+      email: "",
+      password: "",
       nickname: "",
       teacher_id: "",
       phone: "",
       line_id: "",
+      gender: "",
+      birthDate: "",
       role: "TEACHER",
       is_active: true,
     });
@@ -440,6 +450,28 @@ export default function UserEditPage() {
                         className="form-control"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">เพศ</label>
+                      <select
+                        className="form-select"
+                        value={formData.gender}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      >
+                        <option value="">เลือก</option>
+                        <option value="male">ชาย</option>
+                        <option value="female">หญิง</option>
+                        <option value="other">อื่นๆ</option>
+                      </select>
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label">วันเกิด</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={formData.birthDate}
+                        onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
                       />
                     </div>
                     <div className="col-md-4">

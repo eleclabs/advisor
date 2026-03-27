@@ -64,6 +64,15 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     description: "เบอร์โทรศัพท์ติดต่อ",
   },
+  gender: {
+    type: String,
+    enum: ["male", "female", "other"],
+    description: "เพศ",
+  },
+  birthDate: {
+    type: Date,
+    description: "วันเกิด",
+  },
   line_id: {
     type: String,
     trim: true,

@@ -115,35 +115,33 @@ export default function StudentBasicPage() {
       
       try {
         setLoading(true);
-        console.log("🔍 Fetching student with _id:", studentDocId);
+        console.log(" Fetching student with _id:", studentDocId);
         
-        const response = await fetch("/api/student");
+        const response = await fetch(`/api/student/${studentDocId}`);
         const result = await response.json();
         
-        let studentsData = [];
-        if (result.success && Array.isArray(result.data)) {
-          studentsData = result.data;
+        let foundStudent = null;
+        if (result.success && result.data) {
+          foundStudent = result.data;
         }
         
-        const foundStudent = studentsData.find((s: any) => s._id === studentDocId);
-        
         if (foundStudent) {
-          console.log("📥 Found student data:", foundStudent); // ✅ ดูว่ามี class_number มั้ย
+          console.log(" Found student data:", foundStudent); // ดูว่ามี class_number มั้ย
           
           const formattedData: StudentBasic = {
             _id: foundStudent._id,
-            id: foundStudent.id || "",
+            id: foundStudent.id || foundStudent._id,
             prefix: foundStudent.prefix || "",
             first_name: foundStudent.first_name || "",
             last_name: foundStudent.last_name || "",
-            name: `${foundStudent.prefix || ''}${foundStudent.first_name || ''} ${foundStudent.last_name || ''}`.trim(),
+            name: foundStudent.first_name && foundStudent.last_name ? `${foundStudent.prefix || ''}${foundStudent.first_name} ${foundStudent.last_name}` : foundStudent.name || "",
             status: foundStudent.status || "ปกติ",
             nickname: foundStudent.nickname || "",
             gender: foundStudent.gender || "",
             birth_date: foundStudent.birth_date || "",
             level: foundStudent.level || "",
             class_group: foundStudent.class_group || "",
-            class_number: foundStudent.class_number || "",  // ✅ เพิ่มห้อง
+            class_number: foundStudent.class_number || "",
             advisor_name: foundStudent.advisor_name || "",
             phone_number: foundStudent.phone_number || "",
             religion: foundStudent.religion || "",
