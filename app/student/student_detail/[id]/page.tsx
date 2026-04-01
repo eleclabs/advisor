@@ -366,18 +366,20 @@ export default function StudentBasicPage() {
 
         <div className="row mb-4">
           <div className="col-12 d-flex justify-content-end gap-2">
-            <Link
-              href={`/student/student_detail/${student._id}/assessment/sdq`}
-              className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
-            >
-              <i className="bi bi-clipboard-data me-2"></i>SDQ
-            </Link>
-            <Link
-              href={`/student/student_detail/${student._id}/assessment/dass21`}
-              className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
-            >
-              <i className="bi bi-clipboard-heart me-2"></i>DASS-21
-            </Link>
+            <div className="d-flex gap-2">
+              <Link
+                href={`/student/student_detail/${student._id}/assessment/sdq/results`}
+                className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
+              >
+                <i className="bi bi-clipboard-data me-2"></i>SDQ
+              </Link>
+              <Link
+                href={`/student/student_detail/${student._id}/assessment/dass21/results`}
+                className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+              >
+                <i className="bi bi-clipboard-heart me-2"></i>DASS-21
+              </Link>
+            </div>
             <Link
               href={`/student/student_detail/${student._id}/edit`}
               className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"

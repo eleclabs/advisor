@@ -7,10 +7,17 @@ export interface IFormResponse extends Document {
   userName: string;
   userEmail: string;
   userRole: string;
+  userGender?: string;
+  userAgeRange?: string;
+  userBirthDate?: string;
   answers: {
     questionId: number;
     questionText: string;
+    questionType?: string;
     answer: any;
+    sectionId?: string;
+    sectionTitle?: string;
+    sectionOrder?: number;
   }[];
   submittedAt: Date;
 }
@@ -28,10 +35,17 @@ const FormResponseSchema = new Schema({
   userName: { type: String, required: true },
   userEmail: { type: String, required: true },
   userRole: { type: String, required: true },
+  userGender: { type: String },
+  userAgeRange: { type: String },
+  userBirthDate: { type: String },
   answers: [{
     questionId: { type: Number, required: true },
     questionText: { type: String, required: true },
-    answer: Schema.Types.Mixed
+    questionType: { type: String },
+    answer: Schema.Types.Mixed,
+    sectionId: { type: String },
+    sectionTitle: { type: String },
+    sectionOrder: { type: Number }
   }],
   submittedAt: { type: Date, default: Date.now }
 }, { timestamps: true });

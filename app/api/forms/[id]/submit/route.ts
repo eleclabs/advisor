@@ -1,6 +1,7 @@
 // app/api/forms/[id]/submit/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import mongoose from "mongoose";
 import Form from "@/models/Form";
 import FormResponse from "@/models/FormResponse";
 
@@ -14,10 +15,10 @@ export async function POST(
     const { id } = await params;
     const body = await req.json();
 
-    const { answers, userName, userEmail, userRole, userId } = body;
+    const { formId, userId, userName, userRole, answers } = body;
 
     // ตรวจสอบว่าแบบฟอร์มมีอยู่และ active
-    const form = await Form.findById(id);
+    const form = await Form.findById(formId || id);
     if (!form) {
       return NextResponse.json(
         { success: false, message: 'ไม่พบแบบฟอร์ม' },
@@ -34,7 +35,7 @@ export async function POST(
 
     // ตรวจสอบคำตอบครบทุกข้อที่ required
     const requiredQuestions = form.questions.filter((q: any) => q.required);
-    const answeredIds = answers.map((a: any) => a.questionId);
+    const answeredIds = answers.map((a: any) => a.questionOrder);
     
     const missingQuestions = requiredQuestions.filter(
       (q: any) => !answeredIds.includes(q.order)
@@ -50,17 +51,59 @@ export async function POST(
       );
     }
 
-    // บันทึกคำตอบ
+    // ดึงข้อมูลผู้ใช้เพิ่มเติมจาก userId ถ้ามี
+    let userEmail = '';
+    let userGender = '';
+    let userAgeRange = '';
+    let userBirthDate = '';
+    
+    if (userId) {
+      try {
+        const User = mongoose.model('User');
+        const user = await User.findById(userId);
+        if (user) {
+          userEmail = user.email || '';
+          userGender = user.gender || '';
+          userBirthDate = user.birthDate || user.dob || user.date_of_birth || '';
+          
+          // คำนวณช่วงอายุ
+          if (userBirthDate) {
+            const birth = new Date(userBirthDate);
+            const today = new Date();
+            const age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
+            
+            if (actualAge < 20) userAgeRange = 'under-20';
+            else if (actualAge <= 30) userAgeRange = '20-30';
+            else if (actualAge <= 40) userAgeRange = '31-40';
+            else if (actualAge <= 50) userAgeRange = '41-50';
+            else userAgeRange = 'over-50';
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    }
+
+    // บันทึกคำตอบพร้อมข้อมูลผู้ใช้
     const response = await FormResponse.create({
-      formId: id,
+      formId: formId || id,
       userId: userId || null,
       userName,
       userEmail,
       userRole,
+      userGender,
+      userAgeRange,
+      userBirthDate,
       answers: answers.map((a: any) => ({
-        questionId: a.questionId,
+        questionId: a.questionOrder,
         questionText: a.questionText,
-        answer: a.answer
+        questionType: a.questionType,
+        answer: a.answer,
+        sectionId: a.sectionId,
+        sectionTitle: a.sectionTitle,
+        sectionOrder: a.sectionOrder
       }))
     });
 

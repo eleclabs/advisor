@@ -1,7 +1,7 @@
 // proxy.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { hasPagePermission, PagePermission } from './lib/permissions';
+import { hasPagePermission, PagePermission, Role } from './lib/permissions';
 
 // แผนที่เส้นทางกับสิทธิ์ที่ต้องการ (คงเดิม)
 const pathPermissions: Record<string, PagePermission> = {
@@ -82,7 +82,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const userRole = token.role as string;
+  const userRole = token.role as Role;
   const hasPermission = hasPagePermission(userRole, requiredPermission);
 
   if (!hasPermission) {

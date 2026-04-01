@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 // ========== Component ย่อย ==========
 const InputField = ({
@@ -437,6 +438,7 @@ const DASS21_QUESTIONS = [
 // ========== Main Component ==========
 export default function AssessmentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeForm, setActiveForm] = useState<'sdq' | 'dass21' | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -453,6 +455,51 @@ export default function AssessmentPage() {
 
   const [sdqAnswers, setSdqAnswers] = useState<Record<string, string>>({});
   const [dass21Answers, setDass21Answers] = useState<Record<string, string>>({});
+
+  // Handle URL parameters
+  useEffect(() => {
+    const type = searchParams.get('type');
+    const studentId = searchParams.get('studentId');
+    
+    if (type && (type === 'sdq' || type === 'dass21')) {
+      setActiveForm(type);
+      
+      // If studentId is provided, fetch student data
+      if (studentId) {
+        fetchStudentData(studentId);
+      }
+    }
+  }, [searchParams]);
+
+  const fetchStudentData = async (studentId: string) => {
+    try {
+      const response = await fetch(`/api/student/${studentId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const student = data.data;
+        setStudentInfo(prev => ({
+          ...prev,
+          studentId: student._id, // Always use MongoDB _id
+          studentName: `${student.prefix} ${student.first_name} ${student.last_name}`,
+          grade: student.level,
+          classroom: `${student.class_group}/${student.class_number}`,
+          gender: student.gender,
+          age: student.birth_date ? calculateAge(student.birth_date).toString() : ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching student data:', error);
+    }
+  };
+
+  const calculateAge = (birthDate: string): number => {
+    const birth = new Date(birthDate);
+    const today = new Date();
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    return monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
+  };
 
   const genderOptions = [
     { value: 'male', label: 'ชาย' },
@@ -681,6 +728,42 @@ export default function AssessmentPage() {
       }}>
         <div style={{ width: '100%', maxWidth: '600px' }}>
           <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <Link href="/assessment/charts" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                backgroundColor: '#17a2b8',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#138496'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#17a2b8'}>
+                📊 ดูแผนภูมิสรุป
+              </Link>
+              <Link href="/assessment/summary" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                📊 ดูสรุปการประเมินทั้งหมด
+              </Link>
+            </div>
             <h1 style={{
               fontSize: '28px',
               fontWeight: 600,

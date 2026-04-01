@@ -4,7 +4,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { hasPagePermission, PagePermission } from "@/lib/permissions";
+import { hasPagePermission, PagePermission, Role } from "@/lib/permissions";
 
 export function withPermission<P extends object>(
   WrappedComponent: React.ComponentType<P>,
@@ -39,7 +39,7 @@ export function withPermission<P extends object>(
       }
 
       const userRole = session.user?.role;
-      const hasPermission = hasPagePermission(userRole, permission);
+      const hasPermission = hasPagePermission(userRole as Role | undefined, permission);
 
       if (!hasPermission) {
         router.push(redirectTo);
@@ -55,7 +55,7 @@ export function withPermission<P extends object>(
     }
 
     const userRole = session.user?.role;
-    const hasPermission = hasPagePermission(userRole, permission);
+    const hasPermission = hasPagePermission(userRole as Role, permission);
 
     if (!hasPermission) {
       return null;

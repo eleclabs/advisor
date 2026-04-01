@@ -90,11 +90,11 @@ export default function SdqAssessmentPage() {
       "66002": "นางสาวจิรา สวยใจ",
       "66003": "นายสมเด็จ วิจิตร",
     };
-    setStudentName(mockNames[studentId] || "นักเรียน");
+    setStudentName(mockNames[studentId as string] || "นักเรียน");
     setLoading(false);
   }, [studentId]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -360,9 +360,9 @@ export default function SdqAssessmentPage() {
                     <thead className="table-light">
                       <tr>
                         <th className="fw-semibold">ข้อความ</th>
-                        <th className="fw-semibold text-center" width="15%">ไม่จริง</th>
-                        <th className="fw-semibold text-center" width="15%">ค่อนข้างจริง</th>
-                        <th className="fw-semibold text-center" width="15%">จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ไม่จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ค่อนข้างจริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>จริง</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -419,9 +419,9 @@ export default function SdqAssessmentPage() {
                     <thead className="table-light">
                       <tr>
                         <th className="fw-semibold">ข้อความ</th>
-                        <th className="fw-semibold text-center" width="15%">ไม่จริง</th>
-                        <th className="fw-semibold text-center" width="15%">ค่อนข้างจริง</th>
-                        <th className="fw-semibold text-center" width="15%">จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ไม่จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ค่อนข้างจริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>จริง</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -478,9 +478,9 @@ export default function SdqAssessmentPage() {
                     <thead className="table-light">
                       <tr>
                         <th className="fw-semibold">ข้อความ</th>
-                        <th className="fw-semibold text-center" width="15%">ไม่จริง</th>
-                        <th className="fw-semibold text-center" width="15%">ค่อนข้างจริง</th>
-                        <th className="fw-semibold text-center" width="15%">จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ไม่จริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>ค่อนข้างจริง</th>
+                        <th className="fw-semibold text-center" style={{width: "15%"}}>จริง</th>
                       </tr>
                     </thead>
                     <tbody>

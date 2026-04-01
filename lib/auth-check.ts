@@ -1,7 +1,7 @@
 // lib/auth-check.ts
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { hasPagePermission, PagePermission, hasItemPermission } from "./permissions";
+import { hasPagePermission, PagePermission } from "./permissions";
 import { canAccessItem } from "./data-filter";
 
 /**

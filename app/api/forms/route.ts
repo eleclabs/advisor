@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
       endDate
     } = body;
 
-    // ✅ แบบฟอร์มมาตรฐานสร้างผ่าน seed เท่านั้น
+    // แบบฟอร์มมาตรฐานสร้างผ่าน seed เท่านั้น
     if (body.isStandard) {
       return NextResponse.json(
         { success: false, message: 'แบบฟอร์มมาตรฐานไม่สามารถสร้างผ่าน API ได้' },
@@ -98,17 +98,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!questions || questions.length === 0) {
+    // ตรวจสอบว่ามี formStructure หรือ questions
+    if ((!questions || questions.length === 0) && (!body.formStructure || !body.formStructure.sections || body.formStructure.sections.length === 0)) {
       return NextResponse.json(
-        { success: false, message: 'ต้องมีอย่างน้อย 1 ข้อคำถาม' },
+        { success: false, message: 'ต้องมีอย่างน้อย 1 หัวข้อหรือ 1 ข้อคำถาม' },
         { status: 400 }
       );
     }
 
-    // ✅ Admin ต้องเห็นเสมอ
+    // Admin ต้องเห็นเสมอ
     const isVisibleToAdmin = true;
 
-    const newForm = await Form.create({
+    // เตรียมข้อมูลสำหรับบันทึก
+    const formData: any = {
       title,
       description,
       category,
@@ -122,17 +124,41 @@ export async function POST(req: NextRequest) {
       isVisibleToAdmin,
       status: status || 'draft',
       startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      questions: questions.map((q: any, index: number) => ({
+      endDate: endDate ? new Date(endDate) : undefined
+    };
+
+    // ถ้ามี formStructure ให้บันทึกทั้ง formStructure และ questions
+    if (body.formStructure && body.formStructure.sections) {
+      formData.formStructure = body.formStructure;
+      
+      // แปลง questions จาก formStructure สำหรับความเข้ากันได้กับระบบเดิม
+      if (questions && questions.length > 0) {
+        formData.questions = questions.map((q: any, index: number) => ({
+          order: q.order || index + 1,
+          questionText: q.questionText,
+          questionType: q.questionType || 'scale',
+          options: q.options || [],
+          required: q.required !== false,
+          // เพิ่มข้อมูลหัวข้อ
+          sectionId: q.sectionId,
+          sectionTitle: q.sectionTitle,
+          sectionOrder: q.sectionOrder
+        }));
+      }
+    } else {
+      // กรณีเก่า - ใช้ questions ธรรมดา
+      formData.questions = questions.map((q: any, index: number) => ({
         order: index + 1,
         questionText: q.questionText,
         questionType: q.questionType || 'scale',
         options: q.options || [],
         required: q.required !== false
-      }))
-    });
+      }));
+    }
 
-    console.log('✅ Form created:', newForm._id, 'isStandard:', newForm.isStandard, 'status:', newForm.status);
+    const newForm = await Form.create(formData);
+
+    console.log('Form created:', newForm._id, 'isStandard:', newForm.isStandard, 'status:', newForm.status);
 
     return NextResponse.json({
       success: true,

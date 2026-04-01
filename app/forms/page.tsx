@@ -191,6 +191,42 @@ export default function StudentFormsPage() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
+              {/* ปุ่มดูแผนภูมิสรุป */}
+              <Link href="/assessment/charts" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                backgroundColor: '#17a2b8',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#138496'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#17a2b8'}>
+                📊 แผนภูมิสรุป
+              </Link>
+              {/* ปุ่มดูสรุปการประเมินทั้งหมด */}
+              <Link href="/assessment/summary" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                📊 สรุปการประเมิน
+              </Link>
               {/* ปุ่มสร้างแบบฟอร์ม (แสดงเฉพาะ Admin และ Teacher) */}
               {(currentUser?.role === 'ADMIN' || currentUser?.role === 'TEACHER') && (
                 <Link href="/forms/create" style={{
@@ -400,22 +436,40 @@ export default function StudentFormsPage() {
                       ✅ เปิดใช้งาน
                     </span>
                   </div>
-                  <button style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'background-color 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
-                    ดูแบบประเมิน
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                        <button style={{
+                          flex: 1,
+                          padding: '12px',
+                          backgroundColor: '#007bff',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                          ดูแบบประเมิน
+                        </button>
+                        <button style={{
+                          flex: 1,
+                          padding: '12px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
+                          📊 ดูผลการประเมิน
+                        </button>
+                      </div>
                 </div>
 
                 {/* DASS-21 Card */}
@@ -482,22 +536,40 @@ export default function StudentFormsPage() {
                       ✅ เปิดใช้งาน
                     </span>
                   </div>
-                  <button style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'background-color 0.15s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
-                    ดูแบบประเมิน
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                        <button style={{
+                          flex: 1,
+                          padding: '12px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
+                          ดูแบบประเมิน
+                        </button>
+                        <button style={{
+                          flex: 1,
+                          padding: '12px',
+                          backgroundColor: '#007bff',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                          📊 ดูผลการประเมิน
+                        </button>
+                      </div>
                 </div>
 
               </div>
@@ -763,36 +835,64 @@ export default function StudentFormsPage() {
                           👤 สร้างโดย: {form.createdByName}
                         </div>
                       )}
-                      <button style={{
-                        width: '100%',
-                        padding: '12px',
-                        backgroundColor: form.status === 'active' ? '#17a2b8' : '#6c757d',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        cursor: form.status === 'draft' ? 'not-allowed' : 'pointer',
-                        transition: 'background-color 0.15s ease'
-                      }}
-                      onClick={(e) => {
-                        if (form.status === 'draft') {
-                          e.stopPropagation();
-                          alert('แบบฟอร์มนี้ยังอยู่ในฉบับร่าง ต้องเผยแพร่ก่อนจึงจะใช้งานได้');
-                        }
-                      }}
-                      onMouseEnter={(e) => {
-                        if (form.status === 'active') {
-                          e.currentTarget.style.backgroundColor = '#117a8b';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (form.status === 'active') {
-                          e.currentTarget.style.backgroundColor = '#17a2b8';
-                        }
-                      }}>
-                        {form.status === 'active' ? 'เริ่มทำแบบฟอร์ม' : '📝 ฉบับร่าง (ยังไม่เปิดใช้งาน)'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                        <button 
+                          style={{
+                            flex: 1,
+                            padding: '10px',
+                            backgroundColor: form.status === 'active' ? '#17a2b8' : '#6c757d',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: form.status === 'draft' ? 'not-allowed' : 'pointer',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (form.status === 'draft') {
+                              alert('แบบฟอร์มนี้ยังอยู่ในฉบับร่าง ต้องเผยแพร่ก่อนจึงจะใช้งานได้');
+                            } else {
+                              router.push(`/forms/${form._id}`);
+                            }
+                          }}
+                          onMouseEnter={(e) => {
+                            if (form.status === 'active') {
+                              e.currentTarget.style.backgroundColor = '#117a8b';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (form.status === 'active') {
+                              e.currentTarget.style.backgroundColor = '#17a2b8';
+                            }
+                          }}>
+                          {form.status === 'active' ? 'เริ่มทำแบบฟอร์ม' : '📝 ฉบับร่าง (ยังไม่เปิดใช้งาน)'}
+                        </button>
+                        {form.status === 'active' && (
+                          <button 
+                            style={{
+                              flex: 1,
+                              padding: '10px',
+                              backgroundColor: '#28a745',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '14px',
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              transition: 'background-color 0.15s ease'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/forms/${form._id}/responses`);
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
+                            📊 ดูผลการประเมิน
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
 
     // กรองนักเรียนที่ยังไม่มีแผน
     const studentsWithPlan = await Problem.find().distinct('student_id');
-    const availableStudents = students.filter(s => !studentsWithPlan.includes(s.id));
+    const availableStudents = students.filter((s: any) => !studentsWithPlan.includes((s as any).id));
 
     console.log(`✅ Found ${availableStudents.length} available students`);
 

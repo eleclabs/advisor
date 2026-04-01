@@ -106,8 +106,8 @@ export default function EvaluationPage() {
         ...prev,
         studentId: session.user.id || '',
         studentName: session.user.name || '',
-        studentCode: session.user.code || '',
-        studentClass: session.user.class || ''
+        studentCode: (session.user as any).code || '',
+        studentClass: (session.user as any).class || ''
       }));
     }
   }, [session, status, router]);
@@ -116,7 +116,7 @@ export default function EvaluationPage() {
     setFormData(prev => ({
       ...prev,
       [category]: {
-        ...prev[category as keyof typeof prev],
+        ...(prev as any)[category],
         [field]: value
       }
     }));
@@ -164,8 +164,8 @@ export default function EvaluationPage() {
         setFormData({
           studentId: session?.user?.id || '',
           studentName: session?.user?.name || '',
-          studentCode: session?.user?.code || '',
-          studentClass: session?.user?.class || '',
+          studentCode: (session?.user as any)?.code || '',
+          studentClass: (session?.user as any)?.class || '',
           
           functionRequirement: {
             dataAccess: 3,

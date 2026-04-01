@@ -28,9 +28,18 @@ export async function GET(
     }
 
     console.log('✅ API: Form loaded:', form.title);
+    
+    // ✅ ส่งข้อมูลทั้งหมด - ถ้ามี formStructure ให้ใช้ข้อมูลนั้น ถ้าไม่มีให้ใช้ questions
+    const responseData = {
+      ...form.toObject(),
+      // ถ้ามี formStructure ให้ใช้ข้อมูลนั้น
+      hasFormStructure: !!(form as any).formStructure,
+      formStructure: (form as any).formStructure || null
+    };
+
     return NextResponse.json({
       success: true,
-      data: form
+      data: responseData
     });
   } catch (error: any) {
     console.error('❌ API Error fetching form:', error);

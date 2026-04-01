@@ -75,8 +75,8 @@ export default function ActivityStatusPage() {
       let found = null;
       if (matchingActivities.length > 0) {
         // ลองหาอันที่มี joined_at และ completed_at ก่อน
-        found = matchingActivities.find(a => a.joined_at && a.completed_at) || 
-                matchingActivities.find(a => a.joined_at) ||
+        found = matchingActivities.find((a: any) => a.joined_at && a.completed_at) || 
+                matchingActivities.find((a: any) => a.joined_at) ||
                 matchingActivities[0];
       }
 

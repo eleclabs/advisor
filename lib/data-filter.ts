@@ -137,8 +137,8 @@ export async function canAccessItem(
       break;
     }
     case "send": {
-      const Send = (await import("@/models/Send")).default;
-      item = await Send.findById(itemId);
+      const { Referral } = await import("@/models/Send");
+      item = await Referral.findById(itemId);
       break;
     }
     default:

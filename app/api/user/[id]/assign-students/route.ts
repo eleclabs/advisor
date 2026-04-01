@@ -122,7 +122,7 @@ export async function DELETE(
 
     // กรองนักเรียนที่ไม่ต้องการลบออก
     const updatedAssignedStudents = user.assigned_students?.filter(
-      assignment => !studentIds.includes(assignment.student_id?.toString())
+      (assignment: any) => !studentIds.includes(assignment.student_id?.toString())
     ) || [];
 
     // อัปเดตผู้ใช้

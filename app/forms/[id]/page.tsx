@@ -4,12 +4,490 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// --- Component ย่อย (Styled like evaluation page) ---
+const InputField = ({
+  label,
+  name,
+  value,
+  onChange,
+  required = true,
+  disabled = false
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  required?: boolean;
+  disabled?: boolean;
+}) => {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      border: '1px solid #dee2e6',
+      borderRadius: '4px',
+      marginBottom: '16px',
+      padding: '20px 24px'
+    }}>
+      <label style={{
+        fontSize: '14px',
+        marginBottom: '12px',
+        fontWeight: 500,
+        color: '#212529',
+        display: 'block'
+      }}>
+        {label} {required && <span style={{ color: '#dc3545' }}>*</span>}
+      </label>
+      <input
+        type="text"
+        name={name}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        style={{
+          width: '100%',
+          maxWidth: '320px',
+          border: '1px solid #ced4da',
+          borderRadius: '4px',
+          padding: '8px 12px',
+          fontSize: '14px',
+          color: disabled ? '#6c757d' : '#212529',
+          outline: 'none',
+          transition: 'border-color 0.15s ease',
+          backgroundColor: disabled ? '#e9ecef' : '#fff'
+        }}
+        placeholder="คำตอบของคุณ"
+        required={required}
+        onFocus={(e) => e.currentTarget.style.borderColor = '#2c3e50'}
+        onBlur={(e) => e.currentTarget.style.borderColor = '#ced4da'}
+      />
+    </div>
+  );
+};
+
+// Component Dropdown
+const SelectField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  required = true
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: { value: string; label: string }[];
+  required?: boolean;
+}) => {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      border: '1px solid #dee2e6',
+      borderRadius: '4px',
+      marginBottom: '16px',
+      padding: '20px 24px'
+    }}>
+      <label style={{
+        fontSize: '14px',
+        marginBottom: '12px',
+        fontWeight: 500,
+        color: '#212529',
+        display: 'block'
+      }}>
+        {label} {required && <span style={{ color: '#dc3545' }}>*</span>}
+      </label>
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        style={{
+          width: '100%',
+          maxWidth: '320px',
+          border: '1px solid #ced4da',
+          borderRadius: '4px',
+          padding: '8px 12px',
+          fontSize: '14px',
+          color: '#212529',
+          outline: 'none',
+          transition: 'border-color 0.15s ease',
+          backgroundColor: '#fff',
+          cursor: 'pointer'
+        }}
+        onFocus={(e) => e.currentTarget.style.borderColor = '#2c3e50'}
+        onBlur={(e) => e.currentTarget.style.borderColor = '#ced4da'}
+      >
+        <option value="">-- กรุณาเลือก --</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+const SectionHeader = ({ number, title, subtitle }: { number?: string; title: string; subtitle?: string }) => {
+  return (
+    <div style={{
+      margin: '32px 0 20px 0',
+      paddingBottom: '12px',
+      borderBottom: '2px solid #e9ecef'
+    }}>
+      {number && (
+        <div style={{
+          fontSize: '13px',
+          fontWeight: 500,
+          color: '#6c757d',
+          letterSpacing: '0.5px',
+          marginBottom: '4px'
+        }}>
+          ส่วนที่ {number}
+        </div>
+      )}
+      <div style={{
+        fontSize: '20px',
+        fontWeight: 600,
+        color: '#212529',
+        letterSpacing: '-0.2px'
+      }}>
+        {title}
+      </div>
+      {subtitle && (
+        <div style={{
+          fontSize: '13px',
+          color: '#6c757d',
+          marginTop: '6px'
+        }}>
+          {subtitle}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Question Component with styled radio scale
+const QuestionScale = ({
+  questionNumber,
+  title,
+  name,
+  value,
+  onChange,
+  required = true
+}: {
+  questionNumber?: number;
+  title: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  required?: boolean;
+}) => {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      border: '1px solid #dee2e6',
+      borderRadius: '4px',
+      marginBottom: '16px',
+      padding: '20px 24px'
+    }}>
+      <div style={{
+        fontSize: '14px',
+        marginBottom: '16px',
+        fontWeight: 500,
+        color: '#212529',
+        lineHeight: 1.5
+      }}>
+        {questionNumber && <span style={{ color: '#6c757d', marginRight: '8px' }}>{questionNumber}.</span>}
+        {title} {required && <span style={{ color: '#dc3545' }}>*</span>}
+      </div>
+      <div style={{ marginTop: '16px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: '12px',
+          color: '#6c757d',
+          marginBottom: '10px',
+          letterSpacing: '0.3px'
+        }}>
+          <span>น้อยที่สุด</span>
+          <span>น้อย</span>
+          <span>ปานกลาง</span>
+          <span>มาก</span>
+          <span>มากที่สุด</span>
+        </div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          textAlign: 'center',
+          gap: '8px'
+        }}>
+          {[1, 2, 3, 4, 5].map((num) => (
+            <label
+              key={num}
+              style={{
+                flex: 1,
+                cursor: 'pointer',
+                padding: '8px 4px',
+                borderRadius: '4px',
+                transition: 'all 0.15s ease',
+                backgroundColor: value === num.toString() ? '#e9ecef' : 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (value !== num.toString()) {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (value !== num.toString()) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
+            >
+              <input
+                type="radio"
+                name={name}
+                value={num}
+                checked={value === num.toString()}
+                onChange={(e) => onChange(name, e.target.value)}
+                style={{
+                  marginBottom: '6px',
+                  cursor: 'pointer',
+                  width: '18px',
+                  height: '18px',
+                  display: 'block',
+                  margin: '0 auto 6px auto',
+                  accentColor: '#2c3e50'
+                }}
+              />
+              <div style={{
+                fontSize: '13px',
+                fontWeight: value === num.toString() ? '500' : '400',
+                color: '#495057'
+              }}>
+                {num}
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Radio Field Component
+const RadioField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  required = true
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  options: { value: string; label: string }[];
+  required?: boolean;
+}) => {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      border: '1px solid #dee2e6',
+      borderRadius: '4px',
+      marginBottom: '16px',
+      padding: '20px 24px'
+    }}>
+      <div style={{
+        fontSize: '14px',
+        marginBottom: '16px',
+        fontWeight: 500,
+        color: '#212529',
+        lineHeight: 1.5
+      }}>
+        {label} {required && <span style={{ color: '#dc3545' }}>*</span>}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {options.map((option) => (
+          <label
+            key={option.value}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              borderRadius: '4px',
+              backgroundColor: value === option.value ? '#f8f9fa' : 'white',
+              border: `1px solid ${value === option.value ? '#2c3e50' : '#dee2e6'}`,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={value === option.value}
+              onChange={(e) => onChange(name, e.target.value)}
+              style={{
+                width: '18px',
+                height: '18px',
+                accentColor: '#2c3e50'
+              }}
+            />
+            <span style={{ fontSize: '14px', color: '#212529' }}>{option.label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Checkbox Field Component
+const CheckboxField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  required = true
+}: {
+  label: string;
+  name: string;
+  value: string[];
+  onChange: (name: string, value: string[]) => void;
+  options: { value: string; label: string }[];
+  required?: boolean;
+}) => {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      border: '1px solid #dee2e6',
+      borderRadius: '4px',
+      marginBottom: '16px',
+      padding: '20px 24px'
+    }}>
+      <div style={{
+        fontSize: '14px',
+        marginBottom: '16px',
+        fontWeight: 500,
+        color: '#212529',
+        lineHeight: 1.5
+      }}>
+        {label} {required && <span style={{ color: '#dc3545' }}>*</span>}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {options.map((option) => (
+          <label
+            key={option.value}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              borderRadius: '4px',
+              backgroundColor: value.includes(option.value) ? '#f8f9fa' : 'white',
+              border: `1px solid ${value.includes(option.value) ? '#2c3e50' : '#dee2e6'}`,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <input
+              type="checkbox"
+              name={name}
+              value={option.value}
+              checked={value.includes(option.value)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onChange(name, [...value, option.value]);
+                } else {
+                  onChange(name, value.filter(v => v !== option.value));
+                }
+              }}
+              style={{
+                width: '18px',
+                height: '18px',
+                accentColor: '#2c3e50'
+              }}
+            />
+            <span style={{ fontSize: '14px', color: '#212529' }}>{option.label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Text Area Field Component
+const TextAreaField = ({
+  label,
+  name,
+  value,
+  onChange,
+  required = true
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  required?: boolean;
+}) => {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      border: '1px solid #dee2e6',
+      borderRadius: '4px',
+      marginBottom: '16px',
+      padding: '20px 24px'
+    }}>
+      <label style={{
+        fontSize: '14px',
+        marginBottom: '12px',
+        fontWeight: 500,
+        color: '#212529',
+        display: 'block'
+      }}>
+        {label} {required && <span style={{ color: '#dc3545' }}>*</span>}
+      </label>
+      <textarea
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        rows={4}
+        style={{
+          width: '100%',
+          border: '1px solid #ced4da',
+          borderRadius: '4px',
+          padding: '10px 12px',
+          fontSize: '14px',
+          color: '#212529',
+          outline: 'none',
+          transition: 'border-color 0.15s ease',
+          fontFamily: 'inherit',
+          resize: 'vertical',
+          backgroundColor: '#fff'
+        }}
+        placeholder="พิมพ์คำตอบของคุณ..."
+        onFocus={(e) => e.currentTarget.style.borderColor = '#2c3e50'}
+        onBlur={(e) => e.currentTarget.style.borderColor = '#ced4da'}
+      />
+    </div>
+  );
+};
+
+// Interfaces
 interface Question {
   order: number;
   questionText: string;
   questionType: 'radio' | 'checkbox' | 'text' | 'scale';
   options: string[];
   required: boolean;
+  sectionId?: string;
+  sectionTitle?: string;
+  sectionOrder?: number;
 }
 
 interface Form {
@@ -20,7 +498,38 @@ interface Form {
   status: string;
   questions: Question[];
   createdByName: string;
+  formStructure?: {
+    title: string;
+    description: string;
+    category: string;
+    sections: {
+      id: string;
+      title: string;
+      description: string;
+      order: number;
+      questions: Question[];
+    }[];
+  };
 }
+
+// Helper to group questions by section
+const groupQuestionsBySection = (questions: Question[]) => {
+  const sections: { title: string; order: number; questions: Question[] }[] = [];
+  const currentSection: { [key: string]: Question[] } = {};
+
+  questions.forEach((q) => {
+    const sectionTitle = q.sectionTitle || 'คำถามทั่วไป';
+    const sectionOrder = q.sectionOrder || 0;
+    
+    if (!currentSection[sectionTitle]) {
+      currentSection[sectionTitle] = [];
+      sections.push({ title: sectionTitle, order: sectionOrder, questions: currentSection[sectionTitle] });
+    }
+    currentSection[sectionTitle].push(q);
+  });
+
+  return sections.sort((a, b) => a.order - b.order);
+};
 
 export default function CustomFormPage() {
   const params = useParams();
@@ -28,13 +537,43 @@ export default function CustomFormPage() {
   const [form, setForm] = useState<Form | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{
+    _id: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    gender?: string;
+    birthDate?: string;
+    ageRange?: string;
+  } | null>(null);
+
   const [answers, setAnswers] = useState<Record<number, any>>({});
   const [errors, setErrors] = useState<Record<number, string>>({});
   const [formId, setFormId] = useState<string>('');
 
+  const genderOptions = [
+    { value: 'male', label: 'ชาย' },
+    { value: 'female', label: 'หญิง' },
+    { value: 'other', label: 'อื่นๆ' }
+  ];
+
+  const ageRangeOptions = [
+    { value: 'under-20', label: 'ต่ำกว่า 20 ปี' },
+    { value: '20-30', label: '20 - 30 ปี' },
+    { value: '31-40', label: '31 - 40 ปี' },
+    { value: '41-50', label: '41 - 50 ปี' },
+    { value: 'over-50', label: 'มากกว่า 50 ปี' }
+  ];
+
+  const roleOptions = [
+    { value: 'ADMIN', label: 'ผู้ดูแลระบบ' },
+    { value: 'TEACHER', label: 'อาจารย์' },
+    { value: 'EXECUTIVE', label: 'ผู้บริหาร' },
+    { value: 'COMMITTEE', label: 'คณะกรรมการ' }
+  ];
+
   useEffect(() => {
-    // Handle Next.js 15 params
     const init = async () => {
       const resolvedParams = await params;
       setFormId(resolvedParams.id as string);
@@ -50,33 +589,57 @@ export default function CustomFormPage() {
   }, [formId]);
 
   const loadUser = async () => {
-    const stored = localStorage.getItem('currentUser');
-    if (stored) {
-      setCurrentUser(JSON.parse(stored));
+    try {
+      let storedUser = localStorage.getItem('currentUser');
+      if (!storedUser) {
+        storedUser = localStorage.getItem('user') || localStorage.getItem('authUser');
+      }
+      
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const userData = {
+          _id: user._id || user.id,
+          firstName: user.firstName || user.first_name || user.name,
+          lastName: user.lastName || user.last_name || user.surname,
+          role: user.role || 'TEACHER',
+          gender: user.gender || '',
+          birthDate: user.birthDate || user.dob || user.date_of_birth,
+          ageRange: calculateAgeRange(user.birthDate || user.dob || user.date_of_birth)
+        };
+        
+        setCurrentUser(userData);
+      }
+    } catch (error) {
+      console.error('Error loading current user:', error);
     }
+  };
+
+  const calculateAgeRange = (birthDate: string): string => {
+    if (!birthDate) return '';
+    
+    const birth = new Date(birthDate);
+    const today = new Date();
+    const age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
+    
+    if (actualAge < 20) return 'under-20';
+    if (actualAge <= 30) return '20-30';
+    if (actualAge <= 40) return '31-40';
+    if (actualAge <= 50) return '41-50';
+    return 'over-50';
   };
 
   const loadForm = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Loading form with ID:', formId);
       const res = await fetch(`/api/forms/${formId}`);
       const data = await res.json();
       
-      console.log('📋 API Response:', data);
-      
       if (data.success) {
-        // ✅ ชั่วคราวปิดการตรวจสอบ status เพื่อ debug
-        if (false && data.data.status !== 'active') {
-          console.log('⚠️ Form is not active:', data.data.status);
-          alert('แบบฟอร์มนี้ยังไม่เปิดใช้งาน');
-          router.push('/forms');
-          return;
-        }
-        console.log('✅ Form loaded successfully:', data.data.title, 'Status:', data.data.status);
         setForm(data.data);
       } else {
-        console.log('❌ Form not found or error:', data.message);
         alert(data.message || 'ไม่พบแบบฟอร์ม');
         router.push('/forms');
       }
@@ -91,7 +654,6 @@ export default function CustomFormPage() {
 
   const handleAnswerChange = (questionId: number, value: any) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
-    // ลบ error เมื่อตอบแล้ว
     if (errors[questionId]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -101,13 +663,77 @@ export default function CustomFormPage() {
     }
   };
 
+  const renderQuestion = (question: Question, index: number) => {
+    const answer = answers[question.order];
+
+    switch (question.questionType) {
+      case 'scale':
+        return (
+          <QuestionScale
+            key={question.order}
+            questionNumber={index + 1}
+            title={question.questionText}
+            name={`q${question.order}`}
+            value={answer || ''}
+            onChange={(name, value) => handleAnswerChange(question.order, value)}
+            required={question.required}
+          />
+        );
+
+      case 'radio':
+        return (
+          <RadioField
+            key={question.order}
+            label={`${index + 1}. ${question.questionText}`}
+            name={`q${question.order}`}
+            value={answer || ''}
+            onChange={(name, value) => handleAnswerChange(question.order, value)}
+            options={question.options.map(opt => ({ value: opt, label: opt }))}
+            required={question.required}
+          />
+        );
+
+      case 'checkbox':
+        return (
+          <CheckboxField
+            key={question.order}
+            label={`${index + 1}. ${question.questionText}`}
+            name={`q${question.order}`}
+            value={Array.isArray(answer) ? answer : []}
+            onChange={(name, value) => handleAnswerChange(question.order, value)}
+            options={question.options.map(opt => ({ value: opt, label: opt }))}
+            required={question.required}
+          />
+        );
+
+      case 'text':
+        return (
+          <TextAreaField
+            key={question.order}
+            label={`${index + 1}. ${question.questionText}`}
+            name={`q${question.order}`}
+            value={answer || ''}
+            onChange={(e) => handleAnswerChange(question.order, e.target.value)}
+            required={question.required}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Record<number, string> = {};
-    const requiredQuestions = form?.questions.filter(q => q.required) || [];
     
-    requiredQuestions.forEach(q => {
-      if (!answers[q.order] || (Array.isArray(answers[q.order]) && answers[q.order].length === 0)) {
-        newErrors[q.order] = 'ข้อนี้ต้องตอบ';
+    if (!form) return newErrors;
+
+    form.questions.forEach((question) => {
+      const answer = answers[question.order];
+      if (question.required) {
+        if (!answer || (Array.isArray(answer) && answer.length === 0)) {
+          newErrors[question.order] = 'กรุณาตอบคำถามนี้';
+        }
       }
     });
 
@@ -120,11 +746,6 @@ export default function CustomFormPage() {
     
     if (!validateForm()) {
       alert('กรุณาตอบคำถามให้ครบทุกข้อ');
-      // Scroll to first error
-      const firstErrorId = Object.keys(errors)[0];
-      if (firstErrorId) {
-        document.getElementById(`question-${firstErrorId}`)?.scrollIntoView({ behavior: 'smooth' });
-      }
       return;
     }
 
@@ -136,43 +757,68 @@ export default function CustomFormPage() {
     setSubmitting(true);
 
     try {
+      if (!form) {
+        alert('ไม่พบข้อมูลแบบฟอร์ม');
+        return;
+      }
+
       const submitData = {
-        answers: form?.questions.map(q => ({
-          questionId: q.order,
-          questionText: q.questionText,
-          answer: answers[q.order]
-        })) || [],
-        userName: `${currentUser.first_name} ${currentUser.last_name}`,
-        userEmail: currentUser.email,
+        formId: formId,
+        userId: currentUser._id,
+        userName: `${currentUser.firstName} ${currentUser.lastName}`,
         userRole: currentUser.role,
-        userId: currentUser._id
+        answers: form.questions.map((question) => ({
+          questionOrder: question.order,
+          questionText: question.questionText,
+          questionType: question.questionType,
+          answer: answers[question.order] || '',
+          sectionId: question.sectionId,
+          sectionTitle: question.sectionTitle,
+          sectionOrder: question.sectionOrder
+        }))
       };
 
-      const res = await fetch(`/api/forms/${formId}/submit`, {
+      const response = await fetch(`/api/forms/${formId}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submitData)
+        body: JSON.stringify(submitData),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
       if (data.success) {
-        alert('ส่งแบบฟอร์มสำเร็จ! ขอบคุณสำหรับคำตอบ');
-        router.push('/forms');
+        setSubmitted(true);
+        setTimeout(() => {
+          router.push(`/forms/${formId}/responses`);
+        }, 3000);
       } else {
-        alert(data.message || 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
+        alert(data.message || 'เกิดข้อผิดพลาดในการส่งแบบฟอร์ม');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
+      alert('เกิดข้อผิดพลาดในการส่งแบบฟอร์ม');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleReset = () => {
+    if (confirm('ล้างข้อมูลทั้งหมด?')) {
+      setAnswers({});
+      setErrors({});
+    }
+  };
+
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa' }}>
+      <div style={{
+        backgroundColor: '#f8f9fa',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '32px', marginBottom: '16px' }}>⏳</div>
           <p style={{ color: '#6c757d' }}>กำลังโหลดแบบฟอร์ม...</p>
@@ -183,286 +829,348 @@ export default function CustomFormPage() {
 
   if (!form) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa' }}>
+      <div style={{
+        backgroundColor: '#f8f9fa',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '32px', marginBottom: '16px' }}>❌</div>
           <p style={{ color: '#6c757d' }}>ไม่พบแบบฟอร์ม</p>
-          <Link href="/forms" style={{ color: '#007bff', textDecoration: 'none' }}>← กลับไปหน้าแบบฟอร์ม</Link>
+          <Link href="/forms" style={{ color: '#2c3e50', textDecoration: 'none' }}>← กลับไปหน้าแบบฟอร์ม</Link>
         </div>
       </div>
     );
   }
 
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      
-      {/* Header */}
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid #dee2e6', padding: '16px 0' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px' }}>
-          <Link href="/forms" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            color: '#6c757d',
-            textDecoration: 'none',
-            fontSize: '14px',
-            marginBottom: '8px'
-          }}>
-            ← กลับไปหน้าแบบฟอร์ม
-          </Link>
-          <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0, color: '#212529' }}>
-            📝 {form.title}
-          </h1>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px' }}>
-        
-        {/* Form Info */}
+  if (submitted) {
+    return (
+      <div style={{
+        backgroundColor: '#f8f9fa',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      }}>
         <div style={{
           backgroundColor: 'white',
           borderRadius: '8px',
-          padding: '24px',
-          marginBottom: '24px',
-          border: '1px solid #dee2e6'
+          padding: '48px 40px',
+          textAlign: 'center',
+          maxWidth: '480px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          border: '1px solid #e9ecef'
         }}>
-          <p style={{ fontSize: '14px', color: '#495057', lineHeight: 1.6, margin: '0 0 16px 0' }}>
-            {form.description}
+          <div style={{ fontSize: '48px', marginBottom: '20px' }}>✓</div>
+          <h2 style={{
+            color: '#212529',
+            marginBottom: '8px',
+            fontWeight: 500,
+            fontSize: '24px'
+          }}>
+            ขอบคุณสำหรับการตอบแบบประเมิน
+          </h2>
+          <p style={{ color: '#6c757d', fontSize: '14px', lineHeight: 1.6 }}>
+            คำตอบของท่านถูกบันทึกเรียบร้อยแล้ว
           </p>
-          <div style={{ fontSize: '12px', color: '#6c757d' }}>
-            <div>👤 สร้างโดย: {form.createdByName}</div>
-            <div>📊 จำนวนข้อคำถาม: {form.questions.length} ข้อ</div>
+          <p style={{ color: '#adb5bd', fontSize: '12px', marginTop: '24px' }}>
+            กำลังนำท่านไปยังหน้าข้อมูลการตอบแบบฟอร์ม...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const sections = groupQuestionsBySection(form.questions);
+
+  return (
+    <div style={{
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh',
+      padding: '40px 20px',
+      display: 'flex',
+      justifyContent: 'center',
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    }}>
+      <div style={{ width: '100%', maxWidth: '860px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+            <div>
+              <div style={{
+                fontSize: '12px',
+                fontWeight: 500,
+                color: '#6c757d',
+                letterSpacing: '0.5px',
+                marginBottom: '8px',
+                textTransform: 'uppercase'
+              }}>
+                แบบฟอร์ม
+              </div>
+              <h1 style={{
+                fontSize: '28px',
+                fontWeight: 600,
+                color: '#212529',
+                margin: '0 0 12px 0',
+                letterSpacing: '-0.3px'
+              }}>
+                📝 {form.title}
+              </h1>
+              <p style={{
+                fontSize: '14px',
+                color: '#6c757d',
+                lineHeight: 1.6,
+                margin: 0
+              }}>
+                {form.description}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Link href="/assessment/charts" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                backgroundColor: '#17a2b8',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#138496'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#17a2b8'; }}>
+                📊 แผนภูมิสรุป
+              </Link>
+              <Link href={`/forms/${formId}/responses`} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+                fontSize: '14px',
+                fontWeight: 500,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0056b3'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#007bff'; }}>
+                📊 ดูผลการตอบ
+              </Link>
+            </div>
+          </div>
+          <div style={{
+            marginTop: '16px',
+            fontSize: '12px',
+            color: '#6c757d',
+            display: 'flex',
+            gap: '16px',
+            flexWrap: 'wrap'
+          }}>
+            <span>👤 สร้างโดย: {form.createdByName}</span>
+            <span>📊 จำนวนข้อคำถาม: {form.questions.length} ข้อ</span>
+          </div>
+          <div style={{
+            marginTop: '8px',
+            fontSize: '12px',
+            color: '#dc3545'
+          }}>
+            * ข้อความที่ต้องกรอก
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {form.questions.map((question, index) => (
-              <div
-                key={question.order}
-                id={`question-${question.order}`}
-                style={{
-                  backgroundColor: 'white',
-                  borderRadius: '8px',
-                  padding: '24px',
-                  border: `1px solid ${errors[question.order] ? '#dc3545' : '#dee2e6'}`,
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <div style={{ marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 500, color: '#212529', margin: '0 0 4px 0' }}>
-                    ข้อที่ {question.order}: {question.questionText}
-                    {question.required && <span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>}
-                  </h3>
-                </div>
+          {/* ข้อมูลผู้ประเมิน (เหมือน evaluation page) */}
+          <div style={{
+            backgroundColor: 'white',
+            border: '1px solid #dee2e6',
+            borderRadius: '4px',
+            marginBottom: '32px'
+          }}>
+            <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid #e9ecef',
+              backgroundColor: '#fefefe'
+            }}>
+              <span style={{ fontSize: '14px', fontWeight: 500, color: '#495057' }}>ข้อมูลผู้ตอบแบบประเมิน</span>
+            </div>
+            <div style={{ padding: '20px 24px' }}>
+              {/* ชื่อ-นามสกุล */}
+              <InputField 
+                label="ชื่อ-นามสกุล" 
+                name="studentName" 
+                value={currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : ''} 
+                onChange={() => {}} 
+                disabled={true}
+              />
+              
+              {/* Role */}
+              <SelectField
+                label="บทบาท"
+                name="role"
+                value={currentUser?.role || ''}
+                onChange={() => {}}
+                options={roleOptions}
+                required={false}
+              />
 
-                {/* Scale (1-5) */}
-                {question.questionType === 'scale' && (
-                  <div>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '12px',
-                      color: '#6c757d',
-                      marginBottom: '10px'
-                    }}>
-                      <span>น้อยที่สุด</span>
-                      <span>น้อย</span>
-                      <span>ปานกลาง</span>
-                      <span>มาก</span>
-                      <span>มากที่สุด</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <label
-                          key={num}
-                          style={{
-                            flex: 1,
-                            cursor: 'pointer',
-                            padding: '12px 4px',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                            backgroundColor: answers[question.order] === num ? '#007bff' : '#f8f9fa',
-                            color: answers[question.order] === num ? 'white' : '#495057',
-                            border: `1px solid ${answers[question.order] === num ? '#007bff' : '#dee2e6'}`,
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          <input
-                            type="radio"
-                            name={`question-${question.order}`}
-                            value={num}
-                            checked={answers[question.order] === num}
-                            onChange={() => handleAnswerChange(question.order, num)}
-                            style={{ display: 'none' }}
-                          />
-                          <div style={{ fontSize: '16px', fontWeight: 600 }}>{num}</div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              {/* เพศ */}
+              <SelectField
+                label="เพศ"
+                name="gender"
+                value={currentUser?.gender || ''}
+                onChange={() => {}}
+                options={genderOptions}
+                required={false}
+              />
 
-                {/* Radio */}
-                {question.questionType === 'radio' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {question.options.map((option, optIndex) => (
-                      <label
-                        key={optIndex}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          padding: '12px 16px',
-                          borderRadius: '4px',
-                          backgroundColor: answers[question.order] === option ? '#f8f9fa' : 'white',
-                          border: `1px solid ${answers[question.order] === option ? '#007bff' : '#dee2e6'}`,
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name={`question-${question.order}`}
-                          value={option}
-                          checked={answers[question.order] === option}
-                          onChange={() => handleAnswerChange(question.order, option)}
-                          style={{ width: '18px', height: '18px' }}
-                        />
-                        <span style={{ fontSize: '14px', color: '#212529' }}>{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {/* Checkbox */}
-                {question.questionType === 'checkbox' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {question.options.map((option, optIndex) => (
-                      <label
-                        key={optIndex}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          padding: '12px 16px',
-                          borderRadius: '4px',
-                          backgroundColor: Array.isArray(answers[question.order]) && answers[question.order].includes(option) ? '#f8f9fa' : 'white',
-                          border: `1px solid ${Array.isArray(answers[question.order]) && answers[question.order].includes(option) ? '#007bff' : '#dee2e6'}`,
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          value={option}
-                          checked={Array.isArray(answers[question.order]) && answers[question.order].includes(option)}
-                          onChange={(e) => {
-                            const current = Array.isArray(answers[question.order]) ? answers[question.order] : [];
-                            if (e.target.checked) {
-                              handleAnswerChange(question.order, [...current, option]);
-                            } else {
-                              handleAnswerChange(question.order, current.filter((o: string) => o !== option));
-                            }
-                          }}
-                          style={{ width: '18px', height: '18px' }}
-                        />
-                        <span style={{ fontSize: '14px', color: '#212529' }}>{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {/* Text */}
-                {question.questionType === 'text' && (
-                  <textarea
-                    value={answers[question.order] || ''}
-                    onChange={(e) => handleAnswerChange(question.order, e.target.value)}
-                    placeholder="พิมพ์คำตอบของคุณ..."
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '4px',
-                      border: '1px solid #ced4da',
-                      fontSize: '14px',
-                      fontFamily: 'inherit',
-                      resize: 'vertical',
-                      outline: 'none',
-                      transition: 'border-color 0.15s ease'
-                    }}
-                    onFocus={(e) => e.currentTarget.style.borderColor = '#007bff'}
-                    onBlur={(e) => e.currentTarget.style.borderColor = '#ced4da'}
-                  />
-                )}
-
-                {/* Error Message */}
-                {errors[question.order] && (
-                  <div style={{
-                    marginTop: '8px',
-                    fontSize: '12px',
-                    color: '#dc3545',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    <span>⚠️</span> {errors[question.order]}
-                  </div>
-                )}
-              </div>
-            ))}
+              {/* ช่วงอายุ */}
+              <SelectField
+                label="ช่วงอายุ"
+                name="ageRange"
+                value={currentUser?.ageRange || ''}
+                onChange={() => {}}
+                options={ageRangeOptions}
+                required={false}
+              />
+            </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Render questions by section */}
+          {sections.map((section, sectionIndex) => (
+            <div key={section.title}>
+              <SectionHeader 
+                number={sections.length > 1 ? String(sectionIndex + 1) : undefined}
+                title={section.title}
+              />
+              {section.questions.map((question, qIndex) => renderQuestion(question, qIndex))}
+            </div>
+          ))}
+
+          {/* Error summary */}
+          {Object.keys(errors).length > 0 && (
+            <div style={{
+              backgroundColor: '#fff5f5',
+              border: '1px solid #feb2b2',
+              borderRadius: '4px',
+              padding: '16px 20px',
+              marginBottom: '24px'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: 500, color: '#c53030', marginBottom: '8px' }}>
+                ⚠️ กรุณาตอบคำถามให้ครบถ้วน
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#c53030' }}>
+                {Object.entries(errors).map(([qId]) => {
+                  const question = form?.questions.find(q => q.order === parseInt(qId));
+                  return question && (
+                    <li key={qId}>ข้อที่ {question.order}: {question.questionText.substring(0, 50)}...</li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {/* Action Buttons */}
           <div style={{
-            marginTop: '32px',
-            padding: '24px',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            border: '1px solid #dee2e6',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            gap: '16px',
+            marginTop: '8px',
+            marginBottom: '48px',
+            paddingTop: '16px',
+            borderTop: '1px solid #e9ecef'
           }}>
-            <div style={{ fontSize: '13px', color: '#6c757d' }}>
-              {currentUser && (
-                <div>ส่งคำตอบโดย: {currentUser.first_name} {currentUser.last_name}</div>
-              )}
-            </div>
             <button
               type="submit"
               disabled={submitting}
               style={{
-                backgroundColor: submitting ? '#6c757d' : '#28a745',
+                backgroundColor: '#2c3e50',
                 color: 'white',
-                padding: '12px 32px',
+                padding: '10px 28px',
                 border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
+                borderRadius: '4px',
                 fontWeight: 500,
                 cursor: submitting ? 'not-allowed' : 'pointer',
+                fontSize: '14px',
+                fontFamily: 'inherit',
                 transition: 'background-color 0.15s ease',
                 opacity: submitting ? 0.6 : 1
               }}
+              onMouseEnter={(e) => {
+                if (!submitting) e.currentTarget.style.backgroundColor = '#1e2a36';
+              }}
+              onMouseLeave={(e) => {
+                if (!submitting) e.currentTarget.style.backgroundColor = '#2c3e50';
+              }}
             >
-              {submitting ? '⏳ กำลังส่ง...' : '✅ ส่งแบบฟอร์ม'}
+              {submitting ? 'กำลังส่ง...' : 'ส่งแบบฟอร์ม'}
             </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={handleReset}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#6c757d',
+                  border: '1px solid #dee2e6',
+                  padding: '9px 20px',
+                  borderRadius: '4px',
+                  fontWeight: 400,
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                  e.currentTarget.style.borderColor = '#adb5bd';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = '#dee2e6';
+                }}
+              >
+                ล้างข้อมูล
+              </button>
+              <Link
+                href="/forms"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#6c757d',
+                  border: '1px solid #dee2e6',
+                  padding: '9px 20px',
+                  borderRadius: '4px',
+                  fontWeight: 400,
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.15s ease',
+                  textDecoration: 'none',
+                  display: 'inline-block'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f8f9fa';
+                  e.currentTarget.style.borderColor = '#adb5bd';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = '#dee2e6';
+                }}
+              >
+                กลับ
+              </Link>
+            </div>
           </div>
         </form>
-
-      </div>
-
-      {/* Footer */}
-      <div style={{
-        textAlign: 'center',
-        padding: '24px 0',
-        color: '#adb5bd',
-        fontSize: '12px',
-        borderTop: '1px solid #dee2e6',
-        marginTop: '24px'
-      }}>
-        ระบบแบบฟอร์ม • {new Date().toLocaleDateString('th-TH')}
       </div>
     </div>
   );

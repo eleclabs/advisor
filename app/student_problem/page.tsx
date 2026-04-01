@@ -401,10 +401,10 @@ export default function StudentProblemPage() {
                         <i className="bi bi-chat-quote me-1"></i>
                         {act.debrief ? (act.debrief.length > 50 ? act.debrief.substring(0, 50) + '...' : act.debrief) : 'ไม่มีบทเรียน'}
                       </div>
-                      {act.created_by && (
+                      {(act as any).created_by && (
                         <div className="small text-muted mt-2">
                           <i className="bi bi-person me-1"></i>
-                          สร้างโดย: {act.created_by}
+                          สร้างโดย: {(act as any).created_by}
                         </div>
                       )}
                     </div>
@@ -418,7 +418,7 @@ export default function StudentProblemPage() {
                           <i className="bi bi-eye"></i>
                         </Link>
                         {/* แสดงปุ่มแก้ไข/ลบเฉพาะเจ้าของหรือ Admin */}
-                        {(userRole === 'ADMIN' || act.created_by === teacher_name) && (
+                        {(userRole === 'ADMIN' || (act as any).created_by === teacher_name) && (
                           <>
                             <Link 
                               href={`/student_problem/activity/edit?id=${act._id}`} 

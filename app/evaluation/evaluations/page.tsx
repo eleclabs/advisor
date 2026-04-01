@@ -241,13 +241,32 @@ export default function AdminEvaluationsPage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         
         {/* Header */}
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '20px', fontWeight: 600, margin: '0 0 4px', color: '#212529' }}>
-            รายงานผลการประเมินประสิทธิภาพระบบการดูแลช่วยเหลือผู้เรียน
-          </h1>
-          <p style={{ margin: 0, color: '#6c757d', fontSize: '14px' }}>
-            จำนวนข้อมูล: {filteredEvaluations.length} รายการ
-          </p>
+        <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 style={{ fontSize: '20px', fontWeight: 600, margin: '0 0 4px', color: '#212529' }}>
+              รายงานผลการประเมินประสิทธิภาพระบบการดูแลช่วยเหลือผู้เรียน
+            </h1>
+            <p style={{ margin: 0, color: '#6c757d', fontSize: '14px' }}>
+              จำนวนข้อมูล: {filteredEvaluations.length} รายการ
+            </p>
+          </div>
+          <a href="/assessment/summary" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 16px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '4px',
+            fontSize: '14px',
+            fontWeight: 500,
+            transition: 'background-color 0.15s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0056b3'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#007bff'; }}>
+            📊 ดูสรุปทั้งหมด
+          </a>
         </div>
 
         {/* Filter Toggle */}

@@ -628,7 +628,7 @@ async function seed() {
     console.log('📋 Updating teacher assignments...');
     
     await User.findByIdAndUpdate(teacher1._id, {
-      assigned_students: students_teacher1.map(s => ({
+      assigned_students: students_teacher1.map((s: any) => ({
         student_id: s._id,
         student_name: `${s.first_name} ${s.last_name}`,
         class_number: s.class_number,
@@ -638,7 +638,7 @@ async function seed() {
     });
 
     await User.findByIdAndUpdate(teacher2._id, {
-      assigned_students: students_teacher2.map(s => ({
+      assigned_students: students_teacher2.map((s: any) => ({
         student_id: s._id,
         student_name: `${s.first_name} ${s.last_name}`,
         class_number: s.class_number,
@@ -648,7 +648,7 @@ async function seed() {
     });
 
     await User.findByIdAndUpdate(teacher3._id, {
-      assigned_students: students_teacher3.map(s => ({
+      assigned_students: students_teacher3.map((s: any) => ({
         student_id: s._id,
         student_name: `${s.first_name} ${s.last_name}`,
         class_number: s.class_number,

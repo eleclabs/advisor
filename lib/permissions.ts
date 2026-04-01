@@ -11,7 +11,7 @@ export const ROLES = {
 export type Role = keyof typeof ROLES;
 
 // ===== กำหนดสิทธิ์การเข้าถึงหน้าต่างๆ =====
-export const PAGE_PERMISSIONS = {
+export const PAGE_PERMISSIONS: Record<string, ("ADMIN" | "TEACHER" | "EXECUTIVE" | "COMMITTEE")[]> = {
   // Student pages
   STUDENT_LIST: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"],
   STUDENT_VIEW: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"],
@@ -74,7 +74,7 @@ export type PagePermission = keyof typeof PAGE_PERMISSIONS;
 /**
  * ตรวจสอบว่าผู้ใช้มีสิทธิ์เข้าถึงหน้าหรือไม่
  */
-export function hasPagePermission(userRole: string | undefined, permission: PagePermission): boolean {
+export function hasPagePermission(userRole: Role | undefined, permission: PagePermission): boolean {
   if (!userRole) return false;
   
   const allowedRoles = PAGE_PERMISSIONS[permission];

@@ -1,5 +1,6 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
+import type { SessionStrategy } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
@@ -94,7 +95,7 @@ export const authOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: any) {
       console.log("🔑 JWT callback:", { 
         hasUser: !!user, 
         tokenRole: token?.role,
@@ -106,7 +107,7 @@ export const authOptions = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       console.log("📝 Session callback:", { 
         tokenRole: token?.role,
         tokenId: token?.id 
@@ -123,7 +124,7 @@ export const authOptions = {
     error: "/login",
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as SessionStrategy,
     maxAge: 30 * 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
