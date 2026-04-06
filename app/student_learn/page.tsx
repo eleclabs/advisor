@@ -1,9 +1,10 @@
 // D:\advisor-main\app\student_learn\page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface HomeroomPlan {
   id: string;
@@ -14,11 +15,35 @@ interface HomeroomPlan {
   academicYear: string;
   createdAt: string;
   status: string;
-  has_record?: boolean; // เพิ่มฟิลด์นี้
+  has_record?: boolean;
   date?: string;
+  created_by?: string;
+  target_class_group?: string;
+  target_class_numbers?: string[];
+}
+
+interface Student {
+  _id: string;
+  id: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  name?: string;
+  level: string;
+  class_group: string;
+  class_number: string;
+  status: string;
+  image?: string;
+}
+
+interface Major {
+  _id: string;
+  major_id: number;
+  major_name: string;
 }
 
 export default function StudentLearnPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [plans, setPlans] = useState<HomeroomPlan[]>([]);
   const [filteredPlans, setFilteredPlans] = useState<HomeroomPlan[]>([]);
@@ -29,133 +54,33 @@ export default function StudentLearnPage() {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
+
+  // Filter states
+  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedClassGroup, setSelectedClassGroup] = useState("");
+  const [selectedClassNumber, setSelectedClassNumber] = useState("");
+  const [majors, setMajors] = useState<Major[]>([]);
   
+  // Assigned students ของครูปัจจุบัน
+  const [assignedStudents, setAssignedStudents] = useState<Student[]>([]);
+  const [loadingAssigned, setLoadingAssigned] = useState(true);
+
   // Calendar state
   const [calendarLevel, setCalendarLevel] = useState<"day" | "month" | "year">("day");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarEvents, setCalendarEvents] = useState<{[key: string]: HomeroomPlan[]}>({});
 
-  const teacher_name = "อาจารย์วิมลรัตน์";
+  // สำหรับแสดงนักเรียนในแต่ละแผน (ดึงจาก API นักเรียนทั้งหมด)
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
+  const [planStudents, setPlanStudents] = useState<{[key: string]: Student[]}>({});
+  const [loadingStudents, setLoadingStudents] = useState<{[key: string]: boolean}>({});
+
+  const teacher_name = session?.user?.name || "ไม่พบชื่อผู้ใช้";
+  const userRole = session?.user?.role || "";
+  const userId = session?.user?.id || "";
   const academic_year = "2568";
 
-  // Load Bootstrap
-// ใน useEffect สำหรับ fetchPlans
-useEffect(() => {
-  const fetchPlans = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (selectedSemester) params.append('semester', selectedSemester.replace('ภาคเรียนที่ ', ''));
-      if (selectedYear) params.append('academicYear', selectedYear);
-      
-      // ส่ง hasRecord แทน status เมื่อเลือก "บันทึกผลแล้ว"
-      if (selectedStatus === 'บันทึกผลแล้ว') {
-        params.append('hasRecord', 'true');
-      } else if (selectedStatus) {
-        const statusMap: {[key: string]: string} = {
-          'เผยแพร่': 'published',
-          'ร่าง': 'draft'
-        };
-        params.append('status', statusMap[selectedStatus] || selectedStatus);
-      }
-      
-      if (searchKeyword) params.append('search', searchKeyword);
-      
-      const url = `/api/learn${params.toString() ? `?${params.toString()}` : ''}`;
-      console.log("📡 Fetching URL:", url);
-      
-      const response = await fetch(url);
-      const result = await response.json();
-      
-      console.log("📥 Response:", result);
-      
-      if (result.success) {
-        // ✅ กรองข้อมูลอีกครั้งที่หน้าเว็บ
-        let filteredData = result.data;
-        
-        // ถ้าเลือก "เผยแพร่" ให้กรองเอาเฉพาะที่ has_record = false
-        if (selectedStatus === 'เผยแพร่') {
-          filteredData = result.data.filter((plan: HomeroomPlan) => !plan.has_record);
-        }
-        // ถ้าเลือก "ร่าง" ให้กรองเอาเฉพาะที่ has_record = false
-        else if (selectedStatus === 'ร่าง') {
-          filteredData = result.data.filter((plan: HomeroomPlan) => !plan.has_record);
-        }
-        // ถ้าเลือก "บันทึกผลแล้ว" ให้กรองเอาเฉพาะที่ has_record = true
-        else if (selectedStatus === 'บันทึกผลแล้ว') {
-          filteredData = result.data.filter((plan: HomeroomPlan) => plan.has_record);
-        }
-        
-        setPlans(filteredData);
-        setFilteredPlans(filteredData);
-        
-        // Group events for calendar
-        const events: {[key: string]: HomeroomPlan[]} = {};
-        filteredData.forEach((plan: HomeroomPlan) => {
-          if (plan.date) {
-            if (!events[plan.date]) events[plan.date] = [];
-            events[plan.date].push(plan);
-          }
-        });
-        setCalendarEvents(events);
-      }
-    } catch (error) {
-      console.error("Error fetching plans:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchPlans();
-}, [selectedSemester, selectedYear, selectedStatus, searchKeyword]);
-
-  const handleDelete = async () => {
-    if (!deleteId) return;
-    
-    try {
-      const response = await fetch(`/api/learn/${deleteId}`, {
-        method: 'DELETE',
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setPlans(plans.filter(p => p.id !== deleteId));
-        setFilteredPlans(filteredPlans.filter(p => p.id !== deleteId));
-        
-        // Close modal
-        const modal = document.getElementById('deleteModal');
-        if (modal) {
-          const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
-          bsModal.hide();
-        }
-      } else {
-        alert(result.message);
-      }
-      setDeleteId(null);
-    } catch (error) {
-      console.error("Error deleting plan:", error);
-      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
-    }
-  };
-
-  const getStatusBadge = (status: string, has_record?: boolean) => {
-    if (has_record) {
-      return <span className="badge bg-info rounded-0 text-uppercase fw-semibold">บันทึกผลแล้ว</span>;
-    }
-    
-    switch(status) {
-      case 'ร่าง':
-        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">ร่าง</span>;
-      case 'เผยแพร่':
-        return <span className="badge bg-success rounded-0 text-uppercase fw-semibold">เผยแพร่</span>;
-      default:
-        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">{status}</span>;
-    }
-  };
-
-  // Calendar functions
-  const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  // Calendar helper functions
   const monthNamesFull = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
@@ -218,10 +143,298 @@ useEffect(() => {
 
   const buddhistYear = selectedDate.getFullYear() + 543;
 
+  // ดึงข้อมูล majors
+  useEffect(() => {
+    const fetchMajors = async () => {
+      try {
+        const majorRes = await fetch("/api/major");
+        if (majorRes.ok) {
+          const majorData = await majorRes.json();
+          setMajors(majorData);
+        }
+      } catch (error) {
+        console.error("Error fetching majors:", error);
+      }
+    };
+    fetchMajors();
+  }, []);
+
+  // ดึงข้อมูล assigned students ของครูปัจจุบัน
+  useEffect(() => {
+    const fetchAssignedStudents = async () => {
+      if (!userId) {
+        setLoadingAssigned(false);
+        return;
+      }
+      
+      try {
+        console.log("📥 กำลังดึง assigned students สำหรับ user:", userId);
+        const assignedRes = await fetch(`/api/user/${userId}/assign-students`);
+        if (assignedRes.ok) {
+          const assignedData = await assignedRes.json();
+          if (assignedData.success) {
+            const students = assignedData.data.map((a: any) => {
+              const student = a.student_id;
+              return {
+                _id: student._id,
+                id: student.id || "",
+                prefix: student.prefix || "",
+                first_name: student.first_name || "",
+                last_name: student.last_name || "",
+                name: `${student.prefix || ''}${student.first_name || ''} ${student.last_name || ''}`.trim(),
+                level: student.level || "",
+                class_group: student.class_group || "",
+                class_number: student.class_number || "",
+                status: student.status || "ปกติ",
+                image: student.image || ""
+              };
+            });
+            console.log(`✅ พบนักเรียนที่ดูแล ${students.length} คน`);
+            setAssignedStudents(students);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching assigned students:", error);
+      } finally {
+        setLoadingAssigned(false);
+      }
+    };
+
+    fetchAssignedStudents();
+  }, [userId]);
+
+  // ดึงข้อมูลแผนกิจกรรม
+ // ใน useEffect สำหรับดึงแผนกิจกรรม ให้รอให้ assignedStudents โหลดเสร็จก่อน
+useEffect(() => {
+  const fetchPlans = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedSemester) params.append('semester', selectedSemester.replace('ภาคเรียนที่ ', ''));
+      if (selectedYear) params.append('academicYear', selectedYear);
+      
+      if (selectedStatus === 'บันทึกผลแล้ว') {
+        params.append('hasRecord', 'true');
+      } else if (selectedStatus) {
+        const statusMap: {[key: string]: string} = {
+          'เผยแพร่': 'published',
+          'ร่าง': 'draft'
+        };
+        params.append('status', statusMap[selectedStatus] || selectedStatus);
+      }
+      
+      if (searchKeyword) params.append('search', searchKeyword);
+      
+      const url = `/api/learn${params.toString() ? `?${params.toString()}` : ''}`;
+      console.log("📡 Fetching URL:", url);
+      
+      const response = await fetch(url);
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log("📥 ได้รับแผนทั้งหมด:", result.data.length, "แผน");
+        setPlans(result.data);
+        
+        // กรองตามสิทธิ์ที่หน้า UI (เผื่อ API ส่งมาทั้งหมด)
+        let filtered = result.data;
+        
+        if (userRole !== 'ADMIN') {
+          filtered = filtered.filter((plan: HomeroomPlan) => {
+            // ร่าง: เห็นเฉพาะที่ตัวเองสร้าง
+            if (plan.status === 'ร่าง' || plan.status === 'draft') {
+              return plan.created_by === teacher_name;
+            }
+            
+            // เผยแพร่: กรองตาม assignedStudents ที่มีอยู่
+            if (assignedStudents.length === 0) {
+              return false; // ถ้าไม่มีนักเรียนเลย ไม่เห็นแผนเผยแพร่
+            }
+            
+            // เช็คว่ามีนักเรียนในระดับชั้นนี้หรือไม่
+            const hasLevel = assignedStudents.some(s => s.level === plan.level);
+            if (!hasLevel) return false;
+            
+            // ถ้าแผนระบุสาขาวิชาเรียน
+            if (plan.target_class_group) {
+              const hasGroup = assignedStudents.some(s => 
+                s.level === plan.level && 
+                s.class_group === plan.target_class_group
+              );
+              if (!hasGroup) return false;
+            }
+            
+            // ถ้าแผนระบุห้อง
+            if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
+              const hasNumber = assignedStudents.some(s => 
+                s.level === plan.level &&
+                (!plan.target_class_group || s.class_group === plan.target_class_group) &&
+                plan.target_class_numbers?.includes(s.class_number)
+              );
+              if (!hasNumber) return false;
+            }
+            
+            return true;
+          });
+        }
+        
+        console.log("📊 หลังจากกรองเหลือ:", filtered.length, "แผน");
+        setFilteredPlans(filtered);
+        
+        // Group events for calendar
+        const events: {[key: string]: HomeroomPlan[]} = {};
+        filtered.forEach((plan: HomeroomPlan) => {
+          if (plan.date) {
+            if (!events[plan.date]) events[plan.date] = [];
+            events[plan.date].push(plan);
+          }
+        });
+        setCalendarEvents(events);
+      }
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // รอให้ assignedStudents โหลดเสร็จก่อนค่อย fetch แผน
+  if (!loadingAssigned) {
+    fetchPlans();
+  }
+}, [selectedSemester, selectedYear, selectedStatus, searchKeyword, userRole, teacher_name, assignedStudents, loadingAssigned]);
+  // ฟังก์ชันดึงนักเรียนที่เข้าร่วมในแผน (จากฐานข้อมูลทั้งหมด)
+  const fetchPlanStudents = async (plan: HomeroomPlan) => {
+    if (planStudents[plan.id]) {
+      setExpandedPlanId(expandedPlanId === plan.id ? null : plan.id);
+      return;
+    }
+
+    setLoadingStudents(prev => ({ ...prev, [plan.id]: true }));
+    
+    try {
+      // สร้าง query parameters
+      const params = new URLSearchParams();
+      if (plan.level) params.append('level', plan.level);
+      
+      // ดึงข้อมูลนักเรียนทั้งหมดตามระดับชั้น
+      const response = await fetch(`/api/student?${params.toString()}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        let students = result.data;
+        
+        // กรองตามสาขาวิชาเรียน ถ้ามี
+        if (plan.target_class_group) {
+          students = students.filter((s: any) => 
+            s.class_group === plan.target_class_group
+          );
+        }
+        
+        // กรองตามห้อง ถ้ามี
+        if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
+          students = students.filter((s: any) => 
+            plan.target_class_numbers?.includes(s.class_number)
+          );
+        }
+        
+        // จัดรูปแบบข้อมูล
+        const formattedStudents = students.map((s: any) => ({
+          _id: s._id,
+          id: s.id || "",
+          prefix: s.prefix || "",
+          first_name: s.first_name || "",
+          last_name: s.last_name || "",
+          name: `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim(),
+          level: s.level || "",
+          class_group: s.class_group || "",
+          class_number: s.class_number || "",
+          status: s.status || "ปกติ",
+          image: s.image || ""
+        }));
+        
+        setPlanStudents(prev => ({
+          ...prev,
+          [plan.id]: formattedStudents
+        }));
+        setExpandedPlanId(plan.id);
+      }
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    } finally {
+      setLoadingStudents(prev => ({ ...prev, [plan.id]: false }));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    
+    try {
+      const response = await fetch(`/api/learn/${deleteId}`, {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setPlans(plans.filter(p => p.id !== deleteId));
+        setFilteredPlans(filteredPlans.filter(p => p.id !== deleteId));
+        
+        const modal = document.getElementById('deleteModal');
+        if (modal) {
+          const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
+          bsModal.hide();
+        }
+      } else {
+        alert(result.message);
+      }
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Error deleting plan:", error);
+      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+    }
+  };
+
+  const getStatusBadge = (status: string, has_record?: boolean) => {
+    if (has_record) {
+      return <span className="badge bg-info rounded-0 text-uppercase fw-semibold">บันทึกผลแล้ว</span>;
+    }
+    
+    switch(status) {
+      case 'ร่าง':
+      case 'draft':
+        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">ร่าง</span>;
+      case 'เผยแพร่':
+      case 'published':
+        return <span className="badge bg-success rounded-0 text-uppercase fw-semibold">เผยแพร่</span>;
+      default:
+        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">{status}</span>;
+    }
+  };
+
+  // ฟังก์ชันตรวจสอบสิทธิ์การแก้ไข/ลบ
+  const canEditPlan = (plan: HomeroomPlan) => {
+    if (userRole === 'ADMIN') return true;
+    if (!plan.created_by || plan.created_by === "-") return true;
+    return plan.created_by === teacher_name;
+  };
+
+  // สร้างข้อความแสดงเงื่อนไขของแผน
+  const getPlanTargetText = (plan: HomeroomPlan) => {
+    let text = `ระดับชั้น ${plan.level}`;
+    if (plan.target_class_group) {
+      text += `, สาขาวิชา ${plan.target_class_group}`;
+    }
+    if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
+      const numbers = plan.target_class_numbers.length > 5 
+        ? `${plan.target_class_numbers[0]} - ${plan.target_class_numbers[plan.target_class_numbers.length-1]}`
+        : plan.target_class_numbers.join(', ');
+      text += `, ห้อง ${numbers}`;
+    }
+    return text;
+  };
+
   return (
     <div className="min-vh-100 bg-light">
-    
-
       <div className="container-fluid py-4">
         {/* Page Header */}
         <div className="row mb-4">
@@ -232,7 +445,7 @@ useEffect(() => {
                 แผนกิจกรรมโฮมรูม
               </h2>
               <div>
-                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name}</span>
+                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name} ({userRole})</span>
                 <span className="badge bg-dark text-white rounded-0">ปีการศึกษา {academic_year}</span>
               </div>
             </div>
@@ -249,7 +462,7 @@ useEffect(() => {
               <input 
                 type="text" 
                 className="form-control rounded-0" 
-                placeholder="ค้นหาด้วยหัวข้อ, ระดับชั้น..."
+                placeholder="ค้นหาด้วยหัวข้อ..."
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
               />
@@ -286,7 +499,7 @@ useEffect(() => {
               <option value="">สถานะ</option>
               <option value="ร่าง">ร่าง</option>
               <option value="เผยแพร่">เผยแพร่</option>
-              <option value="บันทึกผลแล้ว">บันทึกผลแล้ว</option> {/* เปลี่ยนจาก เสร็จสิ้น */}
+              <option value="บันทึกผลแล้ว">บันทึกผลแล้ว</option>
             </select>
           </div>
           <div className="col-md-3">
@@ -340,83 +553,172 @@ useEffect(() => {
                   <table className="table table-bordered table-hover bg-white">
                     <thead className="bg-dark text-white">
                       <tr>
-                        <th className="text-uppercase fw-semibold">ลำดับ</th>
+                        <th className="text-uppercase fw-semibold" style={{width: '50px'}}>ลำดับ</th>
                         <th className="text-uppercase fw-semibold">หัวข้อหลัก</th>
                         <th className="text-uppercase fw-semibold">ระดับชั้น</th>
                         <th className="text-uppercase fw-semibold">สัปดาห์ที่</th>
                         <th className="text-uppercase fw-semibold">วันที่จัดกิจกรรม</th>
                         <th className="text-uppercase fw-semibold">สถานะ</th>
+                        <th className="text-uppercase fw-semibold">สาขาวิชาเป้าหมาย</th>
                         <th className="text-uppercase fw-semibold">จัดการ</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredPlans.length > 0 ? (
                         filteredPlans.map((plan, index) => (
-                          <tr key={plan.id}>
-                            <td>{index + 1}</td>
-                            <td className="fw-semibold">
-                              <a 
-                                href={`/student_learn/${plan.id}`}
-                                className="text-decoration-none"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  router.push(`/student_learn/${plan.id}`);
-                                }}
-                              >
-                                {plan.title}
-                              </a>
-                            </td>
-                            <td>{plan.level}</td>
-                            <td>{plan.week}</td>
-                            <td>{plan.date || '-'}</td>
-                            <td>{getStatusBadge(plan.status, plan.has_record)}</td>
-                            <td>
-                              <div className="btn-group" role="group">
-                                <button 
-                                  className="btn btn-sm btn-outline-primary rounded-0"
-                                  onClick={() => router.push(`/student_learn/${plan.id}`)}
-                                  title="ดูรายละเอียด"
+                          <React.Fragment key={plan.id}>
+                            <tr>
+                              <td>{index + 1}</td>
+                              <td className="fw-semibold">
+                                <Link 
+                                  href={`/student_learn/${plan.id}`}
+                                  className="text-decoration-none text-dark"
                                 >
-                                  <i className="bi bi-eye"></i>
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-warning rounded-0"
-                                  onClick={() => router.push(`/student_learn/${plan.id}/edit`)}
-                                  title="แก้ไข"
+                                  {plan.title}
+                                </Link>
+                              </td>
+                              <td>{plan.level}</td>
+                              <td>{plan.week}</td>
+                              <td>{plan.date || '-'}</td>
+                              <td>{getStatusBadge(plan.status, plan.has_record)}</td>
+                              <td>
+                                <button
+                                  className="btn btn-sm btn-outline-info rounded-0 w-100"
+                                  onClick={() => fetchPlanStudents(plan)}
+                                  disabled={loadingStudents[plan.id]}
                                 >
-                                  <i className="bi bi-pencil"></i>
+                                  {loadingStudents[plan.id] ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-1"></span>
+                                      กำลังโหลด...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="bi bi-people me-1"></i>
+                                      ดูรายชื่อ
+                                      {planStudents[plan.id] && ` (${planStudents[plan.id].length})`}
+                                    </>
+                                  )}
                                 </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-success rounded-0"
-                                  onClick={() => router.push(`/student_learn/${plan.id}/record`)}
-                                  title="บันทึกผลกิจกรรม"
-                                >
-                                  <i className="bi bi-check-circle"></i>
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-info rounded-0"
-                                  onClick={() => router.push(`/student_learn/${plan.id}/album`)}
-                                  title="อัลบัมรูปภาพ"
-                                >
-                                  <i className="bi bi-images"></i>
-                                </button>
-                                <button 
-                                  className="btn btn-sm btn-outline-danger rounded-0"
-                                  title="ลบ"
-                                  data-bs-toggle="modal"
-                                  data-bs-target="#deleteModal"
-                                  onClick={() => setDeleteId(plan.id)}
-                                >
-                                  <i className="bi bi-trash"></i>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
+                              </td>
+                              <td>
+                                <div className="btn-group" role="group">
+                                  <button 
+                                    className="btn btn-sm btn-outline-primary rounded-0"
+                                    onClick={() => router.push(`/student_learn/${plan.id}`)}
+                                    title="ดูรายละเอียด"
+                                  >
+                                    <i className="bi bi-eye"></i>
+                                  </button>
+                                  {canEditPlan(plan) && (
+                                    <>
+                                      <button 
+                                        className="btn btn-sm btn-outline-warning rounded-0"
+                                        onClick={() => router.push(`/student_learn/${plan.id}/edit`)}
+                                        title="แก้ไข"
+                                      >
+                                        <i className="bi bi-pencil"></i>
+                                      </button>
+                                      <button 
+                                        className="btn btn-sm btn-outline-success rounded-0"
+                                        onClick={() => router.push(`/student_learn/${plan.id}/record`)}
+                                        title="บันทึกผลกิจกรรม"
+                                      >
+                                        <i className="bi bi-check-circle"></i>
+                                      </button>
+                                      <button 
+                                        className="btn btn-sm btn-outline-info rounded-0"
+                                        onClick={() => router.push(`/student_learn/${plan.id}/album`)}
+                                        title="อัลบัมรูปภาพ"
+                                      >
+                                        <i className="bi bi-images"></i>
+                                      </button>
+                                      <button 
+                                        className="btn btn-sm btn-outline-danger rounded-0"
+                                        title="ลบ"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        onClick={() => setDeleteId(plan.id)}
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                            {expandedPlanId === plan.id && planStudents[plan.id] && (
+                              <tr className="bg-light">
+                                <td colSpan={8} className="p-3">
+                                  <div className="border-start border-3 border-info ps-3">
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                      <h6 className="fw-bold mb-0">
+                                        <i className="bi bi-people-fill me-2 text-info"></i>
+                                        รายชื่อนักเรียนที่เข้าร่วม ({planStudents[plan.id].length} คน)
+                                      </h6>
+                                      <small className="text-muted">
+                                        {getPlanTargetText(plan)}
+                                      </small>
+                                    </div>
+                                    
+                                    {planStudents[plan.id].length > 0 ? (
+                                      <div className="table-responsive">
+                                        <table className="table table-sm table-bordered bg-white">
+                                          <thead className="table-secondary">
+                                            <tr>
+                                              <th>#</th>
+                                              <th>รหัสนักเรียน</th>
+                                              <th>ชื่อ-นามสกุล</th>
+                                              <th>ระดับชั้น</th>
+                                              <th>สาขาวิชาเรียน</th>
+                                              <th>ห้อง</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {planStudents[plan.id].map((student, idx) => (
+                                              <tr key={student._id}>
+                                                <td>{idx + 1}</td>
+                                                <td className="fw-bold">{student.id}</td>
+                                                <td>
+                                                  <div className="d-flex align-items-center">
+                                                    {student.image ? (
+                                                      <img 
+                                                        src={student.image} 
+                                                        alt={student.name}
+                                                        className="rounded-circle me-2"
+                                                        style={{width: '25px', height: '25px', objectFit: 'cover'}}
+                                                      />
+                                                    ) : (
+                                                      <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{width: '25px', height: '25px'}}>
+                                                        <i className="bi bi-person-fill small"></i>
+                                                      </div>
+                                                    )}
+                                                    {student.name}
+                                                  </div>
+                                                </td>
+                                                <td>{student.level}</td>
+                                                <td>{student.class_group}</td>
+                                                <td>{student.class_number}</td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    ) : (
+                                      <p className="text-muted">ไม่มีนักเรียนตามเงื่อนไขนี้</p>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} className="text-center text-muted py-3">
-                            ไม่พบแผนกิจกรรมโฮมรูม
+                          <td colSpan={8} className="text-center text-muted py-5">
+                            <i className="bi bi-calendar-x fs-1 d-block mb-3"></i>
+                            <h5>ไม่พบแผนกิจกรรมโฮมรูม</h5>
+                            <p className="mb-0">ลองปรับเปลี่ยนตัวกรอง หรือสร้างแผนใหม่</p>
                           </td>
                         </tr>
                       )}
@@ -428,7 +730,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Calendar View */}
+        {/* Calendar View (เหมือนเดิม) */}
         {viewMode === 'calendar' && (
           <div className="row">
             <div className="col-12">
@@ -496,7 +798,7 @@ useEffect(() => {
                     </div>
                     <div className="d-flex align-items-center">
                       <span className="badge bg-info rounded-0 me-2">&nbsp;</span>
-                      <span className="small">บันทึกผลแล้ว</span> {/* เปลี่ยนจาก เสร็จสิ้น */}
+                      <span className="small">บันทึกผลแล้ว</span>
                     </div>
                   </div>
                 </div>
@@ -702,7 +1004,6 @@ useEffect(() => {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

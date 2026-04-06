@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { withPermission } from "@/app/components/withPermission";
 
 interface Student {
   _id: string;
@@ -15,58 +17,160 @@ interface Student {
   status: string;
   advisor_name: string;
   class_group: string;
+  class_number: string;
   phone_number: string;
+  image?: string;
 }
 
-export default function StudentListPage() {
+interface Major {
+  _id: string;
+  major_name: string;
+}
+
+function StudentListPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [student, setStudent] = useState<Student[]>([]);
   const [filteredStudent, setFilteredStudent] = useState<Student[]>([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedClassGroup, setSelectedClassGroup] = useState("");
+  const [selectedClassNumber, setSelectedClassNumber] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedYear, setSelectedYear] = useState("2568");
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [majors, setMajors] = useState<Major[]>([]);
   const itemsPerPage = 10;
 
-  const teacher_name = "อาจารย์วิมลรัตน์ ใจดี";
+  const teacher_name = session?.user?.name || "อาจารย์";
   const academic_year = "2568";
+  const userRole = session?.user?.role;
 
-  // Load student data
+  // ดึงข้อมูล majors
+  useEffect(() => {
+    const fetchMajors = async () => {
+      try {
+        const response = await fetch('/api/major');
+        if (response.ok) {
+          const data = await response.json();
+          setMajors(data);
+        }
+      } catch (error) {
+        console.error("Error fetching majors:", error);
+      }
+    };
+    
+    fetchMajors();
+  }, []);
+
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/student");
-        const result = await response.json();
         
-        console.log("API Response:", result);
-        
-        let studentsData = [];
-        if (result.success && Array.isArray(result.data)) {
-          studentsData = result.data;
-        } else if (Array.isArray(result)) {
-          studentsData = result;
+        // ✅ ADMIN: เห็นนักเรียนทั้งหมด
+        if (userRole === "ADMIN") {
+          const response = await fetch("/api/student");
+          const result = await response.json();
+          
+          let studentsData = [];
+          if (result.success && Array.isArray(result.data)) {
+            studentsData = result.data;
+          } else if (Array.isArray(result)) {
+            studentsData = result;
+          }
+          
+          const formattedData = studentsData.map((s: any) => ({
+            _id: s._id,
+            id: s.id || s._id,
+            prefix: s.prefix || "",
+            first_name: s.first_name || "",
+            last_name: s.last_name || "",
+            name: s.first_name && s.last_name ? `${s.prefix || ''}${s.first_name} ${s.last_name}` : s.name || "",
+            level: s.level || "",
+            status: s.status || "ปกติ",
+            advisor_name: s.advisor_name || "",
+            class_group: s.class_group || "",
+            class_number: s.class_number || "",
+            phone_number: s.phone_number || "",
+            image: s.image || ""
+          }));
+          
+          setStudent(formattedData);
+          setFilteredStudent(formattedData);
         }
         
-        const formattedData = studentsData.map((s: any) => ({
-          _id: s._id,
-          id: s.id || s._id,
-          prefix: s.prefix || "",
-          first_name: s.first_name || "",
-          last_name: s.last_name || "",
-          name: s.first_name && s.last_name ? `${s.prefix || ''}${s.first_name} ${s.last_name}` : s.name || "",
-          level: s.level || "",
-          status: s.status || "ปกติ",
-          advisor_name: s.advisor_name || "",
-          class_group: s.class_group || "",
-          phone_number: s.phone_number || ""
-        }));
+        // TEACHER: เห็นเฉพาะ assigned students
+        else if (userRole === "TEACHER" && session?.user?.id) {
+          const assignedRes = await fetch(`/api/user/${session.user.id}/assign-students`);
+          const assignedData = await assignedRes.json();
+          
+          if (assignedData.success && assignedData.data.length > 0) {
+            const teacherName = session?.user?.name || "อาจารย์";
+            console.log("Session user:", session?.user); // Debug log
+            console.log("Teacher name from session:", teacherName); // Debug log
+            const formattedData = assignedData.data.map((item: any) => {
+              const s = item.student_id;
+              console.log("Student advisor_name from DB:", s.advisor_name); // Debug log
+              return {
+                _id: s._id,
+                id: s.id || s._id,
+                prefix: s.prefix || "",
+                first_name: s.first_name || "",
+                last_name: s.last_name || "",
+                name: s.first_name && s.last_name ? `${s.prefix || ''}${s.first_name} ${s.last_name}` : s.name || "",
+                level: s.level || "",
+                status: s.status || "ปกติ",
+                advisor_name: teacherName,
+                class_group: s.class_group || "",
+                class_number: s.class_number || "",
+                phone_number: s.phone_number || "",
+                image: s.image || ""
+              };
+            });
+            
+            setStudent(formattedData);
+            setFilteredStudent(formattedData);
+          } else {
+            setStudent([]);
+            setFilteredStudent([]);
+          }
+        }
         
-        setStudent(formattedData);
-        setFilteredStudent(formattedData);
+        // ✅ EXECUTIVE, COMMITTEE: เห็นทั้งหมด
+        else {
+          const response = await fetch("/api/student");
+          const result = await response.json();
+          
+          let studentsData = [];
+          if (result.success && Array.isArray(result.data)) {
+            studentsData = result.data;
+          } else if (Array.isArray(result)) {
+            studentsData = result;
+          }
+          
+          const formattedData = studentsData.map((s: any) => ({
+            _id: s._id,
+            id: s.id || s._id,
+            prefix: s.prefix || "",
+            first_name: s.first_name || "",
+            last_name: s.last_name || "",
+            name: s.first_name && s.last_name ? `${s.prefix || ''}${s.first_name} ${s.last_name}` : s.name || "",
+            level: s.level || "",
+            status: s.status || "ปกติ",
+            advisor_name: s.advisor_name || "",
+            class_group: s.class_group || "",
+            class_number: s.class_number || "",
+            phone_number: s.phone_number || "",
+            image: s.image || ""
+          }));
+          
+          setStudent(formattedData);
+          setFilteredStudent(formattedData);
+        }
+        
       } catch (error) {
         console.error("Error fetching students:", error);
       } finally {
@@ -74,10 +178,12 @@ export default function StudentListPage() {
       }
     };
 
-    fetchStudents();
-  }, []);
+    if (session?.user?.id) {
+      fetchStudents();
+    }
+  }, [session, userRole]);
 
-  // Search and filter students
+  // กรองข้อมูล
   useEffect(() => {
     let filtered = [...student];
 
@@ -95,13 +201,21 @@ export default function StudentListPage() {
       filtered = filtered.filter((s) => s.level === selectedLevel);
     }
 
+    if (selectedClassGroup) {
+      filtered = filtered.filter((s) => s.class_group === selectedClassGroup);
+    }
+
+    if (selectedClassNumber) {
+      filtered = filtered.filter((s) => s.class_number === selectedClassNumber);
+    }
+
     if (selectedStatus) {
       filtered = filtered.filter((s) => s.status === selectedStatus);
     }
 
     setFilteredStudent(filtered);
     setCurrentPage(1);
-  }, [searchKeyword, selectedLevel, selectedStatus, student]);
+  }, [searchKeyword, selectedLevel, selectedClassGroup, selectedClassNumber, selectedStatus, student]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -115,11 +229,9 @@ export default function StudentListPage() {
       });
 
       if (response.ok) {
-        // Remove from both student and filteredStudent states
         setStudent(prev => prev.filter(s => s._id !== deleteId));
         setFilteredStudent(prev => prev.filter(s => s._id !== deleteId));
         
-        // Close modal
         const modal = document.getElementById('deleteModal');
         if (modal) {
           const bsModal = (window as any).bootstrap?.Modal.getInstance(modal);
@@ -128,8 +240,6 @@ export default function StudentListPage() {
           }
         }
         setDeleteId(null);
-        
-        // Show success message
         alert("ลบข้อมูลนักเรียนเรียบร้อยแล้ว");
       } else {
         alert("ไม่สามารถลบข้อมูลได้");
@@ -140,7 +250,6 @@ export default function StudentListPage() {
     }
   };
 
-  // Pagination
   const totalRecords = filteredStudent.length;
   const totalPages = Math.ceil(totalRecords / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -156,10 +265,14 @@ export default function StudentListPage() {
     }
   };
 
+  const getPageTitle = () => {
+    if (userRole === "ADMIN") return "รายชื่อผู้เรียนทั้งหมด";
+    if (userRole === "TEACHER") return "รายชื่อผู้เรียนในความดูแล";
+    return "รายชื่อผู้เรียน";
+  };
+
   return (
     <div className="min-vh-100 bg-light">
-     
-
       <div className="container-fluid py-4">
         {/* Page Header */}
         <div className="row mb-4">
@@ -167,19 +280,22 @@ export default function StudentListPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-people-fill me-2 text-warning"></i>
-                รายชื่อผู้เรียน
+                {getPageTitle()}
               </h2>
               <div>
-                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name}</span>
+                <span className="text-muted me-3">
+                  {userRole === "TEACHER" ? "ครูที่ปรึกษา: " : ""}{teacher_name}
+                </span>
                 <span className="badge bg-dark text-white rounded-0">ปีการศึกษา {academic_year}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Search and Filter Section */}
+        {/* ✅ Search and Filter Section */}
         <div className="row g-3 mb-4">
-          <div className="col-md-5">
+          {/* ค้นหา */}
+          <div className="col-md-3">
             <div className="input-group">
               <span className="input-group-text bg-white border rounded-0">
                 <i className="bi bi-search"></i>
@@ -193,6 +309,8 @@ export default function StudentListPage() {
               />
             </div>
           </div>
+          
+          {/* ระดับชั้น */}
           <div className="col-md-2">
             <select 
               className="form-select rounded-0"
@@ -207,33 +325,44 @@ export default function StudentListPage() {
               <option value="ปวส.2">ปวส.2</option>
             </select>
           </div>
+          
+          {/* สาขาวิชา */}
           <div className="col-md-2">
             <select 
               className="form-select rounded-0"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              value={selectedClassGroup}
+              onChange={(e) => setSelectedClassGroup(e.target.value)}
             >
-              <option value="">สถานะทั้งหมด</option>
-              <option value="ปกติ">ปกติ</option>
-              <option value="เสี่ยง">เสี่ยง</option>
-              <option value="มีปัญหา">มีปัญหา</option>
+              <option value="">สาขาวิชา</option>
+              {majors.map((major) => (
+                <option key={major._id} value={major.major_name}>
+                  {major.major_name}
+                </option>
+              ))}
             </select>
           </div>
+          
+          {/* ห้อง */}
           <div className="col-md-2">
-            <select 
-              className="form-select rounded-0"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              <option value="2568">ปี 2568</option>
-              <option value="2567">ปี 2567</option>
-              <option value="2566">ปี 2566</option>
-            </select>
+            <input
+              type="text"
+              className="form-control rounded-0"
+              placeholder="ห้อง เช่น 1, 2, 3"
+              value={selectedClassNumber}
+              onChange={(e) => setSelectedClassNumber(e.target.value)}
+            />
           </div>
-          <div className="col-md-1">
-            <button className="btn btn-warning rounded-0 w-100 text-uppercase fw-semibold">
-              <i className="bi bi-funnel me-2"></i>ค้นหา
-            </button>
+          
+          {/* ปุ่มเลือกนักเรียน (สำหรับ TEACHER) */}
+          <div className="col-md-3">
+            {userRole === "TEACHER" && (
+              <Link
+                href="/student/student_filter"
+                className="btn btn-warning rounded-0 w-100 text-uppercase fw-semibold"
+              >
+                <i className="bi bi-funnel me-2"></i>เลือกนักเรียนในความดูแล
+              </Link>
+            )}
           </div>
         </div>
 
@@ -247,15 +376,43 @@ export default function StudentListPage() {
               </span>
             </div>
             <div>
-              <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2" data-bs-toggle="modal" data-bs-target="#importModal">
-                <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล
-              </button>
-              <Link
-                href="/student/student_add"
-                className="btn btn-primary rounded-0 text-uppercase fw-semibold"
-              >
-                <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
-              </Link>
+              {/* TEACHER: มีปุ่มเลือกนักเรียน + เพิ่มผู้เรียน */}
+              {userRole === "TEACHER" && (
+                <>
+                 
+                  <Link
+                    href="/student/student_add"
+                    className="btn btn-success rounded-0 text-uppercase fw-semibold"
+                  >
+                    <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
+                  </Link>
+                </>
+              )}
+              
+              {/* ADMIN: มีปุ่มนำเข้า + เลือกนักเรียน + เพิ่มผู้เรียน */}
+              {userRole === "ADMIN" && (
+                <>
+                  <button 
+                    className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#importModal"
+                  >
+                    <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล
+                  </button>
+                  <Link
+                    href="/student/student_filter"
+                    className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
+                  >
+                    <i className="bi bi-funnel me-2"></i>เลือกนักเรียน
+                  </Link>
+                  <Link
+                    href="/student/student_add"
+                    className="btn btn-success rounded-0 text-uppercase fw-semibold"
+                  >
+                    <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -269,6 +426,17 @@ export default function StudentListPage() {
                   <span className="visually-hidden">กำลังโหลด...</span>
                 </div>
               </div>
+            ) : student.length === 0 && userRole === "TEACHER" ? (
+              <div className="text-center py-5">
+                <div className="alert alert-info rounded-0">
+                  <i className="bi bi-info-circle me-2"></i>
+                  ยังไม่มีนักเรียนในความดูแล กรุณา{" "}
+                  <Link href="/student/student_filter" className="alert-link">
+                    คลิกที่นี่
+                  </Link>{" "}
+                  เพื่อเลือกนักเรียน
+                </div>
+              </div>
             ) : (
               <div className="table-responsive">
                 <table className="table table-bordered table-hover bg-white">
@@ -278,81 +446,89 @@ export default function StudentListPage() {
                       <th className="text-uppercase fw-semibold">รหัสนักศึกษา</th>
                       <th className="text-uppercase fw-semibold">ชื่อ-นามสกุล</th>
                       <th className="text-uppercase fw-semibold">ระดับชั้น</th>
-                      <th className="text-uppercase fw-semibold">กลุ่ม</th>
-                      <th className="text-uppercase fw-semibold">สถานะ</th>
+                      <th className="text-uppercase fw-semibold">สาขาวิชา</th>
+                      <th className="text-uppercase fw-semibold">ห้อง</th>
                       <th className="text-uppercase fw-semibold">ครูที่ปรึกษา</th>
                       <th className="text-uppercase fw-semibold text-center">จัดการ</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentStudents.length > 0 ? (
-                      currentStudents.map((student, index) => (
-                        <tr key={student._id}>
-                          <td className="text-center">{startIndex + index + 1}</td>
-                          <td className="fw-semibold">{student.id}</td>
-                          <td>
-                            {student._id ? (
-                              <Link 
-                                href={`/student/student_detail/${student._id}/interview`}
-                                className="text-decoration-none text-primary"
-                              >
-                                {student.name || `${student.prefix || ''}${student.first_name} ${student.last_name}`}
-                              </Link>
+                    {currentStudents.map((student, index) => (
+                      <tr key={student._id}>
+                        <td className="text-center">{startIndex + index + 1}</td>
+                        <td className="fw-semibold">{student.id}</td>
+                        <td>
+                          <div className="d-flex align-items-center">
+                            {student.image ? (
+                              <img
+                                src={student.image}
+                                alt={student.name}
+                                className="rounded-circle me-2"
+                                style={{ width: '30px', height: '30px', objectFit: 'cover' }}
+                              />
                             ) : (
-                              <span>{student.name || `${student.prefix || ''}${student.first_name} ${student.last_name}`}</span>
-                            )}
-                          </td>
-                          <td>{student.level}</td>
-                          <td>{student.class_group || '-'}</td>
-                          <td>
-                            <span 
-                              className={`badge rounded-0 text-uppercase fw-semibold ${getStatusBadgeClass(student.status)}`}
-                            >
-                              {student.status || 'ปกติ'}
-                            </span>
-                          </td>
-                          <td>{student.advisor_name || '-'}</td>
-                          <td className="text-center">
-                            <div className="btn-group" role="group">
-                              <button 
-                                className="btn btn-sm btn-outline-primary rounded-0"
-                                onClick={() => student._id && router.push(`/student/student_detail/${student._id}`)}
-                                title="ดูรายละเอียด"
-                                disabled={!student._id}
+                              <div
+                                className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2"
+                                style={{ width: '30px', height: '30px' }}
                               >
-                                <i className="bi bi-eye"></i>
-                              </button>
+                                <i className="bi bi-person-fill"></i>
+                              </div>
+                            )}
+                            <Link 
+                              href={`/student/student_detail/${student._id}`}
+                              className="text-decoration-none text-primary"
+                            >
+                              {student.name}
+                            </Link>
+                          </div>
+                        </td>
+                        <td>{student.level}</td>
+                        <td>{student.class_group || '-'}</td>
+                        <td>{student.class_number || '-'}</td>
+                        <td>{student.advisor_name || '-'}</td>
+                        <td className="text-center">
+                          <div className="btn-group" role="group">
+                            <button 
+                              className="btn btn-sm btn-outline-primary rounded-0"
+                              onClick={() => router.push(`/student/student_detail/${student._id}`)}
+                              title="ดูรายละเอียด"
+                            >
+                              <i className="bi bi-eye"></i>
+                            </button>
+                            
+                            {(userRole === "ADMIN" || userRole === "TEACHER") && (
                               <button 
                                 className="btn btn-sm btn-outline-warning rounded-0"
-                                onClick={() => student._id && router.push(`/student/student_detail/${student._id}/edit`)}
+                                onClick={() => router.push(`/student/student_detail/${student._id}/edit`)}
                                 title="แก้ไข"
-                                disabled={!student._id}
                               >
                                 <i className="bi bi-pencil"></i>
                               </button>
+                            )}
+                            {(userRole === "ADMIN" || userRole === "TEACHER") && (
+                              <button 
+                                className="btn -clipboard-check btn-outline-success rounded-0"
+                                onClick={() => router.push(`/student/student_detail/${student._id}/interview`)}
+                                title="แบบประเมินผู้ปกครอง"
+                              >
+                                <i className="bi bi-clipboard-check"></i>
+                              </button>
+                            )}
+                            {userRole === "ADMIN" && (
                               <button 
                                 className="btn btn-sm btn-outline-danger rounded-0"
                                 title="ลบ"
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteModal"
-                                onClick={() => student._id && setDeleteId(student._id)}
-                                disabled={!student._id}
+                                onClick={() => setDeleteId(student._id)}
                               >
                                 <i className="bi bi-trash"></i>
                               </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={8} className="text-center text-muted py-4">
-                          {searchKeyword || selectedLevel || selectedStatus 
-                            ? "ไม่พบข้อมูลที่ค้นหา" 
-                            : "ไม่มีข้อมูลนักเรียน"}
+                            )}
+                          </div>
                         </td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -399,7 +575,7 @@ export default function StudentListPage() {
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <div className="modal fade" id="deleteModal" tabIndex={-1} aria-hidden="true">
         <div className="modal-dialog">
           <div className="modal-content rounded-0">
@@ -448,3 +624,5 @@ export default function StudentListPage() {
     </div>
   );
 }
+
+export default withPermission(StudentListPage, "STUDENT_LIST");

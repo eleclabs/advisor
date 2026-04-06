@@ -363,7 +363,7 @@ export default function InterviewEditPage() {
                           <span className="ms-2">{student.level}</span>
                         </div>
                         <div className="col-md-6 mb-2">
-                          <span className="text-uppercase fw-semibold small">กลุ่มเรียน:</span>
+                          <span className="text-uppercase fw-semibold small">สาขาวิชา:</span>
                           <span className="ms-2">{student.class_group || "-"}</span>
                         </div>
                       </div>
@@ -938,7 +938,7 @@ export default function InterviewEditPage() {
                 <div className="p-3">
                   <div className="row g-3 mb-3">
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">กลุ่มนักเรียน <span className="text-danger">*</span></label>
+                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชานักเรียน <span className="text-danger">*</span></label>
                       <select 
                         name="student_group"
                         className="form-select rounded-0"
@@ -946,9 +946,9 @@ export default function InterviewEditPage() {
                         onChange={handleInputChange}
                         required
                       >
-                        <option value="ปกติ">กลุ่มปกติ</option>
-                        <option value="เสี่ยง">กลุ่มเสี่ยง</option>
-                        <option value="มีปัญหา">กลุ่มมีปัญหา</option>
+                        <option value="ปกติ">สาขาวิชาปกติ</option>
+                        <option value="เสี่ยง">สาขาวิชาเสี่ยง</option>
+                        <option value="มีปัญหา">สาขาวิชามีปัญหา</option>
                       </select>
                     </div>
                     <div className="col-md-9">
@@ -1033,8 +1033,8 @@ export default function InterviewEditPage() {
                         </h5>
                         <p className="mb-0">
                           {getStatusColor() === 'success' && 'นักเรียนอยู่ในเกณฑ์ปกติ เหมาะสมกับการดูแลทั่วไป'}
-                          {getStatusColor() === 'warning' && 'นักเรียนอยู่ในกลุ่มเสี่ยง ควรได้รับการดูแลและติดตามอย่างใกล้ชิด'}
-                          {getStatusColor() === 'danger' && 'นักเรียนอยู่ในกลุ่มมีปัญหา จำเป็นต้องได้รับการช่วยเหลือและส่งต่อทันที'}
+                          {getStatusColor() === 'warning' && 'นักเรียนอยู่ในสาขาวิชาเสี่ยง ควรได้รับการดูแลและติดตามอย่างใกล้ชิด'}
+                          {getStatusColor() === 'danger' && 'นักเรียนอยู่ในสาขาวิชามีปัญหา จำเป็นต้องได้รับการช่วยเหลือและส่งต่อทันที'}
                         </p>
                       </div>
                     </div>

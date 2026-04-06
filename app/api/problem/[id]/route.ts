@@ -246,7 +246,7 @@ export async function PUT(
     const updated = await Problem.findOneAndUpdate(
       { _id: problem._id },
       updateData,
-      { new: true }
+      { returnDocument: 'after' }
     );
     
     return NextResponse.json({ success: true, data: updated });

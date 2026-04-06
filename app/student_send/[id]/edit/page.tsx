@@ -195,7 +195,7 @@ export default function EditReferralPage() {
                                 <div>
                                   <strong>{s.first_name} {s.last_name}</strong>
                                   <br />
-                                  <small className="text-muted">รหัส: {s.id} | {s.level}/{s.class_group} เลขที่ {s.class_number}</small>
+                                  <small className="text-muted">รหัส: {s.id} | {s.level}/{s.class_group} ห้อง {s.class_number}</small>
                                 </div>
                                 <i className="bi bi-person-plus text-warning"></i>
                               </div>
@@ -232,7 +232,7 @@ export default function EditReferralPage() {
                         />
                       </div>
                       <div className="col-md-4 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
+                        <label className="form-label text-uppercase fw-semibold small">ห้อง</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0"

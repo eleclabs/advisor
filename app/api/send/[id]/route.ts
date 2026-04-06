@@ -1,6 +1,11 @@
+// app/api/send/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Referral, Coordination, FollowUp } from "@/models/Send";
+import User from "@/models/User";
+import Student from "@/models/Student";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import mongoose from "mongoose";
 
 // GET - ดึงข้อมูลการส่งต่อตาม ID
@@ -10,6 +15,19 @@ export async function GET(
 ) {
   try {
     await connectDB();
+    
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const userRole = session.user.role;
+    const userId = session.user.id;
+    const isAdmin = userRole === 'ADMIN';
     
     const { id } = await params;
     
@@ -29,6 +47,32 @@ export async function GET(
         { success: false, error: "ไม่พบข้อมูลการส่งต่อ" },
         { status: 404 }
       );
+    }
+    
+    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่านักเรียนอยู่ในความดูแลหรือไม่
+    if (!isAdmin && userId) {
+      const user = await User.findById(userId).populate({
+        path: 'assigned_students.student_id',
+        model: Student
+      });
+      
+      if (user && user.assigned_students && user.assigned_students.length > 0) {
+        const assignedStudentIds = user.assigned_students
+          .filter((item: any) => item.student_id)
+          .map((item: any) => item.student_id.id);
+        
+        if (!assignedStudentIds.includes(referral.student_id)) {
+          return NextResponse.json(
+            { success: false, error: "ไม่มีสิทธิ์เข้าถึงข้อมูลนี้" },
+            { status: 403 }
+          );
+        }
+      } else {
+        return NextResponse.json(
+          { success: false, error: "ไม่มีสิทธิ์เข้าถึงข้อมูลนี้" },
+          { status: 403 }
+        );
+      }
     }
     
     // ดึงข้อมูลการประสานงานที่เกี่ยวข้อง
@@ -64,6 +108,19 @@ export async function PUT(
   try {
     await connectDB();
     
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const userRole = session.user.role;
+    const userId = session.user.id;
+    const isAdmin = userRole === 'ADMIN';
+    
     const { id } = await params;
     const body = await request.json();
     
@@ -82,6 +139,32 @@ export async function PUT(
         { success: false, error: "ไม่พบข้อมูลการส่งต่อ" },
         { status: 404 }
       );
+    }
+    
+    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่านักเรียนอยู่ในความดูแลหรือไม่
+    if (!isAdmin && userId) {
+      const user = await User.findById(userId).populate({
+        path: 'assigned_students.student_id',
+        model: Student
+      });
+      
+      if (user && user.assigned_students && user.assigned_students.length > 0) {
+        const assignedStudentIds = user.assigned_students
+          .filter((item: any) => item.student_id)
+          .map((item: any) => item.student_id.id);
+        
+        if (!assignedStudentIds.includes(referral.student_id)) {
+          return NextResponse.json(
+            { success: false, error: "ไม่มีสิทธิ์แก้ไขข้อมูลนี้" },
+            { status: 403 }
+          );
+        }
+      } else {
+        return NextResponse.json(
+          { success: false, error: "ไม่มีสิทธิ์แก้ไขข้อมูลนี้" },
+          { status: 403 }
+        );
+      }
     }
     
     // อัปเดตข้อมูล
@@ -112,6 +195,19 @@ export async function DELETE(
   try {
     await connectDB();
     
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const userRole = session.user.role;
+    const userId = session.user.id;
+    const isAdmin = userRole === 'ADMIN';
+    
     const { id } = await params;
     
     // ตรวจสอบว่า id เป็น MongoDB ObjectId ที่ถูกต้องหรือไม่
@@ -129,6 +225,32 @@ export async function DELETE(
         { success: false, error: "ไม่พบข้อมูลการส่งต่อ" },
         { status: 404 }
       );
+    }
+    
+    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่านักเรียนอยู่ในความดูแลหรือไม่
+    if (!isAdmin && userId) {
+      const user = await User.findById(userId).populate({
+        path: 'assigned_students.student_id',
+        model: Student
+      });
+      
+      if (user && user.assigned_students && user.assigned_students.length > 0) {
+        const assignedStudentIds = user.assigned_students
+          .filter((item: any) => item.student_id)
+          .map((item: any) => item.student_id.id);
+        
+        if (!assignedStudentIds.includes(referral.student_id)) {
+          return NextResponse.json(
+            { success: false, error: "ไม่มีสิทธิ์ลบข้อมูลนี้" },
+            { status: 403 }
+          );
+        }
+      } else {
+        return NextResponse.json(
+          { success: false, error: "ไม่มีสิทธิ์ลบข้อมูลนี้" },
+          { status: 403 }
+        );
+      }
     }
     
     // ลบข้อมูลการประสานงานที่เกี่ยวข้อง

@@ -209,7 +209,7 @@ export default function ActivityStatusViewPage() {
                   <p className="mb-2"><strong>รหัสนักเรียน:</strong> {student.student_id}</p>
                   <p className="mb-2"><strong>ชื่อ:</strong> {student.student_name}</p>
                   <p className="mb-2"><strong>ระดับ:</strong> {student.level}</p>
-                  <p className="mb-0"><strong>ชั้น/เลขที่:</strong> {student.class_group}/{student.class_number}</p>
+                  <p className="mb-0"><strong>ชั้น/ห้อง:</strong> {student.class_group}/{student.class_number}</p>
                 </div>
               </div>
 

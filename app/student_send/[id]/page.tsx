@@ -23,26 +23,21 @@ interface Referral {
 interface Coordination {
   _id: string;
   referral_id: string;
-  date: string;
-  agency_name: string;
+  organization: string;
   contact_person: string;
   channel: "โทรศัพท์" | "พบปะโดยตรง" | "หนังสือราชการ" | "ออนไลน์";
   details: string;
   agreement: string;
+  coordination_date: string;
   created_at: string;
 }
 
 interface FollowUp {
   _id: string;
   referral_id: string;
-  status: "อยู่ระหว่างดำเนินการ" | "สิ้นสุดการช่วยเหลือ";
+  follow_date: string;
   result: "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย" | "พฤติกรรมคงเดิม" | "มีภาวะวิกฤตเพิ่มเติม";
-  follow_up_1: string;
-  follow_up_2: string;
-  follow_up_3: string;
-  continuous_plan: string;
-  collaboration: string[];
-  report: string;
+  notes: string;
   created_at: string;
 }
 
@@ -55,16 +50,7 @@ export default function ViewReferralPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
-
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
-
+   
     loadReferral();
   }, []);
 
@@ -93,6 +79,48 @@ export default function ViewReferralPage() {
       router.push('/student_send');
     } catch (error) {
       console.error('Error:', error);
+    }
+  };
+
+  const handleDeleteCoordination = async (id: string) => {
+    if (!confirm('คุณต้องการลบบันทึกการประสานงานนี้ใช่หรือไม่?')) return;
+    
+    try {
+      const response = await fetch(`/api/send/coordination/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        loadReferral(); // โหลดข้อมูลใหม่
+      } else {
+        alert('ไม่สามารถลบข้อมูลได้');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('เกิดข้อผิดพลาด');
+    }
+  };
+
+  const handleDeleteFollowUp = async (id: string) => {
+    if (!confirm('คุณต้องการลบบันทึกการติดตามผลนี้ใช่หรือไม่?')) return;
+    
+    try {
+      const response = await fetch(`/api/send/followup/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        loadReferral(); // โหลดข้อมูลใหม่
+      } else {
+        alert('ไม่สามารถลบข้อมูลได้');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('เกิดข้อผิดพลาด');
+    }
+  };
+
+  // ฟังก์ชันจัดสาขาวิชาการติดตามผลตามวันที่ (เรียงจากล่าสุดไปเก่าสุด)
+  const getResultBadgeClass = (result: string) => {
+    switch(result) {
+      case "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย": return "success";
+      case "พฤติกรรมคงเดิม": return "warning";
+      case "มีภาวะวิกฤตเพิ่มเติม": return "danger";
+      default: return "secondary";
     }
   };
 
@@ -125,20 +153,7 @@ export default function ViewReferralPage() {
   }
 
   return (
-    <div className="d-flex flex-column min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="navbar-nav ms-auto">
-            <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-            <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student_problem">ป้องกันและแก้ไข</a>
-            <a className="nav-link text-white text-uppercase fw-semibold px-3 active" href="/student_send">ส่งต่อ</a>
-          </div>
-        </div>
-      </nav>
+  
 
       <div className="flex-grow-1">
         <div className="container-fluid py-4">
@@ -201,7 +216,7 @@ export default function ViewReferralPage() {
                   <p className="mb-2"><strong>รหัสนักเรียน:</strong> {referral.student_id}</p>
                   <p className="mb-2"><strong>ชื่อ:</strong> {referral.student_name}</p>
                   <p className="mb-2"><strong>ระดับ:</strong> {referral.student_level}</p>
-                  <p className="mb-0"><strong>ชั้น/เลขที่:</strong> {referral.student_class}/{referral.student_number}</p>
+                  <p className="mb-0"><strong>ชั้น/ห้อง:</strong> {referral.student_class}/{referral.student_number}</p>
                 </div>
               </div>
 
@@ -285,16 +300,27 @@ export default function ViewReferralPage() {
                     </div>
                   ) : (
                     coordinations.map(coord => (
-                      <div key={coord._id} className="border rounded p-3 mb-3 bg-light">
+                      <div key={coord._id} className="border rounded p-3 mb-3 bg-light position-relative">
+                        <button 
+                          className="btn btn-sm btn-danger rounded-0 position-absolute top-0 end-0 m-2"
+                          onClick={() => handleDeleteCoordination(coord._id)}
+                          title="ลบ"
+                        >
+                          <i className="bi bi-trash"></i>
+                        </button>
+
                         <div className="row mb-2">
                           <div className="col-md-6">
-                            <strong>วัน/เวลา:</strong> {new Date(coord.date).toLocaleDateString('th-TH')}
+                            <strong>วัน/เวลา:</strong> {new Date(coord.coordination_date).toLocaleDateString('th-TH')}
                           </div>
                           <div className="col-md-6">
                             <strong>ช่องทาง:</strong> {coord.channel}
                           </div>
                         </div>
-                        <p className="mb-2"><strong>หน่วยงาน/บุคคลที่ประสาน:</strong> {coord.agency_name} ({coord.contact_person})</p>
+                        <p className="mb-2">
+                          <strong>หน่วยงาน/บุคคลที่ประสาน:</strong> {coord.organization} 
+                          {coord.contact_person && ` (${coord.contact_person})`}
+                        </p>
                         <div className="mb-2">
                           <strong>สรุปรายละเอียด:</strong>
                           <div className="border rounded p-2 bg-white mt-1">
@@ -314,11 +340,14 @@ export default function ViewReferralPage() {
               </div>
 
               <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
+                <div className="p-3 border-bottom bg-dark d-flex justify-content-between align-items-center">
                   <h6 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-clipboard-check me-2 text-warning"></i>
                     3. แบบประเมินและติดตามผลหลังการส่งต่อ
                   </h6>
+                  <span className="badge bg-warning rounded-0">
+                    {followUps.length} ครั้ง
+                  </span>
                 </div>
                 <div className="p-3">
                   {followUps.length === 0 ? (
@@ -333,76 +362,67 @@ export default function ViewReferralPage() {
                       </button>
                     </div>
                   ) : (
-                    followUps.map(follow => (
-                      <div key={follow._id} className="border rounded p-3 bg-light">
-                        <div className="row mb-3">
-                          <div className="col-md-6">
-                            <strong>สถานะ:</strong>{' '}
-                            <span className={`badge bg-${follow.status === 'อยู่ระหว่างดำเนินการ' ? 'warning' : 'success'} rounded-0`}>
-                              {follow.status}
-                            </span>
-                          </div>
-                          <div className="col-md-6">
-                            <strong>ผลการช่วยเหลือ:</strong>{' '}
-                            <span className={`badge bg-${follow.result === 'พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย' ? 'success' : follow.result === 'พฤติกรรมคงเดิม' ? 'warning' : 'danger'} rounded-0`}>
-                              {follow.result}
-                            </span>
-                          </div>
-                        </div>
+                    <div className="timeline">
+                      {followUps
+                        .sort((a, b) => new Date(b.follow_date).getTime() - new Date(a.follow_date).getTime())
+                        .map((follow, index) => (
+                        <div key={follow._id} className="mb-3 position-relative">
+                          <div className="border rounded p-3 bg-light">
+                            {/* ปุ่มลบ */}
+                            <button 
+                              className="btn btn-sm btn-danger rounded-0 position-absolute top-0 end-0 m-2"
+                              onClick={() => handleDeleteFollowUp(follow._id)}
+                              title="ลบ"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
 
-                        <div className="mb-3">
-                          <h6 className="text-uppercase fw-semibold small mb-2">การติดตามผลในสถานศึกษา</h6>
-                          <div className="row">
-                            <div className="col-md-4 mb-2">
-                              <strong>ครั้งที่ 1 (7 วัน):</strong>
-                              <div className="border rounded p-2 bg-white mt-1">
-                                <p className="mb-0 small">{follow.follow_up_1 || '-'}</p>
+                            <div className="row mb-2">
+                              <div className="col-md-6">
+                                <strong>ครั้งที่ {followUps.length - index}:</strong>{' '}
+                                {new Date(follow.follow_date).toLocaleDateString('th-TH', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                              <div className="col-md-6">
+                                <strong>ผลการช่วยเหลือ:</strong>{' '}
+                                <span className={`badge bg-${getResultBadgeClass(follow.result)} rounded-0`}>
+                                  {follow.result}
+                                </span>
                               </div>
                             </div>
-                            <div className="col-md-4 mb-2">
-                              <strong>ครั้งที่ 2 (30 วัน):</strong>
+
+                            <div>
+                              <strong>หมายเหตุ:</strong>
                               <div className="border rounded p-2 bg-white mt-1">
-                                <p className="mb-0 small">{follow.follow_up_2 || '-'}</p>
-                              </div>
-                            </div>
-                            <div className="col-md-4 mb-2">
-                              <strong>ครั้งที่ 3 (90 วัน):</strong>
-                              <div className="border rounded p-2 bg-white mt-1">
-                                <p className="mb-0 small">{follow.follow_up_3 || '-'}</p>
+                                <p className="mb-0 small">{follow.notes}</p>
                               </div>
                             </div>
                           </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <strong>แผนการดูแลต่อเนื่อง:</strong>
-                          <div className="border rounded p-2 bg-white mt-1">
-                            <p className="mb-0 small">{follow.continuous_plan || '-'}</p>
-                          </div>
-                        </div>
-
-                        <div className="row">
-                          <div className="col-md-6 mb-2">
-                            <strong>การมีส่วนร่วม:</strong>
-                            <div className="mt-1">
-                              {follow.collaboration.length > 0 ? (
-                                follow.collaboration.map((item, index) => (
-                                  <span key={index} className="badge bg-info rounded-0 me-1">{item}</span>
-                                ))
-                              ) : (
-                                <span className="text-muted">-</span>
-                              )}
+                          
+                          {/* เส้นเชื่อม timeline (ถ้าไม่ใช่รายการสุดท้าย) */}
+                          {index < followUps.length - 1 && (
+                            <div className="text-center text-muted my-2">
+                              <i className="bi bi-arrow-down"></i>
                             </div>
-                          </div>
-                          <div className="col-md-6 mb-2">
-                            <strong>รายงานเพื่อปรับปรุงงาน:</strong>
-                            <div className="border rounded p-2 bg-white mt-1">
-                              <p className="mb-0 small">{follow.report || '-'}</p>
-                            </div>
-                          </div>
+                          )}
                         </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* ปุ่มเพิ่มการติดตามผล (แสดงเสมอ) */}
+                  {followUps.length > 0 && (
+                    <div className="text-center mt-3">
+                      <button 
+                        className="btn btn-outline-success rounded-0 text-uppercase fw-semibold"
+                        onClick={() => router.push(`/student_send/${referral._id}/followup`)}
+                      >
+                        <i className="bi bi-plus-circle me-2"></i>เพิ่มการติดตามผลครั้งที่ {followUps.length + 1}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -411,19 +431,6 @@ export default function ViewReferralPage() {
         </div>
       </div>
 
-      <footer className="bg-dark text-white py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>ระบบส่งต่อผู้เรียน</span>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+
   );
 }

@@ -9,7 +9,7 @@ export default function CoordinationPage() {
   const params = useParams();
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
-    agency_name: "",
+    organization: "", // ✅ เพิ่มฟิลด์นี้
     contact_person: "",
     channel: "โทรศัพท์" as "โทรศัพท์" | "พบปะโดยตรง" | "หนังสือราชการ" | "ออนไลน์",
     details: "",
@@ -30,26 +30,43 @@ export default function CoordinationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ✅ ตรวจสอบข้อมูลก่อนส่ง
+    if (!form.organization) {
+      alert("กรุณากรอกชื่อหน่วยงาน/บุคคลที่ประสาน");
+      return;
+    }
+    
     try {
       const response = await fetch('/api/send/coordination', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           referral_id: params.id,
-          ...form
+          organization: form.organization, // ✅ ส่ง organization
+          contact_person: form.contact_person,
+          channel: form.channel,
+          details: form.details,
+          agreement: form.agreement,
+          coordination_date: form.date, // ✅ ส่ง coordination_date
         }),
       });
       
       if (response.ok) {
         router.push(`/student_send/${params.id}`);
+      } else {
+        const error = await response.json();
+        alert(error.error || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
       console.error('Error:', error);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
     }
   };
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
+      {/* Navbar (เหมือนเดิม) */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="#">
@@ -90,7 +107,7 @@ export default function CoordinationPage() {
                   <form onSubmit={handleSubmit}>
                     <div className="row">
                       <div className="col-md-6 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">วัน/เวลา</label>
+                        <label className="form-label text-uppercase fw-semibold small">วัน/เวลา <span className="text-danger">*</span></label>
                         <input 
                           type="date" 
                           className="form-control rounded-0"
@@ -100,7 +117,7 @@ export default function CoordinationPage() {
                         />
                       </div>
                       <div className="col-md-6 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ช่องทาง</label>
+                        <label className="form-label text-uppercase fw-semibold small">ช่องทาง <span className="text-danger">*</span></label>
                         <select 
                           className="form-select rounded-0"
                           value={form.channel}
@@ -114,29 +131,30 @@ export default function CoordinationPage() {
                         </select>
                       </div>
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ชื่อหน่วยงาน/บุคคลที่ประสาน</label>
+                        <label className="form-label text-uppercase fw-semibold small">
+                          ชื่อหน่วยงาน/บุคคลที่ประสาน <span className="text-danger">*</span>
+                        </label>
                         <input 
                           type="text" 
                           className="form-control rounded-0"
-                          placeholder="เช่น โรงพยาบาลสมเด็จพระพุทธเจดีย์ (คุณสมศรี ใจดี)"
-                          value={form.agency_name}
-                          onChange={(e) => setForm({...form, agency_name: e.target.value})}
+                          placeholder="เช่น โรงพยาบาลสมเด็จพระพุทธเจดีย์"
+                          value={form.organization}
+                          onChange={(e) => setForm({...form, organization: e.target.value})}
                           required
                         />
                       </div>
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ชื่อบุคคลที่ประสาน</label>
+                        <label className="form-label text-uppercase fw-semibold small">ชื่อบุคคลที่ติดต่อ</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0"
                           placeholder="เช่น คุณสมศรี ใจดี"
                           value={form.contact_person}
                           onChange={(e) => setForm({...form, contact_person: e.target.value})}
-                          required
                         />
                       </div>
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">สรุปรายละเอียดการประสานงาน</label>
+                        <label className="form-label text-uppercase fw-semibold small">สรุปรายละเอียดการประสานงาน <span className="text-danger">*</span></label>
                         <textarea 
                           className="form-control rounded-0" 
                           rows={4}
@@ -147,7 +165,7 @@ export default function CoordinationPage() {
                         ></textarea>
                       </div>
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ข้อตกลง/แนวทางปฏิบัติร่วมกัน</label>
+                        <label className="form-label text-uppercase fw-semibold small">ข้อตกลง/แนวทางปฏิบัติร่วมกัน <span className="text-danger">*</span></label>
                         <textarea 
                           className="form-control rounded-0" 
                           rows={4}

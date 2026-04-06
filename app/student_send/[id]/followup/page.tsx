@@ -8,14 +8,9 @@ export default function FollowUpPage() {
   const router = useRouter();
   const params = useParams();
   const [form, setForm] = useState({
-    status: "อยู่ระหว่างดำเนินการ" as "อยู่ระหว่างดำเนินการ" | "สิ้นสุดการช่วยเหลือ",
+    follow_date: new Date().toISOString().split('T')[0],
     result: "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย" as "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย" | "พฤติกรรมคงเดิม" | "มีภาวะวิกฤตเพิ่มเติม",
-    follow_up_1: "",
-    follow_up_2: "",
-    follow_up_3: "",
-    continuous_plan: "",
-    collaboration: [] as string[],
-    report: "",
+    notes: "", // ✅ เพิ่มฟิลด์ notes
   });
 
   useEffect(() => {
@@ -30,36 +25,50 @@ export default function FollowUpPage() {
     document.head.appendChild(iconLink);
   }, []);
 
-  const handleCollaborationChange = (value: string, checked: boolean) => {
-    if (checked) {
-      setForm({...form, collaboration: [...form.collaboration, value]});
-    } else {
-      setForm({...form, collaboration: form.collaboration.filter(item => item !== value)});
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ✅ ตรวจสอบข้อมูลก่อนส่ง
+    if (!form.notes) {
+      alert("กรุณากรอกหมายเหตุ");
+      return;
+    }
+    
     try {
       const response = await fetch('/api/send/followup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           referral_id: params.id,
-          ...form
+          follow_date: form.follow_date, // ✅ ส่ง follow_date
+          result: form.result,
+          notes: form.notes, // ✅ ส่ง notes
         }),
       });
       
       if (response.ok) {
+        // ถ้าการช่วยเหลือเสร็จสิ้น อัปเดตสถานะการส่งต่อ
+        if (form.result === "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย") {
+          await fetch(`/api/send/${params.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: "สิ้นสุดการช่วยเหลือ" })
+          });
+        }
         router.push(`/student_send/${params.id}`);
+      } else {
+        const error = await response.json();
+        alert(error.error || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
       console.error('Error:', error);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
     }
   };
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
+      {/* Navbar (เหมือนเดิม) */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
         <div className="container-fluid">
           <a className="navbar-brand fw-bold text-uppercase" href="#">
@@ -81,7 +90,7 @@ export default function FollowUpPage() {
               <div className="border-bottom border-3 border-warning pb-2">
                 <h2 className="text-uppercase fw-bold m-0">
                   <i className="bi bi-clipboard-check me-2 text-warning"></i>
-                  3. แบบประเมินและติดตามผลหลังการส่งต่อ
+                  บันทึกการติดตามผล
                 </h2>
               </div>
             </div>
@@ -93,29 +102,29 @@ export default function FollowUpPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-file-text me-2 text-warning"></i>
-                    แบบฟอร์มประเมินและติดตามผล
+                    แบบฟอร์มติดตามผล
                   </h5>
                 </div>
                 <div className="p-3">
                   <form onSubmit={handleSubmit}>
                     <div className="row mb-3">
                       <div className="col-md-6">
-                        <label className="form-label text-uppercase fw-semibold small">สถานะการดำเนินการ</label>
-                        <select 
-                          className="form-select rounded-0"
-                          value={form.status}
-                          onChange={(e) => setForm({...form, status: e.target.value as any})}
-                        >
-                          <option value="อยู่ระหว่างดำเนินการ">อยู่ระหว่างดำเนินการ</option>
-                          <option value="สิ้นสุดการช่วยเหลือ">สิ้นสุดการช่วยเหลือ</option>
-                        </select>
+                        <label className="form-label text-uppercase fw-semibold small">วันที่ติดตาม <span className="text-danger">*</span></label>
+                        <input 
+                          type="date" 
+                          className="form-control rounded-0"
+                          value={form.follow_date}
+                          onChange={(e) => setForm({...form, follow_date: e.target.value})}
+                          required
+                        />
                       </div>
                       <div className="col-md-6">
-                        <label className="form-label text-uppercase fw-semibold small">ผลการช่วยเหลือจากหน่วยงานรับส่งต่อ</label>
+                        <label className="form-label text-uppercase fw-semibold small">ผลการช่วยเหลือ <span className="text-danger">*</span></label>
                         <select 
                           className="form-select rounded-0"
                           value={form.result}
                           onChange={(e) => setForm({...form, result: e.target.value as any})}
+                          required
                         >
                           <option value="พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย">พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย</option>
                           <option value="พฤติกรรมคงเดิม">พฤติกรรมคงเดิม</option>
@@ -125,98 +134,14 @@ export default function FollowUpPage() {
                     </div>
 
                     <div className="mb-4">
-                      <h6 className="text-uppercase fw-semibold small mb-3">4. การติดตามผลในสถานศึกษา (Follow-up)</h6>
-                      <div className="row">
-                        <div className="col-md-4 mb-3">
-                          <label className="form-label text-uppercase fw-semibold small">ครั้งที่ 1 (7 วัน)</label>
-                          <textarea 
-                            className="form-control rounded-0" 
-                            rows={3}
-                            placeholder="บันทึกผลการติดตามครั้งที่ 1"
-                            value={form.follow_up_1}
-                            onChange={(e) => setForm({...form, follow_up_1: e.target.value})}
-                          ></textarea>
-                        </div>
-                        <div className="col-md-4 mb-3">
-                          <label className="form-label text-uppercase fw-semibold small">ครั้งที่ 2 (30 วัน)</label>
-                          <textarea 
-                            className="form-control rounded-0" 
-                            rows={3}
-                            placeholder="บันทึกผลการติดตามครั้งที่ 2"
-                            value={form.follow_up_2}
-                            onChange={(e) => setForm({...form, follow_up_2: e.target.value})}
-                          ></textarea>
-                        </div>
-                        <div className="col-md-4 mb-3">
-                          <label className="form-label text-uppercase fw-semibold small">ครั้งที่ 3 (90 วัน)</label>
-                          <textarea 
-                            className="form-control rounded-0" 
-                            rows={3}
-                            placeholder="บันทึกผลการติดตามครั้งที่ 3"
-                            value={form.follow_up_3}
-                            onChange={(e) => setForm({...form, follow_up_3: e.target.value})}
-                          ></textarea>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="form-label text-uppercase fw-semibold small">แผนการดูแลต่อเนื่อง</label>
+                      <label className="form-label text-uppercase fw-semibold small">หมายเหตุ <span className="text-danger">*</span></label>
                       <textarea 
                         className="form-control rounded-0" 
                         rows={4}
-                        placeholder="บันทึกแผนการดูแลต่อเนื่อง กิจกรรมที่ต้องทำ ตารางเวลา..."
-                        value={form.continuous_plan}
-                        onChange={(e) => setForm({...form, continuous_plan: e.target.value})}
-                      ></textarea>
-                    </div>
-
-                    <div className="mb-4">
-                      <h6 className="text-uppercase fw-semibold small mb-3">การมีส่วนร่วม</h6>
-                      <div className="row">
-                        <div className="col-md-6">
-                          <div className="form-check">
-                            <input 
-                              type="checkbox" 
-                              className="form-check-input rounded-0"
-                              id="teacher"
-                              checked={form.collaboration.includes("ครู")}
-                              onChange={(e) => handleCollaborationChange("ครู", e.target.checked)}
-                            />
-                            <label className="form-check-label" htmlFor="teacher">ครู</label>
-                          </div>
-                          <div className="form-check">
-                            <input 
-                              type="checkbox" 
-                              className="form-check-input rounded-0"
-                              id="parent"
-                              checked={form.collaboration.includes("ผู้ปกครอง")}
-                              onChange={(e) => handleCollaborationChange("ผู้ปกครอง", e.target.checked)}
-                            />
-                            <label className="form-check-label" htmlFor="parent">ผู้ปกครอง</label>
-                          </div>
-                          <div className="form-check">
-                            <input 
-                              type="checkbox" 
-                              className="form-check-input rounded-0"
-                              id="community"
-                              checked={form.collaboration.includes("ชุมชน")}
-                              onChange={(e) => handleCollaborationChange("ชุมชน", e.target.checked)}
-                            />
-                            <label className="form-check-label" htmlFor="community">ชุมชน</label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="form-label text-uppercase fw-semibold small">รายงานเพื่อปรับปรุงงาน</label>
-                      <textarea 
-                        className="form-control rounded-0" 
-                        rows={4}
-                        placeholder="บันทึกข้อเสนอแนะ ปัญหาที่พบ แนวทางปรับปรุง..."
-                        value={form.report}
-                        onChange={(e) => setForm({...form, report: e.target.value})}
+                        placeholder="บันทึกผลการติดตาม..."
+                        value={form.notes}
+                        onChange={(e) => setForm({...form, notes: e.target.value})}
+                        required
                       ></textarea>
                     </div>
 

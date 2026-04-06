@@ -3,17 +3,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Activity from "@/models/Activity";
 import Problem from "@/models/Problem";
+import User from "@/models/User";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import mongoose from "mongoose";
 
 // GET: ดูกิจกรรมทั้งหมด
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
+    
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const userRole = session.user.role;
+    const userId = session.user.id;
+    const isAdmin = userRole === 'ADMIN';
+    
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id"); // ค้นหาด้วย _id ของกิจกรรม
     const student_id = searchParams.get("student_id");
     
-    // ✅ กรณีที่ 1: ค้นหาด้วย _id ของกิจกรรม
+    // ✅ กรณีที่ 1: ค้นหาด้วย _id ของกิจกรรม (ดูรายละเอียดกิจกรรม)
     if (id) {
       console.log("🔍 Searching activity by _id:", id);
       
@@ -34,6 +51,35 @@ export async function GET(request: NextRequest) {
     
     // ✅ กรณีที่ 2: ค้นหากิจกรรมของนักเรียนคนเดียว
     if (student_id) {
+      // ถ้าไม่ใช่ Admin ต้องตรวจสอบว่านักเรียนคนนี้อยู่ในความดูแลหรือไม่
+      if (!isAdmin && userId) {
+        const user = await User.findById(userId).populate({
+          path: 'assigned_students.student_id',
+          model: 'Student'
+        });
+        
+        if (user && user.assigned_students && user.assigned_students.length > 0) {
+          // ดึงรหัสนักเรียนที่ครูดูแล
+          const assignedStudentIds = user.assigned_students
+            .filter((item: any) => item.student_id)
+            .map((item: any) => item.student_id.id);
+          
+          // ตรวจสอบว่านักเรียนที่ขอมาอยู่ในความดูแลหรือไม่
+          if (!assignedStudentIds.includes(student_id)) {
+            return NextResponse.json({ 
+              success: false, 
+              error: "ไม่มีสิทธิ์เข้าถึงข้อมูลนักเรียนนี้" 
+            }, { status: 403 });
+          }
+        } else {
+          // ถ้าครูไม่มีนักเรียนในความดูแล ให้คืนค่าว่าง
+          return NextResponse.json({ 
+            success: true, 
+            data: [] 
+          });
+        }
+      }
+      
       const activities = await Activity.find({
         "participants.student_id": student_id
       });
@@ -44,8 +90,33 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // ✅ กรณีที่ 3: ดูกิจกรรมทั้งหมด
-    const activities = await Activity.find().sort({ createdAt: -1 });
+    // ✅ กรณีที่ 3: ดูกิจกรรมทั้งหมด (สำหรับหน้า activities list)
+    let activities = [];
+    
+    if (isAdmin) {
+      // Admin เห็นทั้งหมด
+      activities = await Activity.find().sort({ createdAt: -1 });
+    } else if (userId) {
+      // Teacher: ดึงกิจกรรมที่มีนักเรียนในความดูแลเข้าร่วม
+      const user = await User.findById(userId).populate({
+        path: 'assigned_students.student_id',
+        model: 'Student'
+      });
+      
+      if (user && user.assigned_students && user.assigned_students.length > 0) {
+        // ดึงรหัสนักเรียนที่ครูดูแล
+        const assignedStudentIds = user.assigned_students
+          .filter((item: any) => item.student_id)
+          .map((item: any) => item.student_id.id);
+        
+        // ค้นหากิจกรรมที่มีนักเรียนเหล่านี้เข้าร่วม
+        activities = await Activity.find({
+          "participants.student_id": { $in: assignedStudentIds }
+        }).sort({ createdAt: -1 });
+      } else {
+        activities = [];
+      }
+    }
     
     return NextResponse.json({ success: true, data: activities });
     
@@ -58,10 +129,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: เพิ่มกิจกรรมใหม่ (แก้ไขแล้ว!)
+// POST: เพิ่มกิจกรรมใหม่
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+    
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
     const body = await request.json();
     
     console.log("📥 POST /api/problem/activity - Received:", body);
@@ -74,7 +156,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    // ===== เตรียมข้อมูล participants (แก้ไขตรงนี้!) =====
+    // ===== เตรียมข้อมูล participants =====
     let participants = [];
     if (body.student_ids && body.student_ids.length > 0) {
       // ดึงข้อมูลนักเรียนจาก Problem model
@@ -94,7 +176,7 @@ export async function POST(request: NextRequest) {
       });
       
       // ✅ สร้าง participants โดยให้ joined = true ทันที
-      participants = body.student_ids.map(id => {
+      participants = body.student_ids.map((id: string) => {
         const studentName = studentMap.get(id);
         if (!studentName) {
           console.warn(`⚠️ ไม่พบชื่อนักเรียนสำหรับรหัส: ${id}`);
@@ -102,14 +184,13 @@ export async function POST(request: NextRequest) {
         return {
           student_id: id,
           student_name: studentName || `ไม่พบชื่อ (${id})`,
-          joined: true,  // ✅ เปลี่ยนจาก false เป็น true
-          joined_at: new Date()  // ✅ เพิ่มเวลาที่เข้าร่วม
+          joined: true,
+          joined_at: new Date()
         };
       });
       
       console.log(`✅ Created ${participants.length} participants with joined=true`);
     }
-    // ===== จบส่วนแก้ไข =====
     
     // ✅ สร้างกิจกรรมใหม่
     const newActivity = {
@@ -125,7 +206,8 @@ export async function POST(request: NextRequest) {
       activity_date: body.activity_date || new Date(),
       participants: participants,
       total_participants: participants.length,
-      joined_count: participants.length  // ✅ joined_count = จำนวน participants ทั้งหมด
+      joined_count: participants.length,
+      created_by: currentUser
     };
     
     console.log("📝 New activity:", {
@@ -135,12 +217,7 @@ export async function POST(request: NextRequest) {
       duration_period: newActivity.duration_period,
       total_participants: newActivity.total_participants,
       joined_count: newActivity.joined_count,
-      participants: newActivity.participants.map(p => ({
-        student_id: p.student_id,
-        student_name: p.student_name,
-        joined: p.joined,
-        joined_at: p.joined_at
-      }))
+      created_by: newActivity.created_by
     });
     
     const activity = await Activity.create(newActivity);
@@ -164,8 +241,22 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
+    
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
+    const userRole = session.user.role;
+    const isAdmin = userRole === 'ADMIN';
+    
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id"); // ใช้ _id ของกิจกรรม
+    const id = searchParams.get("id");
     const body = await request.json();
     
     console.log("📥 PUT /api/problem/activity - id:", id);
@@ -186,6 +277,14 @@ export async function PUT(request: NextRequest) {
       }, { status: 404 });
     }
     
+    // ตรวจสอบสิทธิ์การแก้ไข (เฉพาะเจ้าของหรือ Admin)
+    if (!isAdmin && activity.created_by !== currentUser) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "ไม่มีสิทธิ์แก้ไขกิจกรรมนี้" 
+      }, { status: 403 });
+    }
+    
     // อัปเดตข้อมูลทั่วไป
     if (body.name) activity.name = body.name;
     if (body.objective !== undefined) activity.objective = body.objective;
@@ -198,7 +297,6 @@ export async function PUT(request: NextRequest) {
     if (body.debrief !== undefined) activity.debrief = body.debrief;
     if (body.activity_date) activity.activity_date = body.activity_date;
     
-    // ===== แก้ไขการอัปเดต participants =====
     // ถ้ามีการส่ง student_ids มา ให้อัปเดต participants
     if (body.student_ids) {
       // ดึงข้อมูลนักเรียนปัจจุบัน
@@ -220,22 +318,18 @@ export async function PUT(request: NextRequest) {
       const newParticipants = body.student_ids.map((id: string) => {
         const existing = existingParticipants.get(id);
         if (existing) {
-          // ถ้ามีอยู่แล้ว ให้ใช้ข้อมูลเดิม
           return existing;
         } else {
-          // ถ้าเป็นนักเรียนใหม่ ให้ joined = true ทันที
           return {
             student_id: id,
             student_name: studentMap.get(id) || "ไม่พบชื่อ",
-            joined: true,  // ✅ นักเรียนใหม่เข้าร่วมทันที
+            joined: true,
             joined_at: new Date()
           };
         }
       });
       
       activity.participants = newParticipants;
-      
-      // อัปเดต total_participants
       activity.total_participants = newParticipants.length;
     }
     
@@ -251,7 +345,6 @@ export async function PUT(request: NextRequest) {
       }
     }
     
-    // อัปเดต joined_count ตาม participants จริง
     activity.joined_count = activity.participants.filter((p: any) => p.joined).length;
     
     await activity.save();
@@ -275,8 +368,22 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await connectDB();
+    
+    // ตรวจสอบ session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "กรุณาเข้าสู่ระบบ" 
+      }, { status: 401 });
+    }
+    
+    const currentUser = session.user.name;
+    const userRole = session.user.role;
+    const isAdmin = userRole === 'ADMIN';
+    
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id"); // ใช้ _id ของกิจกรรม
+    const id = searchParams.get("id");
     
     if (!id) {
       return NextResponse.json({ 
@@ -285,14 +392,24 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 });
     }
     
-    const result = await Activity.findByIdAndDelete(id);
+    const activity = await Activity.findById(id);
     
-    if (!result) {
+    if (!activity) {
       return NextResponse.json({ 
         success: false, 
         error: "ไม่พบกิจกรรม" 
       }, { status: 404 });
     }
+    
+    // ตรวจสอบสิทธิ์การลบ (เฉพาะเจ้าของหรือ Admin)
+    if (!isAdmin && activity.created_by !== currentUser) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "ไม่มีสิทธิ์ลบกิจกรรมนี้" 
+      }, { status: 403 });
+    }
+    
+    await Activity.findByIdAndDelete(id);
     
     return NextResponse.json({ 
       success: true, 

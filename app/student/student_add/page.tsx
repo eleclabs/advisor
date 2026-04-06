@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { withPermission } from "@/app/components/withPermission"; // ✅ เพิ่ม
 
 interface BasicInfoFormData {
   id: string;
@@ -14,7 +15,7 @@ interface BasicInfoFormData {
   birth_date: string;
   level: string;
   class_group: string;
-  class_number: string;  // ✅ เลขที่
+  class_number: string;
   advisor_name: string;
   phone_number: string;
   religion: string;
@@ -25,7 +26,24 @@ interface BasicInfoFormData {
   image: string;
 }
 
-export default function StudentAddBasicPage() {
+interface Major {
+  _id: string;
+  major_id: number;
+  major_name: string;
+}
+
+interface Teacher {
+  _id: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  department?: string;
+  assigned_students?: any[];
+}
+
+function StudentAddBasicPage() {  
   const router = useRouter();
   const [formData, setFormData] = useState<BasicInfoFormData>({
     id: "",
@@ -37,7 +55,7 @@ export default function StudentAddBasicPage() {
     birth_date: "",
     level: "ปวช.1",
     class_group: "",
-    class_number: "",  // เลขที่
+    class_number: "1",
     advisor_name: "",
     phone_number: "",
     religion: "พุทธ",
@@ -47,13 +65,40 @@ export default function StudentAddBasicPage() {
     blood_type: "B",
     image: "",
   });
+  const [majors, setMajors] = useState<Major[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [saving, setSaving] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
   useEffect(() => {
- 
+    fetchMajors();
+    fetchTeachers();
   }, []);
+
+  const fetchMajors = async () => {
+    try {
+      const response = await fetch("/api/major");
+      if (response.ok) {
+        const data = await response.json();
+        setMajors(data);
+      }
+    } catch (error) {
+      console.error("Error fetching majors:", error);
+    }
+  };
+
+  const fetchTeachers = async () => {
+    try {
+      const response = await fetch("/api/user?role=TEACHER");
+      const data = await response.json();
+      if (data.success) {
+        setTeachers(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -90,8 +135,7 @@ export default function StudentAddBasicPage() {
     try {
       const bmiValue = calculateBMI();
       
-      // ✅ Debug ข้อมูลก่อนส่ง
-      console.log("📤 Data to send:", {
+      console.log(" Data to send:", {
         id: formData.id,
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -102,18 +146,17 @@ export default function StudentAddBasicPage() {
       Object.entries(formData).forEach(([key, value]) => {
         if (key !== 'image' && value !== undefined && value !== null) {
           formDataToSend.append(key, String(value));
-          console.log(`📤 Appending ${key}:`, value);
+          console.log(` Appending ${key}:`, value);
         }
       });
       formDataToSend.append("bmi", bmiValue);
 
-      // เพิ่มรูปภาพถ้ามี
       if (profileImage) {
         formDataToSend.append("profileImage", profileImage);
-        console.log("📤 Appending profileImage:", profileImage.name);
+        console.log(" Appending profileImage:", profileImage.name);
       }
 
-      console.log("📦 FormData entries:");
+      console.log(" FormData entries:");
       for (let pair of formDataToSend.entries()) {
         console.log(`   ${pair[0]}: ${pair[1]}`);
       }
@@ -141,8 +184,6 @@ export default function StudentAddBasicPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      
-
       <div className="container-fluid py-4">
         {/* Page Header */}
         <div className="row mb-4">
@@ -323,22 +364,27 @@ export default function StudentAddBasicPage() {
                       </select>
                     </div>
 
-                    {/* กลุ่มเรียน */}
+                    {/* สาขาวิชา */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">กลุ่มเรียน</label>
-                      <input 
-                        type="text" 
+                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชา</label>
+                      <select 
                         name="class_group"
-                        className="form-control rounded-0"
+                        className="form-select rounded-0"
                         value={formData.class_group}
                         onChange={handleInputChange}
-                        placeholder="เช่น ชฟ.1"
-                      />
+                      >
+                        <option value="">เลือกสาขาวิชา</option>
+                        {majors.map((major) => (
+                          <option key={major._id} value={major.major_name}>
+                            {major.major_id} - {major.major_name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {/* เลขที่ */}
+                    {/* ห้อง */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">เลขที่</label>
+                      <label className="form-label text-uppercase fw-semibold small">ห้อง</label>
                       <input 
                         type="text" 
                         name="class_number"
@@ -352,14 +398,23 @@ export default function StudentAddBasicPage() {
                     {/* ครูที่ปรึกษา */}
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษา</label>
-                      <input 
-                        type="text" 
+                      <select 
                         name="advisor_name"
-                        className="form-control rounded-0"
+                        className="form-select rounded-0"
                         value={formData.advisor_name}
                         onChange={handleInputChange}
-                        placeholder="ชื่ออาจารย์ที่ปรึกษา"
-                      />
+                      >
+                        <option value="">เลือกครูที่ปรึกษา</option>
+                        {teachers.filter(teacher => teacher.role === 'TEACHER').map((teacher) => (
+                          <option key={teacher._id} value={`${teacher.prefix} ${teacher.first_name} ${teacher.last_name}`}>
+                            {teacher.prefix} {teacher.first_name} {teacher.last_name}
+                            {teacher.department && ` (${teacher.department})`}
+                            {teacher.assigned_students && teacher.assigned_students.length > 0 && 
+                              ` - รับผิดชอบ ${teacher.assigned_students.length} คน`
+                            }
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {/* เบอร์มือถือ */}
@@ -400,7 +455,7 @@ export default function StudentAddBasicPage() {
                         rows={3}
                         value={formData.address}
                         onChange={handleInputChange}
-                        placeholder="บ้านเลขที่ หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                        placeholder="บ้านห้อง หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
                       />
                     </div>
 
@@ -509,8 +564,9 @@ export default function StudentAddBasicPage() {
           </div>
         </form>
       </div>
-
-  
     </div>
   );
 }
+
+// ✅ เพิ่มบรรทัดนี้
+export default withPermission(StudentAddBasicPage, "STUDENT_CREATE");

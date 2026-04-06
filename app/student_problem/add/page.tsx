@@ -229,7 +229,7 @@ export default function AddProblemPage() {
                             <th>ชื่อ</th>
                             <th>นามสกุล</th>
                             <th>ระดับชั้น</th>
-                            <th>กลุ่มเรียน</th>
+                            <th>สาขาวิชา</th>
                             <th>สถานะ</th>
                             <th>จัดการ</th>
                           </tr>

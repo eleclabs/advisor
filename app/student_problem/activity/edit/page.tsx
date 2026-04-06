@@ -196,7 +196,7 @@ export default function EditActivityPage() {
             <div className="card-header bg-dark text-white">
               <h4 className="mb-0">
                 <i className="bi bi-pencil-square me-2"></i>
-                แก้ไขกิจกรรมกลุ่มสัมพันธ์
+                แก้ไขกิจกรรมสาขาวิชา
               </h4>
             </div>
             <div className="card-body">
@@ -293,7 +293,7 @@ export default function EditActivityPage() {
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label fw-bold">โจทย์กลุ่ม</label>
+                      <label className="form-label fw-bold">โจทย์สาขาวิชา</label>
                       <input
                         type="text"
                         className="form-control"

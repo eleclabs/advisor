@@ -127,7 +127,7 @@ export default function AddActivityPage() {
             <div className="card-header bg-dark text-white">
               <h4 className="mb-0">
                 <i className="bi bi-plus-circle me-2"></i>
-                เพิ่มกิจกรรมกลุ่มสัมพันธ์
+                เพิ่มกิจกรรมสาขาวิชา
               </h4>
             </div>
             <div className="card-body">
@@ -227,13 +227,13 @@ export default function AddActivityPage() {
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label fw-bold">โจทย์กลุ่ม</label>
+                      <label className="form-label fw-bold">โจทย์สาขาวิชา</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.group_task}
                         onChange={(e) => setFormData({...formData, group_task: e.target.value})}
-                        placeholder="โจทย์ที่ให้กลุ่มทำ"
+                        placeholder="โจทย์ที่ให้สาขาวิชาทำ"
                       />
                     </div>
 

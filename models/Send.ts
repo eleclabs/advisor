@@ -37,11 +37,15 @@ const CoordinationSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 
-// Schema สำหรับการติดตามผล
+// Schema สำหรับการติดตามผล (แบบหลายครั้ง)
 const FollowUpSchema = new mongoose.Schema({
   referral_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Referral', required: true },
   follow_date: { type: Date, required: true },
-  result: { type: String, required: true },
+  result: { 
+    type: String, 
+    enum: ["พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย", "พฤติกรรมคงเดิม", "มีภาวะวิกฤตเพิ่มเติม"],
+    required: true 
+  },
   notes: { type: String, required: true },
   created_at: { type: Date, default: Date.now }
 });
