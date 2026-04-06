@@ -7,11 +7,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import User from "@/models/User";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    // ✅ ตรวจสอบ session
+    const { searchParams } = new URL(request.url);
+    const studentId = searchParams.get('student_id');
+    
+    // ตรวจสอบ session
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ 
@@ -25,11 +28,15 @@ export async function GET() {
     
     let problems = [];
     
-    // ✅ ADMIN เห็นทั้งหมด
+    // ADMIN เห็นทั้งหมด
     if (userRole === 'ADMIN') {
-      problems = await Problem.find().sort({ createdAt: -1 });
+      if (studentId) {
+        problems = await Problem.find({ student_id: studentId }).sort({ createdAt: -1 });
+      } else {
+        problems = await Problem.find().sort({ createdAt: -1 });
+      }
     } 
-    // ✅ TEACHER เห็นเฉพาะ assigned students
+    // TEACHER เห็นเฉพาะ assigned students
     else if (userRole === 'TEACHER') {
       // ดึง user เพื่อดู assigned students
       const user = await User.findById(userId).populate({

@@ -52,6 +52,14 @@ export default function FormResponsesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('submittedAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedTextQuestion, setSelectedTextQuestion] = useState<{
+    question: any;
+    responses: Array<{
+      userName: string;
+      answer: string;
+      submittedAt: string;
+    }>;
+  } | null>(null);
 
   useEffect(() => {
     if (params.id) {
@@ -141,10 +149,10 @@ export default function FormResponsesPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Kanit', 'Prompt', sans-serif"
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', marginBottom: '16px' }}>⏳</div>
+          <div style={{ fontSize: '32px', marginBottom: '16px' }}>กำลังโหลด...</div>
           <p style={{ color: '#6c757d' }}>กำลังโหลดข้อมูล...</p>
         </div>
       </div>
@@ -159,7 +167,7 @@ export default function FormResponsesPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Kanit', 'Prompt', sans-serif"
       }}>
         <div style={{
           backgroundColor: 'white',
@@ -170,7 +178,7 @@ export default function FormResponsesPage() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
           border: '1px solid #e9ecef'
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '20px', color: '#dc3545' }}>⚠</div>
+          <div style={{ fontSize: '48px', marginBottom: '20px', color: '#dc3545' }}>ข้อผิดพลาด</div>
           <h2 style={{
             color: '#212529',
             marginBottom: '8px',
@@ -206,7 +214,7 @@ export default function FormResponsesPage() {
       backgroundColor: '#f8f9fa',
       minHeight: '100vh',
       padding: '40px 20px',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Kanit', 'Prompt', sans-serif"
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
@@ -245,7 +253,7 @@ export default function FormResponsesPage() {
                 gap: '8px'
               }}
             >
-              📝 แบบฟอร์ม
+              แบบฟอร์ม
             </Link>
           </div>
           
@@ -257,16 +265,17 @@ export default function FormResponsesPage() {
             marginBottom: '8px',
             textTransform: 'uppercase'
           }}>
-            ข้อมูลการตอบแบบฟอร์ม
+            รายงานการตอบแบบฟอร์มและการวิเคราะห์
           </div>
           <h1 style={{
             fontSize: '28px',
             fontWeight: 600,
             color: '#212529',
             margin: '0 0 12px 0',
-            letterSpacing: '-0.3px'
+            letterSpacing: '-0.3px',
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Kanit', 'Prompt', sans-serif"
           }}>
-            📋 {form.title}
+            การวิเคราะห์และคำตอบแบบฟอร์ม
           </h1>
           <p style={{
             fontSize: '14px',
@@ -363,7 +372,7 @@ export default function FormResponsesPage() {
               color: '#007bff',
               textAlign: 'center'
             }}>
-              📊 การวิเคราะห์ข้อมูลการตอบแบบฟอร์ม
+              การวิเคราะห์ข้อมูลการตอบแบบฟอร์ม
             </h2>
 
             {/* Question Analysis Charts */}
@@ -371,19 +380,28 @@ export default function FormResponsesPage() {
               {form.questions.map((question, qIndex) => {
                 // Calculate answer statistics for this question
                 const answerStats = responses.reduce((acc: any, response) => {
-                  const answer = response.answers.find((a: any) => a.questionOrder === question.order);
+                  const answer = response.answers.find((a: any) => a.questionId === question.order);
+                  
                   if (answer) {
-                    const key = answer.answer || 'ไม่ตอบ';
-                    acc[key] = (acc[key] || 0) + 1;
+                    if (question.questionType === 'text') {
+                      // For text questions, collect responses separately
+                      if (!acc._textResponses) acc._textResponses = [];
+                      acc._textResponses.push({
+                        userName: response.userName,
+                        answer: answer.answer,
+                        submittedAt: response.submittedAt
+                      });
+                    } else {
+                      const key = answer.answer || 'ไม่ตอบ';
+                      acc[key] = (acc[key] || 0) + 1;
+                    }
                   }
                   return acc;
                 }, {});
 
-                const totalAnswers = Object.values(answerStats).reduce((sum: number, count: any) => sum + count, 0);
-                const answerPercentages: Record<string, number> = {};
-                Object.entries(answerStats).forEach(([key, count]) => {
-                  answerPercentages[key] = totalAnswers > 0 ? Math.round((Number(count) / totalAnswers) * 100 * 10) / 10 : 0;
-                });
+                const totalAnswers = question.questionType === 'text' 
+                  ? (answerStats._textResponses || []).length
+                  : Object.values(answerStats).reduce((sum: number, count: any) => sum + count, 0);
 
                 // Get colors for chart
                 const colors = ['#007bff', '#28a745', '#ffc107', '#fd7e14', '#dc3545', '#6f42c1', '#20c997', '#6c757d'];
@@ -404,113 +422,220 @@ export default function FormResponsesPage() {
                       }}>
                         ข้อที่ {question.order}: {question.questionText}
                       </h3>
-                      <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                        ประเภท: {question.questionType} • ผู้ตอบ: {totalAnswers}/{responses.length}
-                      </div>
-                    </div>
-
-                    {/* Bar Chart */}
-                    <div style={{ marginBottom: '16px' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '12px', color: '#495057' }}>
-                        📈 กราฟแท่งคำตอบ
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '120px', padding: '8px' }}>
-                        {Object.entries(answerPercentages).map(([answer, percentage], index) => (
-                          <div key={answer} style={{ 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            alignItems: 'center',
-                            flex: 1,
-                            maxWidth: '80px'
-                          }}>
-                            <div style={{
-                              width: '100%',
-                              height: `${Math.max(8, percentage)}%`,
-                              backgroundColor: colors[index % colors.length],
-                              borderRadius: '4px 4px 0 0',
-                              minHeight: '8px',
-                              transition: 'all 0.3s ease'
-                            }}
-                              title={`${answer}: ${percentage}%`}
-                            />
-                            <div style={{ 
-                              fontSize: '10px', 
-                              textAlign: 'center', 
-                              marginTop: '4px',
-                              color: '#495057',
-                              fontWeight: 500
-                            }}>
-                              {String(answer).length > 10 ? String(answer).substring(0, 10) + '...' : String(answer)}
-                            </div>
-                            <div style={{ 
-                              fontSize: '11px', 
-                              color: '#6c757d',
-                              fontWeight: 600
-                            }}>
-                              {percentage}%
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Pie Chart */}
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '12px', color: '#495057' }}>
-                        🥧 กราฟวงกลมคำตอบ
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <div style={{ 
-                          width: '120px', 
-                          height: '120px', 
-                          borderRadius: '50%',
-                          background: `conic-gradient(${Object.entries(answerPercentages).map(([answer, percentage], index) => 
-                            `${colors[index % colors.length]} 0deg ${percentage * 3.6}deg`
-                          ).join(', ')}`,
-                          position: 'relative',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                        }}>
-                          <div style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '80px',
-                            height: '80px',
-                            borderRadius: '50%',
-                            backgroundColor: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', color: '#6c757d' }}>
+                          ประเภท: {question.questionType === 'text' ? 'ข้อความ' : 
+                                  question.questionType === 'radio' ? 'เลือกตัวเลือกเดียว' :
+                                  question.questionType === 'checkbox' ? 'เลือกได้หลายตัวเลือก' :
+                                  question.questionType === 'scale' ? 'มาตราส่วน' : question.questionType}
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#6c757d' }}>
+                          • ผู้ตอบ: {totalAnswers}/{responses.length}
+                        </span>
+                        {question.sectionTitle && (
+                          <span style={{
                             fontSize: '12px',
-                            fontWeight: 600,
-                            color: '#495057'
+                            color: '#007bff',
+                            backgroundColor: '#e7f3ff',
+                            padding: '4px 8px',
+                            borderRadius: '4px'
                           }}>
-                            {totalAnswers}
-                          </div>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          {Object.entries(answerPercentages).map(([answer, percentage], index) => (
-                            <div key={answer} style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              gap: '8px',
-                              marginBottom: '4px'
-                            }}>
-                              <div style={{
-                                width: '12px',
-                                height: '12px',
-                                backgroundColor: colors[index % colors.length],
-                                borderRadius: '2px'
-                              }} />
-                              <span style={{ fontSize: '12px', color: '#495057' }}>
-                                {String(answer)}: <strong>{percentage}%</strong> ({answerStats[answer as keyof typeof answerStats] || 0} คน)
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                            {question.sectionTitle}
+                          </span>
+                        )}
                       </div>
                     </div>
+
+                    {question.questionType === 'text' ? (
+                      // Text question handling
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '12px', color: '#495057' }}>
+                          คำตอบข้อความ
+                        </div>
+                        {(answerStats._textResponses || []).length > 0 ? (
+                          <>
+                            <button
+                              onClick={() => setSelectedTextQuestion({
+                                question,
+                                responses: answerStats._textResponses
+                              })}
+                              style={{
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                marginBottom: '16px'
+                              }}
+                            >
+                              ดูคำตอบข้อความ ({(answerStats._textResponses || []).length} คำตอบ)
+                            </button>
+                            {/* Preview first 3 responses */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {(answerStats._textResponses || []).slice(0, 3).map((response: any, i: number) => (
+                                <div key={i} style={{
+                                  backgroundColor: '#fff',
+                                  padding: '12px',
+                                  borderRadius: '4px',
+                                  fontSize: '13px',
+                                  color: '#495057',
+                                  border: '1px solid #e9ecef'
+                                }}>
+                                  <div style={{ fontWeight: 500, marginBottom: '4px', color: '#212529' }}>
+                                    {response.userName}
+                                  </div>
+                                  <div style={{ lineHeight: 1.4 }}>
+                                    {response.answer.length > 100 ? response.answer.substring(0, 100) + '...' : response.answer}
+                                  </div>
+                                </div>
+                              ))}
+                              {(answerStats._textResponses || []).length > 3 && (
+                                <div style={{ fontSize: '12px', color: '#6c757d', textAlign: 'center' }}>
+                                  และอีก {(answerStats._textResponses || []).length - 3} คำตอบ...
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{
+                            textAlign: 'center',
+                            padding: '20px',
+                            color: '#6c757d',
+                            fontSize: '14px'
+                          }}>
+                            ยังไม่มีคำตอบสำหรับคำถามนี้
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      // Charts for non-text questions
+                      <>
+                        {/* Bar Chart */}
+                        <div style={{ marginBottom: '16px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '12px', color: '#495057' }}>
+                            กราฟแท่งคำตอบ
+                          </div>
+                          {totalAnswers > 0 ? (
+                            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '120px', padding: '8px' }}>
+                              {Object.entries(answerStats).filter(([key]) => key !== '_textResponses').map(([answer, count], index) => {
+                                const percentage = totalAnswers > 0 ? Math.round((Number(count) / totalAnswers) * 100 * 10) / 10 : 0;
+                                return (
+                                  <div key={answer} style={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'center',
+                                    flex: 1,
+                                    maxWidth: '80px'
+                                  }}>
+                                    <div style={{
+                                      width: '100%',
+                                      height: `${Math.max(8, percentage)}%`,
+                                      backgroundColor: colors[index % colors.length],
+                                      borderRadius: '4px 4px 0 0',
+                                      minHeight: '8px',
+                                      transition: 'all 0.3s ease'
+                                    }}
+                                      title={`${answer}: ${percentage}%`}
+                                    />
+                                    <div style={{ 
+                                      fontSize: '10px', 
+                                      textAlign: 'center', 
+                                      marginTop: '4px',
+                                      color: '#495057',
+                                      fontWeight: 500
+                                    }}>
+                                      {String(answer).length > 10 ? String(answer).substring(0, 10) + '...' : String(answer)}
+                                    </div>
+                                    <div style={{ 
+                                      fontSize: '11px', 
+                                      color: '#6c757d',
+                                      fontWeight: 600
+                                    }}>
+                                      {percentage}%
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div style={{
+                              textAlign: 'center',
+                              padding: '20px',
+                              color: '#6c757d',
+                              fontSize: '14px'
+                            }}>
+                              ยังไม่มีคำตอบสำหรับคำถามนี้
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Pie Chart */}
+                        {totalAnswers > 0 && (
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 500, marginBottom: '12px', color: '#495057' }}>
+                              กราฟวงกลมคำตอบ
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                              <div style={{ 
+                                width: '120px', 
+                                height: '120px', 
+                                borderRadius: '50%',
+                                background: `conic-gradient(${Object.entries(answerStats).filter(([key]) => key !== '_textResponses').map(([answer, count], index) => {
+                                  const percentage = totalAnswers > 0 ? Math.round((Number(count) / totalAnswers) * 100 * 10) / 10 : 0;
+                                  return `${colors[index % colors.length]} 0deg ${percentage * 3.6}deg`;
+                                }).join(', ')}`,
+                                position: 'relative',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                              }}>
+                                <div style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  width: '80px',
+                                  height: '80px',
+                                  borderRadius: '50%',
+                                  backgroundColor: 'white',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  color: '#495057'
+                                }}>
+                                  {totalAnswers}
+                                </div>
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                {Object.entries(answerStats).filter(([key]) => key !== '_textResponses').map(([answer, count], index) => {
+                                  const percentage = totalAnswers > 0 ? Math.round((Number(count) / totalAnswers) * 100 * 10) / 10 : 0;
+                                  return (
+                                    <div key={answer} style={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: '8px',
+                                      marginBottom: '4px'
+                                    }}>
+                                      <div style={{
+                                        width: '12px',
+                                        height: '12px',
+                                        backgroundColor: colors[index % colors.length],
+                                        borderRadius: '2px'
+                                      }} />
+                                      <span style={{ fontSize: '12px', color: '#495057' }}>
+                                        {String(answer)}: <strong>{percentage}%</strong> ({Number(count)} คน)
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 );
               })}
@@ -532,7 +657,7 @@ export default function FormResponsesPage() {
               color: '#28a745',
               textAlign: 'center'
             }}>
-              📈 สรุปสถิติการตอบแบบฟอร์ม
+              สรุปสถิติการตอบแบบฟอร์ม
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
@@ -548,7 +673,7 @@ export default function FormResponsesPage() {
               {(() => {
                 const questionAnswerCounts = form.questions.map(question => {
                   const count = responses.filter(response => 
-                    response.answers.some(answer => answer.questionOrder === question.order && answer.answer)
+                    response.answers.some(answer => answer.questionId === question.order && answer.answer)
                   ).length;
                   return { question: question.questionText.substring(0, 30) + '...', count };
                 });
@@ -797,7 +922,7 @@ export default function FormResponsesPage() {
                           display: 'inline-block'
                         }}
                       >
-                        📊 วิเคราะห์
+                        วิเคราะห์
                       </Link>
                     </td>
                   </tr>
@@ -879,6 +1004,73 @@ export default function FormResponsesPage() {
           </div>
         )}
       </div>
+
+      {/* Text Responses Modal */}
+      {selectedTextQuestion && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '24px',
+            maxWidth: '800px',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            width: '90%'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#212529', margin: 0 }}>
+                คำตอบข้อความ: {selectedTextQuestion.question.questionText}
+              </h3>
+              <button
+                onClick={() => setSelectedTextQuestion(null)}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#6c757d'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {selectedTextQuestion.responses.map((response, index) => (
+                <div key={index} style={{
+                  backgroundColor: '#f8f9fa',
+                  padding: '16px',
+                  borderRadius: '6px',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ fontWeight: 500, color: '#212529' }}>
+                      {response.userName}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#6c757d' }}>
+                      {formatDate(response.submittedAt)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#495057', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                    {response.answer}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -132,6 +132,14 @@ export default function StudentFormsPage() {
     }
   };
 
+  const handleViewResults = (type: string) => {
+    if (type === 'sdq') {
+      router.push('/assessment/sdq/results');
+    } else if (type === 'dass21') {
+      router.push('/assessment/dass21/results');
+    }
+  };
+
   const handleStartEvaluation = () => {
     router.push('/evaluation');
   };
@@ -437,36 +445,43 @@ export default function StudentFormsPage() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                        <button style={{
-                          flex: 1,
-                          padding: '12px',
-                          backgroundColor: '#007bff',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                        <button 
+                          onClick={() => handleStartAssessment('sdq')}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
                           ดูแบบประเมิน
                         </button>
-                        <button style={{
-                          flex: 1,
-                          padding: '12px',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewResults('sdq');
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            backgroundColor: '#28a745',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
                           📊 ดูผลการประเมิน
                         </button>
                       </div>
@@ -537,36 +552,43 @@ export default function StudentFormsPage() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                        <button style={{
-                          flex: 1,
-                          padding: '12px',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
+                        <button 
+                          onClick={() => handleStartAssessment('dass21')}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            backgroundColor: '#28a745',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
                           ดูแบบประเมิน
                         </button>
-                        <button style={{
-                          flex: 1,
-                          padding: '12px',
-                          backgroundColor: '#007bff',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '14px',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s ease'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewResults('dass21');
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '12px',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
                           📊 ดูผลการประเมิน
                         </button>
                       </div>

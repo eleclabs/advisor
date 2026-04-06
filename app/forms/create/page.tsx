@@ -305,7 +305,22 @@ export default function CreateCustomFormPage() {
     try {
       // แปลงโครงสร้างเป็นรูปแบบเดียวกับเดิม
       const allQuestions: any[] = [];
-      formStructure.sections.forEach((section, sectionIndex) => {
+      
+      // สร้าง formStructure ที่ถูกต้องโดยเพิ่ม required fields ให้ questions
+      const validFormStructure = {
+        ...formStructure,
+        sections: formStructure.sections.map((section, sectionIndex) => ({
+          ...section,
+          questions: section.questions.map((question) => ({
+            ...question,
+            sectionId: section.id,
+            sectionTitle: section.title,
+            sectionOrder: sectionIndex + 1
+          }))
+        }))
+      };
+
+      validFormStructure.sections.forEach((section, sectionIndex) => {
         section.questions.forEach((question) => {
           const formattedQuestion = {
             order: allQuestions.length + 1,
@@ -328,7 +343,7 @@ export default function CreateCustomFormPage() {
         createdByName: `${currentUser.first_name} ${currentUser.last_name}`,
         questions: allQuestions,
         isVisibleToAdmin: true,
-        formStructure: formStructure // เก็บโครงสร้างเดิมไว้ด้วย
+        formStructure: validFormStructure // ใช้ formStructure ที่ถูกต้อง
       };
 
       const response = await fetch('/api/forms', {

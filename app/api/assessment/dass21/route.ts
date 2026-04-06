@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Assessment from "@/models/Assessment";
 
-// GET - ดึงข้อมูลการประเมิน DASS-21 ทั้งหมด
+// GET - ดึงข้อมูลการประเมิน DASS-21 ทั้งหมดหรือตาม student_id
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
     
-    const assessments = await Assessment.find({ 
-      assessmentType: 'dass21'
-    })
+    const { searchParams } = new URL(request.url);
+    const studentId = searchParams.get('student_id');
+    
+    let query: { assessmentType: string; studentId?: string } = { assessmentType: 'dass21' };
+    if (studentId) {
+      query.studentId = studentId;
+    }
+    
+    const assessments = await Assessment.find(query)
     .sort({ createdAt: -1 });
 
     // คำนวณคะแนนและจัดกลุ่ม
@@ -36,9 +42,14 @@ export async function GET(request: NextRequest) {
         depressionScore,
         anxietyScore,
         stressScore,
-        depressionLevel,
-        anxietyLevel,
-        stressLevel,
+        dass21Score: {
+          depression: depressionScore,
+          depressionLevel,
+          anxiety: anxietyScore,
+          anxietyLevel,
+          stress: stressScore,
+          stressLevel
+        },
         submittedAt: assessment.createdAt,
         submittedBy: 'ระบบ'
       };

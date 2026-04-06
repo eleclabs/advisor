@@ -34,6 +34,7 @@ const UserSchema = new mongoose.Schema({
   prefix: {
     type: String,
     enum: ["นาย", "นาง", "นางสาว", "อื่นๆ"],
+    default: null,
     description: "คำนำหน้า",
   },
   first_name: {

@@ -461,7 +461,10 @@ export default function AssessmentPage() {
     const type = searchParams.get('type');
     const studentId = searchParams.get('studentId');
     
+    console.log('URL parameters:', { type, studentId }); // Debug log
+    
     if (type && (type === 'sdq' || type === 'dass21')) {
+      console.log('Setting active form to:', type); // Debug log
       setActiveForm(type);
       
       // If studentId is provided, fetch student data
@@ -782,7 +785,7 @@ export default function AssessmentPage() {
           </div>
 
           <div style={{ display: 'grid', gap: '20px' }}>
-            <button
+            <div
               onClick={() => setActiveForm('sdq')}
               style={{
                 backgroundColor: 'white',
@@ -819,9 +822,46 @@ export default function AssessmentPage() {
                 <br />
                 ⏱️ ใช้เวลาประมาณ 5-10 นาที
               </p>
-            </button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveForm('sdq');
+                    router.push('/assessment?type=sdq');
+                  }}
+                  style={{
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  ดูแบบประเมิน
+                </button>
+                <Link
+                  href="/assessment/sdq/results"
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#007bff',
+                    border: '1px solid #007bff',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    fontWeight: 500
+                  }}
+                >
+                  ดูผลการประเมิน
+                </Link>
+              </div>
+            </div>
 
-            <button
+            <div
               onClick={() => setActiveForm('dass21')}
               style={{
                 backgroundColor: 'white',
@@ -858,7 +898,44 @@ export default function AssessmentPage() {
                 <br />
                 ⏱️ ใช้เวลาประมาณ 5-10 นาที
               </p>
-            </button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveForm('dass21');
+                    router.push('/assessment?type=dass21');
+                  }}
+                  style={{
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    fontWeight: 500
+                  }}
+                >
+                  ดูแบบประเมิน
+                </button>
+                <Link
+                  href="/assessment/dass21/results"
+                  style={{
+                    backgroundColor: 'transparent',
+                    color: '#007bff',
+                    border: '1px solid #007bff',
+                    padding: '8px 16px',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    fontWeight: 500
+                  }}
+                >
+                  ดูผลการประเมิน
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
