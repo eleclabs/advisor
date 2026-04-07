@@ -616,7 +616,7 @@ export default function EvaluationFormPage() {
             marginBottom: '8px',
             textTransform: 'uppercase'
           }}>
-            แบบประเมินระบบ
+            
           </div>
           <h1 style={{
             fontSize: '28px',
@@ -625,7 +625,7 @@ export default function EvaluationFormPage() {
             margin: '0 0 12px 0',
             letterSpacing: '-0.3px'
           }}>
-            ประสิทธิภาพระบบการดูแลช่วยเหลือผู้เรียน
+            แบบประเมินความพึงพอใจ
           </h1>
           <p style={{
             fontSize: '14px',
@@ -633,7 +633,7 @@ export default function EvaluationFormPage() {
             lineHeight: 1.6,
             margin: 0
           }}>
-            โปรดประเมินตามความเป็นจริงเพื่อการพัฒนาระบบ ข้อมูลของท่านจะถูกเก็บเป็นความลับ
+            
           </p>
           <div style={{
             marginTop: '16px',

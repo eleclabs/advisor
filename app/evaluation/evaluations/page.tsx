@@ -244,7 +244,7 @@ export default function AdminEvaluationsPage() {
         <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: '20px', fontWeight: 600, margin: '0 0 4px', color: '#212529' }}>
-              รายงานผลการประเมินประสิทธิภาพระบบการดูแลช่วยเหลือผู้เรียน
+              รายงานผลการประเมินแบบประเมินความพึงพอใจ
             </h1>
             <p style={{ margin: 0, color: '#6c757d', fontSize: '14px' }}>
               จำนวนข้อมูล: {filteredEvaluations.length} รายการ
