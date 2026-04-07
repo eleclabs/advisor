@@ -6,15 +6,16 @@ export const ROLES = {
   TEACHER: "TEACHER",
   EXECUTIVE: "EXECUTIVE",
   COMMITTEE: "COMMITTEE",
+  STUDENT: "STUDENT",
 } as const;
 
 export type Role = keyof typeof ROLES;
 
 // ===== กำหนดสิทธิ์การเข้าถึงหน้าต่างๆ =====
-export const PAGE_PERMISSIONS: Record<string, ("ADMIN" | "TEACHER" | "EXECUTIVE" | "COMMITTEE")[]> = {
+export const PAGE_PERMISSIONS: Record<string, ("ADMIN" | "TEACHER" | "EXECUTIVE" | "COMMITTEE" | "STUDENT")[]> = {
   // Student pages
-  STUDENT_LIST: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"],
-  STUDENT_VIEW: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"],
+  STUDENT_LIST: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE","STUDENT"],
+  STUDENT_VIEW: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE","STUDENT"],
   STUDENT_CREATE: ["ADMIN", "TEACHER"],
   STUDENT_EDIT: ["ADMIN", "TEACHER"],
   STUDENT_DELETE: ["ADMIN"],

@@ -3,9 +3,14 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
   const { data: session } = useSession();
+  const pathname = usePathname();
+  
+  // Hide login button on student login page
+  const isStudentLoginPage = pathname === "/login/student";
 
   return (
     <header className="bg-dark text-white py-3 px-4 d-flex justify-content-between align-items-center">
@@ -36,10 +41,12 @@ export default function Header() {
             </button>
           </>
         ) : (
-          <Link href="/login" className="btn btn-warning btn-sm rounded-0">
-            <i className="bi bi-box-arrow-in-right me-1"></i>
-            เข้าสู่ระบบ
-          </Link>
+          !isStudentLoginPage && (
+            <Link href="/login" className="btn btn-warning btn-sm rounded-0">
+              <i className="bi bi-box-arrow-in-right me-1"></i>
+              เข้าสู่ระบบ
+            </Link>
+          )
         )}
       </div>
     </header>

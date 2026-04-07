@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { withPermission } from "@/app/components/withPermission";
-import { useSession } from "next-auth/react";
 
 interface StudentBasic {
   _id: string;
@@ -19,7 +17,7 @@ interface StudentBasic {
   birth_date: string;
   level: string;
   class_group: string;
-  class_number: string;
+  class_number: string;  // เพิ่มห้อง
   advisor_name: string;
   phone_number: string;
   religion: string;
@@ -43,54 +41,66 @@ interface Teacher {
   assigned_students?: any[];
 }
 
-function StudentBasicPage() {
+export default function StudentBasicPage() {
   const router = useRouter();
-  const params = useParams();
-  const { data: session } = useSession();
-  const studentDocId = params?.id as string;
-  
-  console.log("Student _id from params:", studentDocId);
-
   const [student, setStudent] = useState<StudentBasic | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isStudentUser, setIsStudentUser] = useState(false);
-  const [currentStudentId, setCurrentStudentId] = useState<string | null>(null);
 
-  // ตรวจสอบว่าเป็น student login หรือไม่
+  // Check if user is authenticated (either NextAuth session or localStorage student)
   useEffect(() => {
-    const isStudent = localStorage.getItem('isStudent') === 'true';
-    const studentMongoId = localStorage.getItem('studentMongoId');
+    const isStudent = localStorage.getItem('isStudent');
     const token = localStorage.getItem('token');
     
-    setIsStudentUser(isStudent);
-    setCurrentStudentId(studentMongoId);
+    // If user is a student with valid token, allow access
+    if (isStudent === 'true' && token) {
+      return; // Allow access
+    }
     
-    console.log("Is student user:", isStudent);
-    console.log("Current student ID:", studentMongoId);
-    console.log("Viewing student ID:", studentDocId);
+    // For non-students, the existing permission system will handle it
+    // This page will be wrapped with withPermission for admin users
   }, []);
 
-  const fetchTeachers = async () => {
+  // Fetch student data using localStorage student ID
+  useEffect(() => {
+    const studentId = localStorage.getItem('studentMongoId'); // Use MongoDB _id
+    console.log("Student MongoDB _id from localStorage:", studentId); // Debug log
+    
+    if (studentId) {
+      fetchStudentData(studentId);
+      fetchTeachers(studentId);
+    } else {
+      console.log("No student MongoDB _id found in localStorage");
+      setError("ไม่พบรหัสนักศึกษาในระบบ");
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchTeachers = async (studentId: string) => {
     try {
+      // ดึงข้อมูลครูทั้งหมด
       const response = await fetch("/api/user?role=TEACHER");
       const data = await response.json();
-      console.log("Teachers API response:", data);
+      console.log("Teachers API response:", data); // Debug log
       
       if (data.success) {
         let allTeachers = data.data;
+        
+        // หาครูที่ได้รับมอบหมายนักเรียนคนนี้
         const assignedTeachers = [];
         
         for (const teacher of allTeachers) {
           try {
+            // ดึงข้อมูลนักเรียนที่ครูคนนี้รับผิดชอบ
             const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
             if (assignedRes.ok) {
               const assignedData = await assignedRes.json();
               if (assignedData.success && assignedData.data) {
+                // ตรวจสอบว่านักเรียนคนนี้อยู่ในรายการที่ครูคนนี้รับผิดชอบ
                 const isAssigned = assignedData.data.some((assignment: any) => {
                   const studentId = assignment.student_id?._id || assignment.student_id;
-                  return studentId === studentDocId;
+                  return studentId === studentId;
                 });
                 
                 if (isAssigned) {
@@ -104,7 +114,7 @@ function StudentBasicPage() {
         }
         
         setTeachers(assignedTeachers);
-        console.log("Assigned teachers loaded:", assignedTeachers);
+        console.log("Assigned teachers loaded:", assignedTeachers); // Debug log
       } else {
         console.error("Teachers API failed:", data);
       }
@@ -113,74 +123,61 @@ function StudentBasicPage() {
     }
   };
 
-  useEffect(() => {
-    if (studentDocId) {
-      fetchTeachers();
-    }
-  }, [studentDocId]);
-
-  useEffect(() => {
-    const fetchStudentData = async () => {
-      if (!studentDocId) {
-        setError("ไม่พบรหัสนักศึกษา");
-        setLoading(false);
-        return;
+  const fetchStudentData = async (studentId: string) => {
+    try {
+      setLoading(true);
+      console.log(" Fetching student with ID:", studentId); // Debug log
+      
+      const response = await fetch(`/api/student/${studentId}`);
+      console.log("API response status:", response.status); // Debug log
+      
+      const result = await response.json();
+      console.log("API response data:", result); // Debug log
+      
+      let foundStudent = null;
+      if (result.success && result.data) {
+        foundStudent = result.data;
       }
       
-      try {
-        setLoading(true);
-        console.log("Fetching student with _id:", studentDocId);
-        
-        const response = await fetch(`/api/student/${studentDocId}`);
-        const result = await response.json();
-        
-        let foundStudent = null;
-        if (result.success && result.data) {
-          foundStudent = result.data;
-        }
-        
-        if (foundStudent) {
-          console.log("Found student data:", foundStudent);
-          
-          const formattedData: StudentBasic = {
-            _id: foundStudent._id,
-            id: foundStudent.id || foundStudent._id,
-            prefix: foundStudent.prefix || "",
-            first_name: foundStudent.first_name || "",
-            last_name: foundStudent.last_name || "",
-            name: foundStudent.first_name && foundStudent.last_name ? `${foundStudent.prefix || ''}${foundStudent.first_name} ${foundStudent.last_name}` : foundStudent.name || "",
-            status: foundStudent.status || "ปกติ",
-            nickname: foundStudent.nickname || "",
-            gender: foundStudent.gender || "",
-            birth_date: foundStudent.birth_date || "",
-            level: foundStudent.level || "",
-            class_group: foundStudent.class_group || "",
-            class_number: foundStudent.class_number || "",
-            advisor_name: foundStudent.advisor_name || "",
-            phone_number: foundStudent.phone_number || "",
-            religion: foundStudent.religion || "",
-            address: foundStudent.address || "",
-            weight: foundStudent.weight || "",
-            height: foundStudent.height || "",
-            bmi: foundStudent.bmi || "",
-            blood_type: foundStudent.blood_type || "",
-            image: foundStudent.image || "",
-            email: foundStudent.email || "",
-          };
-          setStudent(formattedData);
-        } else {
-          setError("ไม่พบข้อมูลนักเรียน");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        setError("เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
+      if (foundStudent) {
+        console.log(" Found student data:", foundStudent); // ดูว่ามี class_number มั้ย
+           
+        const formattedData: StudentBasic = {
+          _id: foundStudent._id,
+          id: foundStudent.id || foundStudent._id,
+          prefix: foundStudent.prefix || "",
+          first_name: foundStudent.first_name || "",
+          last_name: foundStudent.last_name || "",
+          name: foundStudent.first_name && foundStudent.last_name ? `${foundStudent.prefix || ''}${foundStudent.first_name} ${foundStudent.last_name}` : foundStudent.name || "",
+          status: foundStudent.status || "1",
+          nickname: foundStudent.nickname || "",
+          gender: foundStudent.gender || "",
+          birth_date: foundStudent.birth_date || "",
+          level: foundStudent.level || "",
+          class_group: foundStudent.class_group || "",
+          class_number: foundStudent.class_number || "",
+          advisor_name: foundStudent.advisor_name || "",
+          phone_number: foundStudent.phone_number || "",
+          religion: foundStudent.religion || "",
+          address: foundStudent.address || "",
+          weight: foundStudent.weight || "",
+          height: foundStudent.height || "",
+          bmi: foundStudent.bmi || "",
+          blood_type: foundStudent.blood_type || "",
+          image: foundStudent.image || "",
+          email: foundStudent.email || "",
+        };
+        setStudent(formattedData);
+      } else {
+        setError("ไม่พบข้อมูลนักเรียน");
       }
-    };
-
-    fetchStudentData();
-  }, [studentDocId]);
+    } catch (error) {
+      console.error("Error:", error);
+      setError("เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "-";
@@ -189,17 +186,6 @@ function StudentBasicPage() {
       return date.toLocaleDateString('th-TH');
     } catch {
       return dateStr;
-    }
-  };
-
-  // ฟังก์ชันสำหรับกลับไปหน้าก่อนหน้า
-  const handleGoBack = () => {
-    if (isStudentUser) {
-      // ถ้าเป็น student ให้กลับไปหน้า assessment
-      router.push('/assessment/student');
-    } else {
-      // ถ้าเป็น admin/teacher ให้กลับไปหน้า student list
-      router.push('/student');
     }
   };
 
@@ -225,20 +211,19 @@ function StudentBasicPage() {
             >
               <i className="bi bi-arrow-repeat me-2"></i>ลองอีกครั้ง
             </button>
-            <button onClick={handleGoBack} className="btn btn-sm btn-dark">
+            <Link href="/student" className="btn btn-sm btn-dark">
               <i className="bi bi-arrow-left me-2"></i>กลับไป
-            </button>
+            </Link>
           </div>
         </div>
       </div>
     );
   }
 
-  // ตรวจสอบว่า student คนนี้เป็นคนเดียวกับที่ login หรือไม่
-  const isOwnProfile = isStudentUser && currentStudentId === student._id;
-
   return (
     <div className="min-vh-100 bg-light">
+      
+
       <div className="container-fluid py-4">
         <div className="row mb-4">
           <div className="col-12">
@@ -248,16 +233,16 @@ function StudentBasicPage() {
                 ข้อมูลพื้นฐาน: {student.name}
               </h2>
               <div>
-                {/* แสดงปุ่มประเมินผู้เรียนเฉพาะ admin/teacher หรือ student ที่ดูโปรไฟล์ตัวเอง */}
-                {(!isStudentUser || isOwnProfile) && (
-                  <Link
-                    href={`/student/student_detail/${student._id}/interview`}
-                    className="btn btn-warning rounded-0 text-uppercase fw-semibold"
-                  >
-                    <i className="bi bi-clipboard-check me-2"></i>
-                    ประเมินผู้เรียน
-                  </Link>
-                )}
+                <Link
+                  href={`/student/student_detail/${student._id}/interview`}
+                  className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+                >
+                  <i className="bi bi-clipboard-check me-2"></i>
+                  ประเมินผู้เรียน
+                </Link>
+                <button className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
+                  <i className="bi bi-printer me-2"></i>พิมพ์
+                </button>
               </div>
             </div>
           </div>
@@ -274,6 +259,7 @@ function StudentBasicPage() {
               </div>
               <div className="p-4">
                 <div className="row g-3">
+                  {/* รูปโปรไฟล์ */}
                   <div className="col-md-12">
                     <div className="d-flex align-items-start gap-4 mb-4">
                       <div className="text-center">
@@ -325,7 +311,7 @@ function StudentBasicPage() {
                     <p>{student.class_group || "-"}</p>
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">ห้อง</label>
+                    <label className="form-label text-uppercase fw-semibold small text-muted">ห้อง</label>  {/* ✅ เพิ่มห้อง */}
                     <p className="fw-bold">{student.class_number || "-"}</p>
                   </div>
                   <div className="col-md-3">
@@ -391,46 +377,36 @@ function StudentBasicPage() {
 
         <div className="row mb-4">
           <div className="col-12 d-flex justify-content-end gap-2">
-            {/* แสดงปุ่ม SDQ และ DASS-21 เฉพาะ admin/teacher หรือ student ที่ดูโปรไฟล์ตัวเอง */}
-            {!isStudentUser && (
-              <div className="d-flex gap-2">
-                <Link
-                  href={`/student/student_detail/${student._id}/assessment/sdq/results`}
-                  className="btn btn-info rounded-0 text-uppercase fw-semibold"
-                >
-                  <i className="bi bi-clipboard-data me-2"></i>SDQ
-                </Link>
-                <Link
-                  href={`/student/student_detail/${student._id}/assessment/dass21/results`}
-                  className="btn btn-warning rounded-0 text-uppercase fw-semibold"
-                >
-                  <i className="bi bi-clipboard-heart me-2"></i>DASS-21
-                </Link>
-              </div>
-            )}
-            
-            {/* แสดงปุ่มแก้ไขข้อมูลเฉพาะ admin/teacher เท่านั้น (student ไม่เห็น) */}
-            {!isStudentUser && (
+            <div className="d-flex gap-2">
               <Link
-                href={`/student/student_detail/${student._id}/edit`}
-                className="btn btn-warning rounded-0 text-uppercase fw-semibold"
+                href={`/student/student_detail/${student._id}/assessment/sdq/results`}
+                className="btn btn-info rounded-0 text-uppercase fw-semibold me-2"
               >
-                <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
+                <i className="bi bi-clipboard-data me-2"></i>SDQ
               </Link>
-            )}
-            
-            {/* ปุ่มกลับ - ย้ายมาอยู่ข้างปุ่มแก้ไข แทนที่ปุ่มพิมพ์ */}
-            <button
-              onClick={handleGoBack}
+              <Link
+                href={`/student/student_detail/${student._id}/assessment/dass21/results`}
+                className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+              >
+                <i className="bi bi-clipboard-heart me-2"></i>DASS-21
+              </Link>
+            </div>
+            <Link
+              href={`/student/student_detail/${student._id}/edit`}
+              className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+            >
+              <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
+            </Link>
+            <Link
+              href="/student"
               className="btn btn-dark rounded-0 text-uppercase fw-semibold"
             >
               <i className="bi bi-arrow-left me-2"></i>กลับไป
-            </button>
+            </Link>
           </div>
         </div>
       </div>
+
     </div>
   );
 }
-
-export default withPermission(StudentBasicPage, "STUDENT_LIST");

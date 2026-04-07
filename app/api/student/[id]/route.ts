@@ -247,24 +247,23 @@ export async function GET(
 ) {
   const { id } = await context.params;
   console.log(`🚀 GET /api/student/${id} เริ่มทำงาน`);
- 
+
   try {
     await connectDB();
- 
+
     if (!id) {
       return NextResponse.json(
         { success: false, message: "ไม่พบรหัสนักศึกษา" },
         { status: 400 }
       );
     }
- 
-    const student = await Student.findById(id);
- 
+
+    // Try to find student by MongoDB _id first, then by student id field
+    let student = await Student.findById(id);
+    
     if (!student) {
-      return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูลนักเรียน" },
-        { status: 404 }
-      );
+      // If not found by _id, try finding by student id field
+      student = await Student.findOne({ id: id });
     }
  
     return NextResponse.json({

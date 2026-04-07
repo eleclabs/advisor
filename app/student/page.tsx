@@ -1149,4 +1149,4 @@ function StudentListPage() {
   );
 }
 
-export default withPermission(StudentListPage, "STUDENT_LIST");
+export default withPermission(StudentListPage, "STUDENT_VIEW");

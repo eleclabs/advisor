@@ -38,7 +38,23 @@ export function withPermission<P extends object>(
         return;
       }
 
-      const userRole = session.user?.role;
+      const userRole = session?.user?.role;
+      
+      // Handle STUDENT role specifically for localStorage authentication
+      const isStudentRole = userRole === "STUDENT";
+      const isStudentAuthenticated = isStudentRole || 
+        (localStorage.getItem('isStudent') === 'true' && localStorage.getItem('token'));
+      
+      // Allow access if:
+      // 1. Has NextAuth session with valid permission, OR
+      // 2. Is student role AND has valid localStorage authentication
+      const hasValidAuth = session || isStudentAuthenticated;
+      
+      if (!hasValidAuth) {
+        router.push("/login");
+        return;
+      }
+
       const hasPermission = hasPagePermission(userRole as Role | undefined, permission);
 
       if (!hasPermission) {

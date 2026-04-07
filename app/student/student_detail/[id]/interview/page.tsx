@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface InterviewData {
   _id: string;
@@ -50,6 +51,7 @@ interface InterviewData {
 export default function InterviewViewPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: session } = useSession();
   const studentDocId = params?.id as string;  // รับ _id จาก URL
   
   console.log("📝 Student _id from params:", studentDocId);
@@ -57,9 +59,21 @@ export default function InterviewViewPage() {
   const [interview, setInterview] = useState<InterviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [studentBasic, setStudentBasic] = useState<any>(null);
+  const [isStudentUser, setIsStudentUser] = useState(false);
+  const [currentStudentId, setCurrentStudentId] = useState<string | null>(null);
 
   useEffect(() => {
+    // ตรวจสอบว่าเป็น student login หรือไม่
+    const isStudent = localStorage.getItem('isStudent') === 'true';
+    const studentMongoId = localStorage.getItem('studentMongoId');
+    const token = localStorage.getItem('token');
     
+    setIsStudentUser(isStudent);
+    setCurrentStudentId(studentMongoId);
+    
+    console.log("Is student user:", isStudent);
+    console.log("Current student ID:", studentMongoId);
+    console.log("Viewing student ID:", studentDocId);
   }, []);
 
   useEffect(() => {
@@ -279,6 +293,9 @@ export default function InterviewViewPage() {
     updated_at: interview?.updated_at || "-"
   };
 
+  // ตรวจสอบว่า student คนนี้เป็นคนเดียวกับที่ login หรือไม่
+  const isOwnProfile = isStudentUser && currentStudentId === studentBasic?._id;
+
   return (
     <div className="min-vh-100 bg-light">
       
@@ -303,12 +320,15 @@ export default function InterviewViewPage() {
                 >
                   {interviewData.student_group}
                 </span>
-                <Link
-                  href={`/student/student_detail/${studentDocId}/interview/edit`}
-                  className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
-                >
-                  <i className="bi bi-pencil me-2"></i>แก้ไขบันทึก
-                </Link>
+                {/* แสดงปุ่มแก้ไขบันทึกเฉพาะ admin/teacher เท่านั้น (student ไม่เห็น) */}
+                {!isStudentUser && (
+                  <Link
+                    href={`/student/student_detail/${studentDocId}/interview/edit`}
+                    className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
+                  >
+                    <i className="bi bi-pencil me-2"></i>แก้ไขบันทึก
+                  </Link>
+                )}
                 <Link
                   href={`/student/student_detail/${studentDocId}`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold"

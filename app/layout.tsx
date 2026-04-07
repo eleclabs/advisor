@@ -5,12 +5,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 import BootstrapClient from "./bootstrap";
-import Header from "./components/Header";
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
-import Footer from "./components/Footer";
+import ConditionalLayout from "./components/ConditionalLayout";
 import { SessionProvider } from "./components/SessionProvider";
-import { headers } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,16 +23,11 @@ export const metadata: Metadata = {
   
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersList = await headers();
-  const pathname = headersList.get("x-pathname") || "";
-
-  // ตรวจสอบว่าเป็นหน้า login หรือ register หรือไม่
-  const isAuthPage = pathname === "/login" || pathname === "/register";
 
   return (
     <html lang="en">
@@ -44,23 +35,9 @@ export default async function RootLayout({
         <BootstrapClient />
         <SessionProvider>
           <div className="container-fluid p-0">
-            {!isAuthPage && (
-              <>
-                <Header />
-                <Navbar />
-              </>
-            )}
-            <div className="row g-0">
-              {!isAuthPage && (
-                <div className="col-md-3 col-lg-2">
-                  <Sidebar />
-                </div>
-              )}
-              <div className={!isAuthPage ? "col-md-9 col-lg-10 p-4" : "col-12"}>
-                {children}
-              </div>
-            </div>
-            {!isAuthPage && <Footer />}
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
           </div>
         </SessionProvider>
       </body>

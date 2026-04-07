@@ -1,9 +1,9 @@
-// app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import type { SessionStrategy } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
+import Student from "@/models/Student";
 import bcrypt from "bcrypt";
 
 export const authOptions = {
@@ -25,6 +25,55 @@ export const authOptions = {
         }
 
         try {
+          console.log("Student Login -  Email:", credentials.email, "Password:", credentials.password);
+          
+          // Check if it's a student email (ends with @student.com)
+          if (credentials.email?.endsWith('@student.com')) {
+            console.log("Student authentication detected");
+            
+            // Extract student ID from email
+            const studentId = credentials.email.replace('@student.com', '');
+            console.log("Student ID extracted:", studentId);
+            
+            // Find student by ID
+            const student = await Student.findOne({ 
+              id: studentId 
+            });
+            
+            if (!student) {
+              console.log("Student not found with ID:", studentId);
+              throw new Error("Student not found");
+            }
+
+            console.log("Student found:", {
+              id: student.id,
+              email: student.email,
+              first_name: student.first_name,
+              last_name: student.last_name
+            });
+
+            // For students, password should match the student ID
+            if (credentials.password !== studentId) {
+              console.log("Student password mismatch");
+              throw new Error("Invalid student credentials");
+            }
+
+            console.log("Student authentication successful");
+
+            const studentData = {
+              id: student._id.toString(),
+              email: student.email,
+              name: `${student.first_name || ''} ${student.last_name || ''}`.trim(),
+              role: "STUDENT",
+              image: student.image || null,
+            };
+
+            console.log("Student login success:", studentData);
+            return studentData;
+          }
+
+          // Regular user authentication
+          console.log("Regular user authentication");
           console.log("🔄 กำลังเชื่อมต่อฐานข้อมูล...");
           await connectDB();
           console.log("✅ เชื่อมต่อฐานข้อมูลสำเร็จ");
@@ -117,6 +166,17 @@ export const authOptions = {
         session.user.id = token.id;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }: any) {
+      console.log("Redirect callback:", { url, baseUrl });
+      
+      // If it's a student, redirect to student assessment page
+      if (url.includes('/login/student') || url.includes('student.com')) {
+        return `${baseUrl}/assessment/student`;
+      }
+      
+      // Default redirect
+      return url.startsWith(baseUrl) ? url : baseUrl;
     }
   },
   pages: {
