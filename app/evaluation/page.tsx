@@ -84,7 +84,7 @@ export default function EvaluationLandingPage() {
             marginBottom: '8px',
             textTransform: 'uppercase'
           }}>
-            ระบบประเมินความพึงพอใจ
+            
           </div>
           <h1 style={{
             fontSize: '36px',
@@ -93,7 +93,7 @@ export default function EvaluationLandingPage() {
             margin: '0 0 16px 0',
             letterSpacing: '-0.3px'
           }}>
-            ประเมินประสิทธิภาพระบบ
+            แบบประเมินความพึงพอใจ
           </h1>
           <p style={{
             fontSize: '18px',
@@ -104,9 +104,7 @@ export default function EvaluationLandingPage() {
             marginLeft: 'auto',
             marginRight: 'auto'
           }}>
-            ร่วมประเมินความพึงพอใจต่อระบบการดูแลช่วยเหลือผู้เรียน
-            <br />
-            เพื่อการพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้น
+          
           </p>
         </div>
 
@@ -157,9 +155,8 @@ export default function EvaluationLandingPage() {
               lineHeight: 1.5,
               margin: '0 0 24px 0'
             }}>
-              แสดงความคิดเห็นและประเมินประสิทธิภาพของระบบ
-              <br />
-              เพื่อช่วยให้เราพัฒนาระบบให้ดียิ่งขึ้น
+          
+              เพื่อนำมาพัฒนาและปรับปรุงระบบให้ดียิ่งขึ้น
             </p>
             <button
               onClick={() => router.push('/evaluation/form')}
@@ -215,7 +212,7 @@ export default function EvaluationLandingPage() {
                 color: '#212529',
                 margin: '0 0 12px 0'
               }}>
-                ดูรายงานผลการประเมิน
+                ดูผลการประเมิน
               </h3>
               <p style={{
                 fontSize: '14px',
@@ -223,9 +220,8 @@ export default function EvaluationLandingPage() {
                 lineHeight: 1.5,
                 margin: '0 0 24px 0'
               }}>
-                ดูสถิติและรายงานผลการประเมินทั้งหมด
-                <br />
-                วิเคราะห์ข้อมูลเพื่อการตัดสินใจ
+                ดูสถิติและรายงานผลการประเมิน
+               
               </p>
               <button
                 onClick={() => router.push('/evaluation/evaluations')}
@@ -244,7 +240,7 @@ export default function EvaluationLandingPage() {
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e7e34'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}
               >
-                ดูรายงาน
+                ดูผลการประเมิน
               </button>
             </div>
           )}
@@ -253,14 +249,9 @@ export default function EvaluationLandingPage() {
         {/* User Info */}
         {currentUser && (
           <div style={{
-            backgroundColor: 'white',
-            border: '1px solid #dee2e6',
-            borderRadius: '8px',
-            padding: '16px 24px',
-            fontSize: '14px',
-            color: '#6c757d'
+            
           }}>
-            แบบประเมินประสิทธิภาพระบบการดูแลช่วยเหลือผู้เรียน • ข้อมูลทั้งหมดถูกเก็บเป็นความลับ
+           
           </div>
         )}
 

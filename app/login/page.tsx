@@ -29,22 +29,28 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else {
-        // ดึงข้อมูลผู้ใช้และเก็บไว้ใน localStorage
+        // Check user role and redirect accordingly
         try {
           const response = await fetch('/api/auth/me');
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.user) {
-              console.log('🔐 Login successful, storing user data:', data.user);
+              console.log('Login successful, storing user data:', data.user);
               localStorage.setItem('currentUser', JSON.stringify(data.user));
-              localStorage.setItem('token', 'authenticated'); // สำหรับตรวจสอบ
+              localStorage.setItem('token', 'authenticated');
+              
+              // Redirect based on user role
+              if (data.user.role === 'STUDENT') {
+                router.push('/student-dashboard');
+              } else {
+                router.push('/student'); // For admin/teacher/etc.
+              }
             }
           }
         } catch (error) {
           console.error('Error fetching user data after login:', error);
+          router.push('/student'); // Fallback
         }
-        
-        router.push("/student"); // หรือ /dashboard ตามต้องการ
       }
     } catch (error) {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
@@ -102,17 +108,17 @@ export default function LoginPage() {
                   {/* Email */}
                   <div className="mb-4">
                     <label className="form-label fw-semibold small text-uppercase">
-                      <i className="bi bi-envelope me-2"></i>
-                      อีเมล
+                      <i className="bi bi-person me-2"></i>
+                      ชื่อจริง
                     </label>
                     <div className="input-group">
                       <span className="input-group-text bg-light border-end-0 rounded-0">
-                        <i className="bi bi-envelope text-secondary"></i>
+                        <i className="bi bi-person text-secondary"></i>
                       </span>
                       <input
-                        type="email"
+                        type="text"
                         className="form-control border-start-0 rounded-0"
-                        placeholder="example@email.com"
+                        placeholder="กรอกชื่อจริงของนักเรียน"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -124,8 +130,8 @@ export default function LoginPage() {
                   {/* Password */}
                   <div className="mb-4">
                     <label className="form-label fw-semibold small text-uppercase">
-                      <i className="bi bi-lock me-2"></i>
-                      รหัสผ่าน
+                      <i className="bi bi-card-text me-2"></i>
+                      รหัสนักเรียน
                     </label>
                     <div className="input-group">
                       <span className="input-group-text bg-light border-end-0 rounded-0">
@@ -134,7 +140,7 @@ export default function LoginPage() {
                       <input
                         type={showPassword ? "text" : "password"}
                         className="form-control border-start-0 rounded-0"
-                        placeholder="••••••••"
+                        placeholder="กรอกรหัสนักเรียน"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required

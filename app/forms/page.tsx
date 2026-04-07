@@ -195,7 +195,7 @@ export default function StudentFormsPage() {
                 📝 แบบฟอร์มนักเรียน
               </h1>
               <p style={{ margin: '4px 0 0', color: '#6c757d', fontSize: '14px' }}>
-                เลือกแบบประเมินหรือแบบสำรวจที่ต้องการทำ
+                เลือกแบบประเมินที่ต้องการทำ
               </p>
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -282,24 +282,10 @@ export default function StudentFormsPage() {
         {/* User Info */}
         {currentUser && (
           <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '16px 20px',
-            marginBottom: '24px',
-            border: '1px solid #dee2e6',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
+          
           }}>
-            <div style={{ fontSize: '24px' }}>👤</div>
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 500, color: '#212529' }}>
-                {currentUser.first_name} {currentUser.last_name}
-              </div>
-              <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                {currentUser.email}
-              </div>
-            </div>
+            
+            
           </div>
         )}
 
@@ -338,7 +324,7 @@ export default function StudentFormsPage() {
                 borderRadius: '8px 8px 0 0'
               }}
             >
-              📊 แบบสำรวจความคิดเห็น ({evaluations.length})
+              📊 แบบประเมินความพึงพอใจ ({evaluations.length})
             </button>
             {/* ✅ แท็บที่ 3: แบบฟอร์มกำหนดเอง (แสดงเฉพาะ Admin/Teacher) */}
             {(currentUser?.role === 'ADMIN' || currentUser?.role === 'TEACHER') && (
@@ -357,7 +343,7 @@ export default function StudentFormsPage() {
                   borderRadius: '8px 8px 0 0'
                 }}
               >
-                📝 แบบฟอร์มกำหนดเอง ({customForms.length})
+                📝 แบบฟอร์มกำหนดเอง({customForms.length})
               </button>
             )}
           </div>
@@ -461,7 +447,7 @@ export default function StudentFormsPage() {
                           }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
-                          ดูแบบประเมิน
+                          ทำแบบประเมิน
                         </button>
                         <button 
                           onClick={(e) => {
@@ -568,7 +554,7 @@ export default function StudentFormsPage() {
                           }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}>
-                          ดูแบบประเมิน
+                          ทำแบบประเมิน
                         </button>
                         <button 
                           onClick={(e) => {
@@ -603,7 +589,7 @@ export default function StudentFormsPage() {
             <div>
               <div style={{ marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 8px', color: '#212529' }}>
-                  แบบสำรวจความคิดเห็น
+                  แบบประเมินความพึงพอใจ
                 </h2>
                 <p style={{ margin: 0, color: '#6c757d', fontSize: '14px' }}>
                   แบบประเมินความพึงพอใจและประสิทธิภาพของระบบ
@@ -634,7 +620,7 @@ export default function StudentFormsPage() {
                     <div style={{ fontSize: '40px' }}>📊</div>
                     <div>
                       <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px', color: '#212529' }}>
-                        แบบประเมินระบบ
+                        แบบประเมินความพึงพอใจ
                       </h3>
                       <p style={{ margin: 0, fontSize: '13px', color: '#6c757d' }}>
                         ระบบการดูแลช่วยเหลือผู้เรียน
@@ -690,7 +676,7 @@ export default function StudentFormsPage() {
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a32a3'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6f42c1'}>
-                    ดูแบบสำรวจ
+                  ทำแบบประเมินความพึงพอใจ
                   </button>
                 </div>
 
