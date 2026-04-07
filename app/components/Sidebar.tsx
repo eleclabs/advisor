@@ -16,9 +16,9 @@ export default function Sidebar() {
 
   // เมนูตาม Role (ไม่มี href ซ้ำ)
   const roleMenus = [
-    { name: "Dashboard", href: "/dashboard", icon: "bi-speedometer2", roles: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"] },
+   
     { name: "จัดการผู้ใช้", href: "/user", icon: "bi-people", roles: ["ADMIN", "EXECUTIVE"] },
-    { name: "จัดการการมอบหมายนักเรียน", href: "/student_assignment", icon: "bi-people-fill", roles: ["ADMIN"] },
+    { name: "กำหนดครูที่ปรึกษา", href: "/student_assignment", icon: "bi-people-fill", roles: ["ADMIN"] },
     { name: "สาขา", href: "/major", icon: "bi-building", roles: ["ADMIN", "TEACHER", "EXECUTIVE", "COMMITTEE"] },
     { name: "รายงาน", href: "/committees/plan", icon: "bi-file-text", roles: ["ADMIN", "EXECUTIVE", "COMMITTEE"] },
    
@@ -27,12 +27,12 @@ export default function Sidebar() {
   // เมนู Student - แก้ให้ href ไม่ซ้ำกัน
   const studentLinks = [
     { id: "dashboard", name: "📊 Dashboard ภาพรวม", href: "/dashboard", icon: "bi-speedometer2" },
-    { id: "profile", name: "👤 ข้อมูลผู้เรียนรายบุคคล", href: "/student", icon: "bi-person-badge" },
+    { id: "profile", name: "👤 การรู้จักผู้เรียนเป็นรายบุคคล", href: "/student", icon: "bi-person-badge" },
     { id: "filter", name: "🔍 การคัดกรองผู้เรียน", href: "/student_filter", icon: "bi-funnel" },
-    { id: "learn", name: "📚 ส่งเสริมและพัฒนาผู้เรียน", href: "/student_learn", icon: "bi-book" },
-    { id: "problem", name: "🛡️ ป้องกันและแก้ปัญหา", href: "/student_problem", icon: "bi-shield" },
-    { id: "send", name: "📤 ส่งต่อผู้เรียน", href: "/student_send", icon: "bi-send" },
-    { id: "report", name: "📈 รายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
+    { id: "learn", name: "📚 การส่งเสริมและพัฒนาผู้เรียน", href: "/student_learn", icon: "bi-book" },
+    { id: "problem", name: "🛡️ การป้องกันและแก้ปัญหา", href: "/student_problem", icon: "bi-shield" },
+    { id: "send", name: "📤 การส่งต่อผู้เรียน", href: "/student_send", icon: "bi-send" },
+    { id: "report", name: "📈 การรายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
     { id: "forms", name: "📋 แบบฟอร์ม/เครื่องมือ", href: "/forms", icon: "bi-file-earmark-text" },
     { id: "evaluation", name: "⭐ แบบประเมินความพึงพอใจ", href: "/evaluation", icon: "bi-star" },
   ];
