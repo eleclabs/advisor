@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-
 export default function BootstrapClient() {
-  useEffect(() => {
-    require("bootstrap/dist/js/bootstrap.bundle.min.js");
-  }, []);
-
+  // Temporarily disabled to prevent chunk loading errors
+  // Bootstrap CSS is already loaded, which provides most styling
+  // JavaScript components (dropdowns, modals, etc.) can be added later if needed
   return null;
 }

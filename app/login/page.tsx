@@ -107,9 +107,9 @@ export default function LoginPage() {
                 <form id="loginForm" onSubmit={handleSubmit}>
                   {/* Email */}
                   <div className="mb-4">
-                    <label className="form-label fw-semibold small text-uppercase">
+                    <label className="form-label fw-semibold small ">
                       <i className="bi bi-person me-2"></i>
-                      ชื่อจริง
+                      อีเมล
                     </label>
                     <div className="input-group">
                       <span className="input-group-text bg-light border-end-0 rounded-0">
@@ -118,7 +118,7 @@ export default function LoginPage() {
                       <input
                         type="text"
                         className="form-control border-start-0 rounded-0"
-                        placeholder="กรอกชื่อจริงของนักเรียน"
+                        placeholder="กรอกอีเมล"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
@@ -129,9 +129,9 @@ export default function LoginPage() {
 
                   {/* Password */}
                   <div className="mb-4">
-                    <label className="form-label fw-semibold small text-uppercase">
+                    <label className="form-label fw-semibold small">
                       <i className="bi bi-card-text me-2"></i>
-                      รหัสนักเรียน
+                      รหัสผ่าน
                     </label>
                     <div className="input-group">
                       <span className="input-group-text bg-light border-end-0 rounded-0">
@@ -140,7 +140,7 @@ export default function LoginPage() {
                       <input
                         type={showPassword ? "text" : "password"}
                         className="form-control border-start-0 rounded-0"
-                        placeholder="กรอกรหัสนักเรียน"
+                        placeholder="กรอกรหัสผ่าน"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required

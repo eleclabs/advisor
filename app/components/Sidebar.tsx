@@ -10,9 +10,13 @@ export default function Sidebar() {
   const pathname = usePathname();
   const userRole = session?.user?.role;
 
-  if (!session || pathname === "/login" || pathname === "/register") {
+  // Hide sidebar for students and on login/register pages
+  if (!session || pathname === "/login" || pathname === "/register" || pathname === "/login/student" || pathname === "/assessment/student") {
     return null;
   }
+
+  // Check if user is a student
+  const isStudent = userRole === "STUDENT" || pathname.startsWith("/assessment/student");
 
   // เมนูตาม Role (ไม่มี href ซ้ำ)
   const roleMenus = [
@@ -77,25 +81,27 @@ export default function Sidebar() {
       )}
 
       {/* เมนูนักเรียน */}
-      <div className="p-2">
-        <h6 className="text-uppercase text-white-50 small fw-bold px-3 mt-3 mb-2">
-          <i className="bi bi-people me-2"></i>เมนูนักเรียน
-        </h6>
-        {studentLinks.map((link) => (
-          <Link
-            key={link.id}  // ✅ ใช้ id แทน href เพื่อป้องกัน key ซ้ำ
-            href={link.href}
-            className={`d-block py-2 px-3 mb-1 text-decoration-none rounded-0 ${
-              pathname === link.href
-                ? "bg-warning text-dark"
-                : "text-white hover-bg-warning hover-text-dark"
-            }`}
-          >
-            <i className={`bi ${link.icon} me-2`}></i>
-            {link.name}
-          </Link>
-        ))}
-      </div>
+      {!isStudent && (
+        <div className="p-2">
+          <h6 className="text-uppercase text-white-50 small fw-bold px-3 mt-3 mb-2">
+            <i className="bi bi-people me-2"></i>เมนูนักเรียน
+          </h6>
+          {studentLinks.map((link) => (
+            <Link
+              key={link.id}  // ✅ ใช้ id แทน href เพื่อป้องกัน key ซ้ำ
+              href={link.href}
+              className={`d-block py-2 px-3 mb-1 text-decoration-none rounded-0 ${
+                pathname === link.href
+                  ? "bg-warning text-dark"
+                  : "text-white hover-bg-warning hover-text-dark"
+              }`}
+            >
+              <i className={`bi ${link.icon} me-2`}></i>
+              {link.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* เมนูเพิ่มเติม */}
       <div className="p-2 mt-3 border-top border-secondary">
