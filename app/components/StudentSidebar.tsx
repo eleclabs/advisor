@@ -15,8 +15,13 @@ export default function StudentSidebar() {
   useEffect(() => {
     // Get student information from session first
     if (session?.user) {
-      setStudentName(session.user.name || '');
-      setStudentId(session.user.id || '');
+      // Handle different session data structures
+      const user = session.user;
+      if (user) {
+        const name = user.name || '';
+        setStudentName(name.trim());
+        setStudentId(user.id || '');
+      }
     } else {
       // Fallback to localStorage for backward compatibility
       const stored = localStorage.getItem('currentUser');
@@ -24,8 +29,9 @@ export default function StudentSidebar() {
       
       if (stored) {
         const user = JSON.parse(stored);
-        setStudentName(`${user.first_name || ''} ${user.last_name || ''}`.trim());
-        setStudentId(studentMongoId || '');
+        const name = user.name || '';
+        setStudentName(name.trim());
+        setStudentId(user.id || '');
       }
     }
   }, [session]);

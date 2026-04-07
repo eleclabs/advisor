@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 // ========== Component ย่อย ==========
@@ -436,13 +436,28 @@ const DASS21_QUESTIONS = [
 ];
 
 // ========== Main Component ==========
-export default function AssessmentPage() {
+
+function AssessmentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [activeForm, setActiveForm] = useState<'sdq' | 'dass21' | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Role-based redirection: If user is student, redirect to student assessment page
+  useEffect(() => {
+    const isStudent = localStorage.getItem('isStudent') === 'true';
+    const type = searchParams.get('type');
+    
+    // Redirect students to student assessment page if they're on the main assessment page
+    if (isStudent && (pathname === '/assessment' || (type && (type === 'sdq' || type === 'dass21')))) {
+      const redirectUrl = type ? `/assessment/student?type=${type}` : '/assessment/student';
+      router.replace(redirectUrl);
+      return;
+    }
+  }, [router, searchParams, pathname]);
 
   const [studentInfo, setStudentInfo] = useState({
     studentId: '',
@@ -605,6 +620,21 @@ export default function AssessmentPage() {
     };
   };
 
+  const handleReset = () => {
+    if (confirm('ล้างข้อมูลทั้งหมด?')) {
+      setSdqAnswers({});
+      setDass21Answers({});
+      setStudentInfo({
+        studentId: '',
+        studentName: '',
+        grade: '',
+        classroom: '',
+        gender: '',
+        age: ''
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -661,21 +691,6 @@ export default function AssessmentPage() {
       alert('เกิดข้อผิดพลาด กรุณาลองอีกครั้ง');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleReset = () => {
-    if (confirm('ล้างข้อมูลทั้งหมด?')) {
-      setSdqAnswers({});
-      setDass21Answers({});
-      setStudentInfo({
-        studentId: '',
-        studentName: '',
-        grade: '',
-        classroom: '',
-        gender: '',
-        age: ''
-      });
     }
   };
 
@@ -975,7 +990,7 @@ export default function AssessmentPage() {
             color: '#212529',
             margin: '0 0 12px 0'
           }}>
-            {activeForm === 'sdq' ? 'แบบประเมิน SDQ' : 'แบบประเมิน DASS-21'}
+            {activeForm === 'sdq' ? 'แบบประเมิน SDQ' : 'แบระเมิน DASS-21'}
           </h1>
           <p style={{
             fontSize: '14px',
@@ -1209,5 +1224,33 @@ export default function AssessmentPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function AssessmentPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: '#f8f9fa'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            border: '4px solid #f3f3f3', 
+            borderTop: '4px solid #007bff', 
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <p style={{ marginTop: '16px', color: '#6c757d' }}>กำลังโหลด...</p>
+        </div>
+      </div>
+    }>
+      <AssessmentContent />
+    </Suspense>
   );
 }

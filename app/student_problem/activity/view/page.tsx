@@ -1,7 +1,7 @@
 // D:\advisor-main\app\student_problem\activity\view\page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -43,7 +43,7 @@ interface StudentProblemData {
   }>;
 }
 
-export default function ViewActivityPage() {
+function ActivityViewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -142,7 +142,6 @@ export default function ViewActivityPage() {
       if (activityData?.joined_at) return activityData.joined_at;
     }
     
-    // ตรวจสอบจาก activity_join_dates map ด้วย
     const studentDataFull = studentsData.get(studentId);
     if (studentDataFull?.activity_join_dates && activity) {
       const joinDateFromMap = studentDataFull.activity_join_dates[activity._id];
@@ -163,7 +162,6 @@ export default function ViewActivityPage() {
       if (activityData?.completed_at) return activityData.completed_at;
     }
     
-    // ตรวจสอบจาก activity_completed_dates map ด้วย
     const studentDataFull = studentsData.get(studentId);
     if (studentDataFull?.activity_completed_dates && activity) {
       const completedDateFromMap = studentDataFull.activity_completed_dates[activity._id];
@@ -238,14 +236,6 @@ export default function ViewActivityPage() {
     }
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch(status) {
-      case 'เสร็จสิ้น': return 'bg-success';
-      case 'เข้าร่วมแล้ว': return 'bg-info';
-      default: return 'bg-secondary';
-    }
-  };
-
   if (loading) {
     return (
       <div className="container py-5">
@@ -263,11 +253,10 @@ export default function ViewActivityPage() {
     return (
       <div className="container py-5">
         <div className="text-center">
-          <i className="bi bi-exclamation-triangle fs-1 text-warning d-block mb-3"></i>
-          <h4>ไม่พบกิจกรรม</h4>
-          <p className="text-muted">อาจถูกลบหรือไม่มีอยู่ในระบบ</p>
-          <Link href="/student_problem?tab=activities" className="btn btn-warning mt-3">
-            <i className="bi bi-arrow-left me-2"></i>กลับ
+          <i className="bi bi-exclamation-triangle text-warning fs-1"></i>
+          <p className="mt-3">ไม่พบข้อมูล</p>
+          <Link href="/student_problem?tab=activities" className="btn btn-warning rounded-0">
+            กลับ
           </Link>
         </div>
       </div>
@@ -276,323 +265,191 @@ export default function ViewActivityPage() {
 
   return (
     <div className="container py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-3 border-warning">
-        <div>
-          <h2 className="fw-bold mb-1">
-            <i className="bi bi-activity text-warning me-2"></i>
-            {activity.name}
-          </h2>
-          <div className="d-flex gap-3 mt-1">
-            <span className="badge bg-light text-dark">
-              <i className="bi bi-calendar me-1"></i>
-              {formatShortDate(activity.activity_date)}
-            </span>
-            {activity.duration_period && (
-              <span className="badge bg-light text-dark">
-                <i className="bi bi-clock-history me-1"></i>
-                {activity.duration_period}
-              </span>
-            )}
+      <div className="row mb-4">
+        <div className="col-12">
+          <div className="border-bottom border-3 border-warning pb-2">
+                <h2 className="text-uppercase fw-bold m-0">
+                  <i className="bi bi-eye me-2 text-warning"></i>
+                  ดูรายละเอียดกิจกรรม
+                </h2>
           </div>
         </div>
-        <div>
-          <Link 
-            href={`/student_problem/activity/edit?id=${id}`} 
-            className="btn btn-warning btn-sm me-2"
-          >
-            <i className="bi bi-pencil me-1"></i>แก้ไข
+      </div>
+
+      <div className="row mb-4">
+        <div className="col-12">
+          <Link href={`/student_problem/activity/edit?id=${activity._id}`} className="btn btn-secondary rounded-0 text-uppercase fw-semibold me-2">
+            <i className="bi bi-pencil me-2"></i>แก้ไขกิจกรรม
           </Link>
-          <Link 
-            href="/student_problem?tab=activities" 
-            className="btn btn-outline-secondary btn-sm"
-          >
-            <i className="bi bi-arrow-left me-1"></i>กลับ
+          <Link href={`/student_problem/activity/status?activity_id=${activity._id}`} className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2">
+            <i className="bi bi-clipboard-check me-2"></i>จัดการสถานะ
+          </Link>
+          <Link href="/student_problem?tab=activities" className="btn btn-dark rounded-0 text-uppercase fw-semibold">
+            <i className="bi bi-arrow-left me-2"></i>กลับรายการ
           </Link>
         </div>
       </div>
 
-      <div className="row g-3 mb-4">
-        <div className="col-sm-6 col-md-6">
-          <div className="card bg-primary text-white">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <div className="small text-uppercase opacity-75">เวลา</div>
-                  <div className="h3 mb-0">{activity.duration}</div>
-                  <small>นาที</small>
+      <div className="row">
+        <div className="col-md-8">
+          <div className="border bg-white">
+            <div className="p-3 border-bottom bg-dark">
+              <h5 className="text-uppercase fw-semibold m-0 text-white">
+                <i className="bi bi-info-circle me-2 text-warning"></i>
+                รายละเอียดกิจกรรม
+              </h5>
+            </div>
+            <div className="p-3">
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <span className="text-uppercase fw-semibold small text-muted">ชื่อกิจกรรม:</span>
+                  <p className="fw-bold mb-0">{activity.name}</p>
                 </div>
-                <i className="bi bi-clock fs-1 opacity-50"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-sm-6 col-md-6">
-          <div className="card bg-info text-white">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <div className="small text-uppercase opacity-75">ผู้เข้าร่วม</div>
-                  <div className="h3 mb-0">{activity.total_participants}</div>
-                  <small>คน</small>
+                <div className="col-md-6">
+                  <span className="text-uppercase fw-semibold small text-muted">วันที่จัด:</span>
+                  <p className="mb-0">{formatShortDate(activity.activity_date)}</p>
                 </div>
-                <i className="bi bi-people fs-1 opacity-50"></i>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="card mb-4">
-        <div className="card-header bg-warning">
-          <h6 className="mb-0 fw-bold text-dark">
-            <i className="bi bi-bullseye me-2"></i>
-            วัตถุประสงค์ / เป้าหมายกิจกรรม
-          </h6>
-        </div>
-        <div className="card-body">
-          {activity.objective && activity.objective.trim() !== "" ? (
-            <div>
-              <p className="mb-2 fw-bold text-muted small">เพื่อแก้ปัญหาอะไร:</p>
-              <p className="mb-0">{activity.objective}</p>
-            </div>
-          ) : (
-            <p className="text-muted fst-italic mb-0">
-              <i className="bi bi-dash-circle me-2"></i>
-              ไม่ได้ระบุวัตถุประสงค์
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="card mb-4">
-        <div className="card-header bg-light">
-          <h6 className="mb-0 fw-bold">📋 รายละเอียดกิจกรรม</h6>
-        </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-6">
-              <div className="mb-3">
-                <label className="fw-bold text-muted small">ชื่อกิจกรรม</label>
-                <p className="mb-0">{activity.name}</p>
-              </div>
-              <div className="mb-3">
-                <label className="fw-bold text-muted small">เวลา</label>
-                <p className="mb-0">{activity.duration} นาที</p>
-              </div>
-              <div className="mb-3">
-                <label className="fw-bold text-muted small">อุปกรณ์</label>
-                <p className="mb-0">{activity.materials || '-'}</p>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="mb-3">
-                <label className="fw-bold text-muted small">วันที่จัด</label>
-                <p className="mb-0">{formatDate(activity.activity_date)}</p>
-              </div>
-              <div className="mb-3">
-                <label className="fw-bold text-muted small">
-                  <i className="bi bi-calendar-range me-1"></i>
-                  ระยะเวลาดำเนินการ / ครั้งที่จัด
-                </label>
-                <p className="mb-0">
-                  {activity.duration_period && activity.duration_period.trim() !== "" 
-                    ? activity.duration_period 
-                    : <span className="text-muted fst-italic">- ไม่ได้ระบุ -</span>
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {activity.steps ? (
-        <div className="card mb-4">
-          <div className="card-header bg-success text-white">
-            <h6 className="mb-0 fw-bold">
-              <i className="bi bi-list-ol me-2"></i>
-              ขั้นตอน
-            </h6>
-          </div>
-          <div className="card-body">
-            <p className="mb-0" style={{ whiteSpace: 'pre-line' }}>{activity.steps}</p>
-          </div>
-        </div>
-      ) : (
-        <div className="alert alert-light border mb-4">
-          <i className="bi bi-info-circle me-2"></i>
-          ไม่มีขั้นตอน
-        </div>
-      )}
-
-      <div className="row g-3 mb-4">
-        <div className="col-md-4">
-          <div className="card h-100">
-            <div className="card-header bg-info text-white">
-              <h6 className="mb-0">
-                <i className="bi bi-emoji-smile me-2"></i>
-                ละลายพฤติกรรม
-              </h6>
-            </div>
-            <div className="card-body">
-              {activity.ice_breaking ? (
-                <p className="mb-0">{activity.ice_breaking}</p>
-              ) : (
-                <p className="text-muted fst-italic mb-0">- ไม่มี -</p>
+              {activity.objective && (
+                <div className="mb-3">
+                  <span className="text-uppercase fw-semibold small text-muted">วัตถุประสงค์:</span>
+                  <p>{activity.objective}</p>
+                </div>
               )}
+
+              <div className="row mb-3">
+                <div className="col-md-6">
+                  <span className="text-uppercase fw-semibold small text-muted">ระยะเวลา:</span>
+                  <p className="mb-0">{activity.duration} นาที</p>
+                </div>
+                <div className="col-md-6">
+                  <span className="text-uppercase fw-semibold small text-muted">อุปกรณ์:</span>
+                  <p className="mb-0">{activity.materials}</p>
+                </div>
+              </div>
+
+              {activity.duration_period && (
+                <div className="mb-3">
+                  <span className="text-uppercase fw-semibold small text-muted">ระยะเวลาดำเนินการ / ครั้งที่จัด:</span>
+                  <p>{activity.duration_period}</p>
+                </div>
+              )}
+
+              <div className="mb-3">
+                <span className="text-uppercase fw-semibold small text-muted">ขั้นตอน:</span>
+                <p>{activity.steps}</p>
+              </div>
+
+              <div className="mb-3">
+                <span className="text-uppercase fw-semibold small text-muted">ละลายพฤติกรรม:</span>
+                <p>{activity.ice_breaking}</p>
+              </div>
+
+              <div className="mb-3">
+                <span className="text-uppercase fw-semibold small text-muted">โจทย์สาขาวิชา:</span>
+                <p>{activity.group_task}</p>
+              </div>
+
+              <div className="mb-3">
+                <span className="text-uppercase fw-semibold small text-muted">ถอดบทเรียน (AAR):</span>
+                <p>{activity.debrief}</p>
+              </div>
+
+              <div className="text-muted small">
+                <hr className="my-2" />
+                <div>
+                  {activity.createdAt && <span>สร้าง: {formatDate(activity.createdAt)}</span>}
+                  {activity.updatedAt && activity.updatedAt !== activity.createdAt && (
+                    <span className="ms-3">แก้ไขล่าสุด: {formatDate(activity.updatedAt)}</span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="col-md-4">
-          <div className="card h-100">
-            <div className="card-header bg-primary text-white">
-              <h6 className="mb-0">
-                <i className="bi bi-people me-2"></i>
-                สาขาวิชา
-              </h6>
+          <div className="border bg-white">
+            <div className="p-3 border-bottom bg-dark">
+              <h5 className="text-uppercase fw-semibold m-0 text-white">
+                <i className="bi bi-people me-2 text-warning"></i>
+                ผู้เข้าร่วม ({activity.participants?.length || 0}/{activity.total_participants || 0})
+              </h5>
             </div>
-            <div className="card-body">
-              {activity.group_task ? (
-                <p className="mb-0">{activity.group_task}</p>
-              ) : (
-                <p className="text-muted fst-italic mb-0">- ไม่มี -</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-4">
-          <div className="card h-100">
-            <div className="card-header bg-warning">
-              <h6 className="mb-0 fw-bold text-dark">
-                <i className="bi bi-chat-quote me-2"></i>
-                ถอดบทเรียน (AAR)
-              </h6>
-            </div>
-            <div className="card-body">
-              {activity.debrief ? (
-                <div>
-                  <p className="mb-2 fw-bold text-muted small">สิ่งที่ได้เรียนรู้จากการทำงานร่วมกับเพื่อน:</p>
-                  <p className="mb-0">{activity.debrief}</p>
-                </div>
-              ) : (
-                <p className="text-muted fst-italic mb-0">- ไม่มี -</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card mb-4">
-        <div className="card-header bg-dark text-white">
-          <h6 className="mb-0">
-            <i className="bi bi-people-fill me-2 text-warning"></i>
-            รายชื่อนักเรียนที่เข้าร่วม ({activity.participants?.length || 0} คน)
-          </h6>
-        </div>
-        <div className="card-body">
-          {!activity.participants || activity.participants.length === 0 ? (
-            <div className="text-center py-4">
-              <i className="bi bi-people fs-1 text-muted d-block mb-3"></i>
-              <p className="text-muted mb-0">ไม่มีนักเรียนในกิจกรรมนี้</p>
-            </div>
-          ) : (
-            <div className="table-responsive">
-              <table className="table table-hover mb-0">
-                <thead className="table-light">
-                  <tr>
-                    <th>#</th>
-                    <th>รหัสนักเรียน</th>
-                    <th>ชื่อ-นามสกุล</th>
-                    <th>วันที่เข้าร่วม</th>
-                    <th>วันที่เสร็จสิ้น</th>
-                    <th>สถานะ</th>
-                    <th>จัดการ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activity.participants.map((p, index) => {
-                    const status = getActivityStatus(p.student_id);
-                    const joinDate = getJoinDate(p.student_id);
-                    const completedDate = getCompletedDate(p.student_id);
-                    const notes = getNotes(p.student_id);
-                    
-                    console.log(`📊 Student ${p.student_id}:`, { status, joinDate, completedDate, notes });
-                    
-                    return (
-                      <tr key={p.student_id}>
-                        <td>{index + 1}</td>
-                        <td>
-                          <span className="fw-bold">{p.student_id}</span>
-                        </td>
-                        <td>{p.student_name}</td>
-                        <td>
-                          {joinDate 
-                            ? formatShortDate(joinDate)
-                            : p.joined_at 
-                              ? formatShortDate(p.joined_at) 
-                              : '-'
-                          }
-                        </td>
-                        <td>
-                          {completedDate 
-                            ? formatShortDate(completedDate)
-                            : '-'
-                          }
-                        </td>
-                        <td>
-                          <span className={`badge ${getStatusBadgeClass(status)} text-white px-3 py-2`}>
-                            {status}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="btn-group" role="group">
-                            <button 
-                              className="btn btn-sm btn-outline-info me-1"
-                              onClick={() => router.push(
-                                `/student_problem/activity/status/view?activity_id=${activity._id}&student_id=${p.student_id}&student_name=${encodeURIComponent(p.student_name)}`
-                              )}
-                              title="ดูสถานะกิจกรรม"
-                            >
-                              <i className="bi bi-eye"></i>
-                            </button>
-                            <button 
-                              className="btn btn-sm btn-outline-warning me-1"
-                              onClick={() => router.push(
-                                `/student_problem/activity/status?activity_id=${activity._id}&student_id=${p.student_id}&student_name=${encodeURIComponent(p.student_name)}`
-                              )}
-                              title="จัดการสถานะกิจกรรม"
-                            >
-                              <i className="bi bi-pencil-square"></i>
-                            </button>
-                            <button 
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleRemoveParticipant(p.student_id)}
-                              title="ลบนักเรียนออกจากกิจกรรม"
-                            >
-                              <i className="bi bi-person-x"></i>
-                            </button>
-                          </div>
-                        </td>
+            <div className="p-3">
+              {activity.participants && activity.participants.length > 0 ? (
+                <div className="table-responsive">
+                  <table className="table table-hover">
+                    <thead className="table-dark">
+                      <tr>
+                        <th className="text-uppercase small">รหัส</th>
+                        <th className="text-uppercase small">ชื่อ</th>
+                        <th className="text-uppercase small">สถานะ</th>
+                        <th className="text-uppercase small">วันที่เข้าร่วม</th>
+                        <th className="text-uppercase small">วันที่เสร็จสิ้น</th>
+                        <th className="text-uppercase small">หมายเหตุ</th>
+                        <th className="text-uppercase small">จัดการ</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {activity.participants.map((participant) => (
+                        <tr key={participant.student_id}>
+                          <td>{participant.student_id}</td>
+                          <td>{participant.student_name}</td>
+                          <td>
+                            <span className={`badge bg-${
+                              getActivityStatus(participant.student_id) === 'เสร็จสิ้น' ? 'success' : 
+                              getActivityStatus(participant.student_id) === 'เข้าร่วมแล้ว' ? 'info' : 
+                              'secondary'
+                            } rounded-0`}>
+                              {getActivityStatus(participant.student_id)}
+                            </span>
+                          </td>
+                          <td>{getJoinDate(participant.student_id) ?? '-'}</td>
+                          <td>{getCompletedDate(participant.student_id) ?? '-'}</td>
+                          <td>{getNotes(participant.student_id) ?? '-'}</td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-outline-danger rounded-0"
+                              onClick={() => handleRemoveParticipant(participant.student_id)}
+                              title="ลบนักเรียน"
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <i className="bi bi-person-x text-muted fs-1"></i>
+                  <p className="text-muted mt-2">ยังไม่มีผู้เข้าร่วม</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
-
-      {(activity.createdAt || activity.updatedAt) && (
-        <div className="mt-3 text-muted small text-end">
-          {activity.createdAt && <span>สร้าง: {formatDate(activity.createdAt)}</span>}
-          {activity.updatedAt && activity.updatedAt !== activity.createdAt && (
-            <span className="ms-3">แก้ไขล่าสุด: {formatDate(activity.updatedAt)}</span>
-          )}
-        </div>
-      )}
     </div>
+  );
+}
+
+export default function ViewActivityPage() {
+  return (
+    <Suspense fallback={
+      <div className="container py-5">
+        <div className="text-center">
+          <div className="spinner-border text-warning" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2 text-muted">กำลังโหลด...</p>
+        </div>
+      </div>
+    }>
+      <ActivityViewContent />
+    </Suspense>
   );
 }

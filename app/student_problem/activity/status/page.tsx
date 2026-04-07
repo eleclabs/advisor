@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ActivityStatusPage() {
+function ActivityStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -59,7 +59,7 @@ export default function ActivityStatusPage() {
       console.log("🔍 Student activities:", studentActivities);
       console.log("🔍 Looking for activity_id:", activityJson.data._id);
 
-      // 🔥 แก้ไข: ค้นหาทั้งแบบ activity_id เป็น object และ string
+      // ค้นหาทั้งแบบ activity_id เป็น object และ string
       const matchingActivities = studentActivities.filter((a: any) => {
         // ถ้า activity_id เป็น object (มี _id)
         if (a.activity_id && typeof a.activity_id === 'object' && a.activity_id._id) {
@@ -71,7 +71,7 @@ export default function ActivityStatusPage() {
 
       console.log("🔍 Matching activities:", matchingActivities);
 
-      // 🔥 แก้ไข: เลือกอันที่มีข้อมูลครบที่สุด (joined_at และ completed_at)
+      // เลือกอันที่มีข้อมูลครบที่สุด
       let found = null;
       if (matchingActivities.length > 0) {
         // ลองหาอันที่มี joined_at และ completed_at ก่อน
@@ -292,5 +292,13 @@ export default function ActivityStatusPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ActivityStatusPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ActivityStatusContent />
+    </Suspense>
   );
 }

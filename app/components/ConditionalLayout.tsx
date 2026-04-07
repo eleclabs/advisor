@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 import Header from "./Header";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
@@ -11,8 +11,9 @@ interface ConditionalLayoutProps {
   children: React.ReactNode;
 }
 
-export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
+function ConditionalLayoutContent({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [shouldShowLayout, setShouldShowLayout] = useState(true);
 
   useEffect(() => {
@@ -26,10 +27,15 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       '/student/student_detail'
     ];
     
-    // Hide layout if user is student and on a student path
-    const isStudentPath = studentPaths.some(path => pathname.startsWith(path));
+    // Check if this is an assessment page with type parameter
+    const assessmentType = searchParams.get('type');
+    const isAssessmentWithParams = pathname === '/assessment' && 
+      (assessmentType === 'sdq' || assessmentType === 'dass21');
+    
+    // Hide layout if user is student and on a student path or assessment with params
+    const isStudentPath = studentPaths.some(path => pathname.startsWith(path)) || isAssessmentWithParams;
     setShouldShowLayout(!(isStudent && isStudentPath));
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   if (!shouldShowLayout) {
     // For student pages, return children without layout
@@ -51,5 +57,39 @@ export default function ConditionalLayout({ children }: ConditionalLayoutProps) 
       </div>
       <Footer />
     </>
+  );
+}
+
+export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
+  return (
+    <Suspense fallback={
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: '#f8f9fa'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            border: '4px solid #f3f3f3', 
+            borderTop: '4px solid #007bff', 
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <p style={{ marginTop: '16px', color: '#6c757d' }}>Loading...</p>
+        </div>
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    }>
+      <ConditionalLayoutContent>{children}</ConditionalLayoutContent>
+    </Suspense>
   );
 }

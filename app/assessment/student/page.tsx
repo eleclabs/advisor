@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import StudentSidebar from '@/app/components/StudentSidebar';
@@ -382,7 +382,7 @@ const SectionHeader = ({ number, title, subtitle, description }: {
 
 // ========== ข้อมูลแบบประเมิน ==========
 const SDQ_QUESTIONS = [
-  { id: 'sdq1', text: '1. มักปวดศีรษะหรือปวดท้องหรือเจ็บป่วยบ่อย' },
+  { id: 'sdq1', text: '1. มักปวดศีรษะหรือปวดท้องหรือเจ็บป่วย' },
   { id: 'sdq2', text: '2. อารมณ์เสียง่าย หงุดหงิดง่าย' },
   { id: 'sdq3', text: '3. มักเศร้าสร้อย ท้อแท้ หรือหมดหวัง' },
   { id: 'sdq4', text: '4. มักกังวลหรือกลัวสิ่งต่างๆ มากเกินไป' },
@@ -437,7 +437,8 @@ const DASS21_QUESTIONS = [
 ];
 
 // ========== Main Component ==========
-export default function AssessmentPage() {
+
+function AssessmentPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeForm, setActiveForm] = useState<'sdq' | 'dass21' | null>(null);
@@ -485,8 +486,8 @@ export default function AssessmentPage() {
         const student = data.data;
         setStudentInfo(prev => ({
           ...prev,
-          studentId: student._id, // Always use MongoDB _id
-          studentMongoId: student._id, // Store MongoDB _id
+          studentId: student._id,
+          studentMongoId: student._id,
           studentName: `${student.prefix} ${student.first_name} ${student.last_name}`,
           grade: student.level,
           classroom: `${student.class_group}/${student.class_number}`,
@@ -527,13 +528,12 @@ export default function AssessmentPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem('currentUser');
-    const studentId = localStorage.getItem('studentMongoId'); // Use MongoDB _id
+    const studentId = localStorage.getItem('studentMongoId');
     
     if (stored && studentId) {
       const user = JSON.parse(stored);
       setCurrentUser(user);
       
-      // Fetch student data to get MongoDB _id
       fetch(`/api/student/${studentId}`)
         .then(res => res.json())
         .then(data => {
@@ -548,11 +548,10 @@ export default function AssessmentPage() {
         })
         .catch(error => {
           console.error('Error fetching student data:', error);
-          // Fallback to basic info
           setStudentInfo(prev => ({
             ...prev,
             studentId: studentId || '',
-            studentMongoId: studentId || '', // Fallback to studentId
+            studentMongoId: studentId || '',
             studentName: `${user.first_name || ''} ${user.last_name || ''}`.trim()
           }));
         });
@@ -630,6 +629,22 @@ export default function AssessmentPage() {
     };
   };
 
+  const handleReset = () => {
+    if (confirm('ล้างข้อมูลทั้งหมด?')) {
+      setSdqAnswers({});
+      setDass21Answers({});
+      setStudentInfo({
+        studentId: '',
+        studentMongoId: '',
+        studentName: '',
+        grade: '',
+        classroom: '',
+        gender: '',
+        age: ''
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -689,22 +704,6 @@ export default function AssessmentPage() {
     }
   };
 
-  const handleReset = () => {
-    if (confirm('ล้างข้อมูลทั้งหมด?')) {
-      setSdqAnswers({});
-      setDass21Answers({});
-      setStudentInfo({
-        studentId: '',
-        studentMongoId: '',
-        studentName: '',
-        grade: '',
-        classroom: '',
-        gender: '',
-        age: ''
-      });
-    }
-  };
-
   if (submitted) {
     return (
       <div style={{
@@ -757,146 +756,224 @@ export default function AssessmentPage() {
           flex: 1
         }}>
           <div style={{ width: '100%', maxWidth: '600px' }}>
-          <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-            <h1 style={{
-              fontSize: '28px',
-              fontWeight: 600,
-              color: '#212529',
-              margin: '0 0 12px 0'
-            }}>
-              แบบประเมินทางจิตวิทยา
-            </h1>
-            <p style={{
-              fontSize: '14px',
-              color: '#6c757d',
-              lineHeight: 1.6
-            }}>
-              กรุณาเลือกแบบประเมินที่ต้องการทำ
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gap: '20px' }}>
-            <div
-              onClick={() => setActiveForm('sdq')}
-              style={{
-                backgroundColor: 'white',
-                border: '2px solid #007bff',
-                borderRadius: '8px',
-                padding: '32px 24px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                textAlign: 'left'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e7f3ff';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'white';
-              }}
-            >
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📋</div>
-              <h3 style={{
-                fontSize: '20px',
+            <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+              {/* <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <Link href="/assessment/charts" style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  backgroundColor: '#17a2b8',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#138496'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#17a2b8'}>
+                  
+                </Link>
+                <Link href="/assessment/summary" style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '8px 16px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  textDecoration: 'none',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
+                  
+                </Link>
+              </div> */}
+              <h1 style={{
+                fontSize: '28px',
                 fontWeight: 600,
                 color: '#212529',
-                margin: '0 0 8px 0'
+                margin: '0 0 12px 0'
               }}>
-                SDQ (Strengths and Difficulties Questionnaire)
-              </h3>
+                แบบประเมินทางจิตวิทยา
+              </h1>
               <p style={{
                 fontSize: '14px',
                 color: '#6c757d',
-                margin: 0,
                 lineHeight: 1.6
               }}>
-                แบบประเมินจุดแข็งและปัญหาพฤติกรรมสำหรับเด็กและวัยรุ่น (25 ข้อ)
-                <br />
-                ⏱️ ใช้เวลาประมาณ 5-10 นาที
+                กรุณาเลือกแบบประเมินที่ต้องการทำ
               </p>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveForm('sdq');
-                    router.push('/assessment?type=sdq');
-                  }}
-                  style={{
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    fontWeight: 500
-                  }}
-                >
-                  ดูแบบประเมิน
-                </button>
-              </div>
             </div>
 
-            <div
-              onClick={() => setActiveForm('dass21')}
-              style={{
-                backgroundColor: 'white',
-                border: '2px solid #28a745',
-                borderRadius: '8px',
-                padding: '32px 24px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                textAlign: 'left'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e8f5e9';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'white';
-              }}
-            >
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🧠</div>
-              <h3 style={{
-                fontSize: '20px',
-                fontWeight: 600,
-                color: '#212529',
-                margin: '0 0 8px 0'
-              }}>
-                DASS-21 (Depression Anxiety Stress Scales)
-              </h3>
-              <p style={{
-                fontSize: '14px',
-                color: '#6c757d',
-                margin: 0,
-                lineHeight: 1.6
-              }}>
-                แบบประเมินภาวะซึมเศร้า วิตกกังวล และความเครียด (21 ข้อ)
-                <br />
-                ⏱️ ใช้เวลาประมาณ 5-10 นาที
-              </p>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveForm('dass21');
-                    router.push('/assessment?type=dass21');
-                  }}
-                  style={{
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    fontWeight: 500
-                  }}
-                >
-                  ดูแบบประเมิน
-                </button>
+            <div style={{ display: 'grid', gap: '20px' }}>
+              <div
+                onClick={() => {
+                  setActiveForm('sdq');
+                  router.push('/assessment/student?type=sdq');
+                }}
+                style={{
+                  backgroundColor: 'white',
+                  border: '2px solid #007bff',
+                  borderRadius: '8px',
+                  padding: '32px 24px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  textAlign: 'left'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e7f3ff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }}
+              >
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>📋</div>
+                <h3 style={{
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: '#212529',
+                  margin: '0 0 8px 0'
+                }}>
+                  SDQ (Strengths and Difficulties Questionnaire)
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#6c757d',
+                  margin: 0,
+                  lineHeight: 1.6
+                }}>
+                  แบบประเมินจุดแข็งและปัญหาพฤติกรรมสำหรับเด็กและวัยรุ่น (25 ข้อ)
+                  <br />
+                  ⏱️ ใช้เวลาประมาณ 5-10 นาที
+                </p>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                  {/* Hidden: ดูแบบประเมิน button */}
+                  {/* <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveForm('sdq');
+                      router.push('/assessment?type=sdq');
+                    }}
+                    style={{
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      fontWeight: 500
+                    }}
+                  >
+                    ดูแบบประเมิน
+                  </button> */}
+                  {/* Hidden: ดูผลการประเมิน button */}
+                  {/* <Link
+                    href="/assessment/sdq/results"
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: '#007bff',
+                      border: '1px solid #007bff',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      fontWeight: 500
+                    }}
+                  >
+                    ดูผลการประเมิน
+                  </Link> */}
+                </div>
+              </div>
+
+              <div
+                onClick={() => {
+                  setActiveForm('dass21');
+                  router.push('/assessment/student?type=dass21');
+                }}
+                style={{
+                  backgroundColor: 'white',
+                  border: '2px solid #28a745',
+                  borderRadius: '8px',
+                  padding: '32px 24px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  textAlign: 'left'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e8f5e9';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }}
+              >
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🧠</div>
+                <h3 style={{
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: '#212529',
+                  margin: '0 0 8px 0'
+                }}>
+                  DASS-21 (Depression Anxiety Stress Scales)
+                </h3>
+                <p style={{
+                  fontSize: '14px',
+                  color: '#6c757d',
+                  margin: 0,
+                  lineHeight: 1.6
+                }}>
+                  แบบประเมินภาวะซึมเศร้า วิตกกังวล และความเครียด (21 ข้อ)
+                  <br />
+                  ⏱️ ใช้เวลาประมาณ 5-10 นาที
+                </p>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                  {/* Hidden: ดูแบบประเมิน button */}
+                  {/* <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveForm('dass21');
+                      router.push('/assessment?type=dass21');
+                    }}
+                    style={{
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      fontWeight: 500
+                    }}
+                  >
+                    ดูแบบประเมิน
+                  </button> */}
+                  {/* Hidden: ดูผลการประเมิน button */}
+                  {/* <Link
+                    href="/assessment/dass21/results"
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: '#28a745',
+                      border: '1px solid #28a745',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      fontWeight: 500
+                    }}
+                  >
+                    ดูผลการประเมิน
+                  </Link> */}
+                </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
       </div>
     );
@@ -1171,5 +1248,39 @@ export default function AssessmentPage() {
       </div>
       </div>
     </div>
+  );
+}
+
+export default function AssessmentPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        backgroundColor: '#f8f9fa'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            border: '4px solid #f3f3f3', 
+            borderTop: '4px solid #007bff', 
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <p style={{ marginTop: '16px', color: '#6c757d' }}>กำลังโหลด...</p>
+        </div>
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    }>
+      <AssessmentPageContent />
+    </Suspense>
   );
 }
