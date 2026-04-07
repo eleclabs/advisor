@@ -12,7 +12,7 @@ export default function Header() {
       <div>
         <h1 className="h4 mb-0">
           <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-          ระบบดูแลผู้เรียนรายบุคคล
+          ระบบดูแลช่วยเหลือผู้เรียน
         </h1>
       </div>
       <div className="d-flex align-items-center gap-3">

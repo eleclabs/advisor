@@ -84,9 +84,9 @@ export default function LoginPage() {
               <div className="card-header bg-dark text-white text-center py-4 rounded-0">
                 <h3 className="fw-bold mb-0">
                   <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-                  ระบบดูแลผู้เรียนรายบุคคล
+                  ระบบดูแลช่วยเหลือผู้เรียน
                 </h3>
-                <p className="text-white-50 mb-0 mt-2">เข้าสู่ระบบ</p>
+                <h4 className="text-white-50 mb-0 mt-2">เข้าสู่ระบบ</h4>
               </div>
 
               {/* Body */}
@@ -196,7 +196,7 @@ export default function LoginPage() {
                 </form>
 
                 {/* Quick Login - สำหรับทดสอบ (สามารถลบออกได้) */}
-                <div className="mt-5 pt-4 border-top">
+{/*                 <div className="mt-5 pt-4 border-top">
                   <p className="text-center small text-muted mb-3">ทดลองเข้าใช้งาน (สำหรับพัฒนา)</p>
                   <div className="d-flex flex-wrap gap-2 justify-content-center">
                     <button
@@ -224,7 +224,7 @@ export default function LoginPage() {
                       COMMITTEE
                     </button>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Footer */}
