@@ -533,10 +533,8 @@ function StudentListPage() {
               {getPageTitle()}
             </h2>
             <div>
-              <span className="text-muted me-3">
-                {userRole === "TEACHER" ? "ครูที่ปรึกษา: " : ""}{teacher_name}
-              </span>
-              <span className="badge bg-dark text-white rounded-0">ปีการศึกษา {academic_year}</span>
+              
+              
             </div>
           </div>
         </div>

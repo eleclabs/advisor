@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   console.log("🚀 POST /api/admin/batch-assign เริ่มทำงาน");
   
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({});
     if (!session || session.user?.role !== "ADMIN") {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
 // GET - ดึงข้อมูลการมอบหมายทั้งหมด (admin only)
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({});
     if (!session || session.user?.role !== "ADMIN") {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }

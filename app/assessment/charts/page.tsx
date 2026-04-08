@@ -16,12 +16,15 @@ interface ChartData {
     averageStress: number;
     recentCount: number;
   };
-  forms: Array<{
-    id: string;
-    title: string;
-    responseCount: number;
+  evaluation: {
+    total: number;
+    averageOverall: number;
+    functionRequirement: number;
+    functionality: number;
+    usability: number;
+    performance: number;
     recentCount: number;
-  }>;
+  };
 }
 
 export default function AssessmentChartsPage() {
@@ -44,13 +47,9 @@ export default function AssessmentChartsPage() {
       const dass21Res = await fetch('/api/assessment/dass21');
       const dass21Data = await dass21Res.json();
       
-      // Fetch forms data
-      const formsRes = await fetch('/api/forms');
-      const formsData = await formsRes.json();
-      
-      // Fetch form responses
-      const responsesRes = await fetch('/api/forms/responses');
-      const responsesData = await responsesRes.json();
+      // Fetch evaluation data
+      const evaluationRes = await fetch('/api/evaluation');
+      const evaluationData = await evaluationRes.json();
 
       // Process SDQ statistics
       const sdqResponses = sdqData.data || [];
@@ -60,10 +59,10 @@ export default function AssessmentChartsPage() {
           ? sdqResponses.reduce((sum: number, r: any) => sum + r.totalScore, 0) / sdqResponses.length 
           : 0,
         riskLevels: {
-          normal: sdqResponses.filter((r: any) => r.overallRisk === 'normal').length,
-          low: sdqResponses.filter((r: any) => r.overallRisk === 'low').length,
-          medium: sdqResponses.filter((r: any) => r.overallRisk === 'medium').length,
-          high: sdqResponses.filter((r: any) => r.overallRisk === 'high').length
+          normal: sdqResponses.filter((r: any) => r.sdqScore?.interpretation === 'ปกติ').length,
+          low: sdqResponses.filter((r: any) => r.sdqScore?.interpretation === 'เสี่ยง').length,
+          medium: sdqResponses.filter((r: any) => r.sdqScore?.interpretation === 'คาบเกี่ยว').length,
+          high: sdqResponses.filter((r: any) => r.sdqScore?.interpretation === 'มีปัญหา').length
         },
         recentCount: sdqResponses.filter((r: any) => {
           const date = new Date(r.submittedAt);
@@ -94,29 +93,48 @@ export default function AssessmentChartsPage() {
         }).length
       };
 
-      // Process forms statistics
-      const forms = formsData.forms || [];
-      const responses = responsesData.responses || [];
+      // Process evaluation statistics
+      const evaluations = evaluationData.evaluations || [];
       
-      const formsStats = forms.map((form: any) => {
-        const formResponses = responses.filter((r: any) => r.formId === form._id);
-        return {
-          id: form._id,
-          title: form.title,
-          responseCount: formResponses.length,
-          recentCount: formResponses.filter((r: any) => {
-            const date = new Date(r.submittedAt);
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            return date >= thirtyDaysAgo;
-          }).length
-        };
-      });
+      // Calculate averages for each dimension
+      const calculateAverage = (values: number[]) => {
+        if (!values.length) return 0;
+        return values.reduce((sum, val) => sum + val, 0) / values.length;
+      };
+      
+      const evaluationStats = {
+        total: evaluations.length,
+        averageOverall: calculateAverage(evaluations.map((e: any) => e.overallRating)),
+        functionRequirement: calculateAverage(evaluations.map((e: any) => [
+          e.functionRequirement.dataAccess, e.functionRequirement.dataAdd,
+          e.functionRequirement.dataUpdate, e.functionRequirement.dataPresentation,
+          e.functionRequirement.dataAccuracy
+        ]).flat()),
+        functionality: calculateAverage(evaluations.map((e: any) => [
+          e.functionality.overallAccuracy, e.functionality.dataClassification,
+          e.functionality.addDataAccuracy, e.functionality.updateDataAccuracy,
+          e.functionality.presentationAccuracy
+        ]).flat()),
+        usability: calculateAverage(evaluations.map((e: any) => [
+          e.usability.easeOfUse, e.usability.screenDesign, e.usability.textClarity,
+          e.usability.accessibility, e.usability.overallUsability
+        ]).flat()),
+        performance: calculateAverage(evaluations.map((e: any) => [
+          e.performance.pageLoadSpeed, e.performance.databaseSpeed,
+          e.performance.saveUpdateSpeed, e.performance.overallPerformance
+        ]).flat()),
+        recentCount: evaluations.filter((e: any) => {
+          const date = new Date(e.evaluationDate);
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          return date >= thirtyDaysAgo;
+        }).length
+      };
 
       setChartData({
         sdq: sdqStats,
         dass21: dass21Stats,
-        forms: formsStats
+        evaluation: evaluationStats
       });
 
     } catch (error) {
@@ -269,7 +287,7 @@ export default function AssessmentChartsPage() {
 
             <div style={{ textAlign: 'center', marginTop: '24px' }}>
               <Link 
-                href="/assessment?type=sdq"
+                href="/assessment/sdq/results"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -293,7 +311,7 @@ export default function AssessmentChartsPage() {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                📋 ไปทำแบบประเมิน SDQ →
+                📋 ดูรายละเอียดการประเมิน →
               </Link>
             </div>
           </div>
@@ -365,7 +383,7 @@ export default function AssessmentChartsPage() {
 
             <div style={{ textAlign: 'center', marginTop: '24px' }}>
               <Link 
-                href="/assessment?type=dass21"
+                href="/assessment/dass21/results"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -389,95 +407,118 @@ export default function AssessmentChartsPage() {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                🧠 ไปทำแบบประเมิน DASS-21 →
+                🧠 ดูรายละเอียดการประเมิน →
               </Link>
             </div>
           </div>
 
-          {/* Custom Forms Section - Completely Separate */}
+          {/* Evaluation Statistics Section */}
           <div style={{ 
             backgroundColor: 'white', 
             borderRadius: '12px', 
             padding: '32px', 
-            border: '2px solid #fd7e14',
-            boxShadow: '0 4px 12px rgba(253,126,20,0.15)'
+            border: '2px solid #6f42c1',
+            boxShadow: '0 4px 12px rgba(111,66,193,0.15)'
           }}>
             <div style={{ 
               textAlign: 'center', 
               marginBottom: '24px',
               padding: '16px',
-              backgroundColor: '#fff3cd',
+              backgroundColor: '#f3e5f5',
               borderRadius: '8px',
-              border: '1px solid #fd7e14'
+              border: '1px solid #6f42c1'
             }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px', color: '#fd7e14' }}>
-                📝 แบบฟอร์มกำหนดเอง
+              <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px', color: '#6f42c1' }}>
+                📊 สถิติการประเมินระบบ
               </h2>
               <p style={{ margin: 0, color: '#495057', fontSize: '16px', fontWeight: 500 }}>
-                สถิติการตอบแบบฟอร์มแต่ละอัน
+                สรุปผลการประเมินความพึงพอใจระบบทั้งหมด
               </p>
             </div>
 
-            {chartData?.forms && chartData.forms.length > 0 ? (
-              <div style={{ display: 'grid', gap: '20px' }}>
-                {chartData.forms.map((form) => (
-                  <div key={form.id} style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    padding: '20px',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '8px',
-                    border: '1px solid #dee2e6'
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 12px', color: '#212529' }}>
-                        📋 {form.title}
-                      </h3>
-                      <div style={{ display: 'flex', gap: '24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '14px', color: '#6c757d' }}>การตอบทั้งหมด:</span>
-                          <span style={{ fontSize: '20px', fontWeight: 700, color: '#007bff' }}>
-                            {form.responseCount}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '14px', color: '#6c757d' }}>30 วันล่าสุด:</span>
-                          <span style={{ fontSize: '20px', fontWeight: 700, color: '#28a745' }}>
-                            {form.recentCount}
-                          </span>
-                        </div>
+            {chartData?.evaluation && chartData.evaluation.total > 0 ? (
+              <div>
+                {/* Overall Statistics */}
+                <div style={{ marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 16px', color: '#212529' }}>
+                    📈 สถิติโดยรวม
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                    <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                      <div style={{ fontSize: '32px', fontWeight: 700, color: '#6f42c1', marginBottom: '8px' }}>
+                        {chartData.evaluation.total}
                       </div>
+                      <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: 600 }}>จำนวนการประเมินทั้งหมด</div>
                     </div>
-                    <Link 
-                      href={`/forms/${form.id}/responses`}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '12px 20px',
-                        backgroundColor: '#fd7e14',
-                        color: 'white',
-                        textDecoration: 'none',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        transition: 'all 0.3s ease',
-                        boxShadow: '0 2px 8px rgba(253,126,20,0.3)'
-                      }}
-                      onMouseEnter={(e) => { 
-                        e.currentTarget.style.backgroundColor = '#e86613';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                      }}
-                      onMouseLeave={(e) => { 
-                        e.currentTarget.style.backgroundColor = '#fd7e14';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      📊 ดูผลการตอบ →
-                    </Link>
+                    <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                      <div style={{ fontSize: '32px', fontWeight: 700, color: '#28a745', marginBottom: '8px' }}>
+                        {chartData.evaluation.averageOverall.toFixed(1)}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: 600 }}>คะแนนเฉลี่ยโดยรวม</div>
+                    </div>
+                    <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                      <div style={{ fontSize: '32px', fontWeight: 700, color: '#007bff', marginBottom: '8px' }}>
+                        {chartData.evaluation.recentCount}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#6c757d', fontWeight: 600 }}>30 วันล่าสุด</div>
+                    </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Dimension Scores */}
+                <div style={{ marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 16px', color: '#212529' }}>
+                    🎯 คะแนนเฉลี่ยตามมิติ
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                    <div style={{ padding: '20px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '1px solid #2196f3' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: '#1976d2', marginBottom: '8px' }}>ด้านความต้องการ</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#1976d2' }}>{chartData.evaluation.functionRequirement.toFixed(1)}</div>
+                    </div>
+                    <div style={{ padding: '20px', backgroundColor: '#e8f5e8', borderRadius: '8px', border: '1px solid #4caf50' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: '#388e3c', marginBottom: '8px' }}>ด้านสามารถทำงาน</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#388e3c' }}>{chartData.evaluation.functionality.toFixed(1)}</div>
+                    </div>
+                    <div style={{ padding: '20px', backgroundColor: '#fff3e0', borderRadius: '8px', border: '1px solid #ff9800' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: '#f57c00', marginBottom: '8px' }}>ด้านความง่ายใช้</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#f57c00' }}>{chartData.evaluation.usability.toFixed(1)}</div>
+                    </div>
+                    <div style={{ padding: '20px', backgroundColor: '#fce4ec', borderRadius: '8px', border: '1px solid #e91e63' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 600, color: '#c2185b', marginBottom: '8px' }}>ด้านประสิทธิภาพ</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#c2185b' }}>{chartData.evaluation.performance.toFixed(1)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                  <Link 
+                    href="/evaluation/evaluations"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 24px',
+                      backgroundColor: '#6f42c1',
+                      color: 'white',
+                      textDecoration: 'none',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 2px 8px rgba(111,66,193,0.3)'
+                    }}
+                    onMouseEnter={(e) => { 
+                      e.currentTarget.style.backgroundColor = '#5a32a3';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => { 
+                      e.currentTarget.style.backgroundColor = '#6f42c1';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    📊 ดูรายละเอียดการประเมิน →
+                  </Link>
+                </div>
               </div>
             ) : (
               <div style={{ 
@@ -488,10 +529,10 @@ export default function AssessmentChartsPage() {
                 borderRadius: '8px',
                 border: '1px solid #dee2e6'
               }}>
-                <div style={{ fontSize: '64px', marginBottom: '20px' }}>📋</div>
-                <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 600 }}>ยังไม่มีแบบฟอร์มกำหนดเอง</h3>
+                <div style={{ fontSize: '64px', marginBottom: '20px' }}>�</div>
+                <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 600 }}>ยังไม่มีข้อมูลการประเมิน</h3>
                 <p style={{ margin: 0, fontSize: '16px' }}>
-                  สร้างแบบฟอร์มเพื่อเริ่มเก็บข้อมูลการประเมิน
+                  ยังไม่มีผลการประเมินความพึงพอใจระบบ
                 </p>
               </div>
             )}

@@ -125,22 +125,7 @@ export default function EditReferralPage() {
   }
 
   return (
-    <div className="d-flex flex-column min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="navbar-nav ms-auto">
-            <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-            <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student_problem">ป้องกันและแก้ไข</a>
-            <a className="nav-link text-white text-uppercase fw-semibold px-3 active" href="/student_send">ส่งต่อ</a>
-          </div>
-        </div>
-      </nav>
-
-      <div className="flex-grow-1">
+    <div className="min-vh-100 bg-light">
         <div className="container-fluid py-4">
           <div className="row mb-4">
             <div className="col-12">
@@ -360,21 +345,6 @@ export default function EditReferralPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      <footer className="bg-dark text-white py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>ระบบส่งต่อผู้เรียน</span>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

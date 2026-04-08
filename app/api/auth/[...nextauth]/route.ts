@@ -1,40 +1,39 @@
 import NextAuth from "next-auth";
-import type { SessionStrategy } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { connectDB } from "@/lib/mongodb";
+import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import Facebook from "next-auth/providers/facebook";
+
+import bcrypt from "bcrypt";
 import User from "@/models/User";
 import Student from "@/models/Student";
-import bcrypt from "bcrypt";
+import { connectDB } from "@/lib/mongodb";
 
 export const authOptions = {
   providers: [
-    CredentialsProvider({
-      name: "credentials",
+    Credentials({
       credentials: {
-        email: { label: "อีเมล", type: "email" },
-        password: { label: "รหัสผ่าน", type: "password" }
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         console.log("=".repeat(50));
-        console.log("🚀 authorize เริ่มทำงาน");
-        console.log("📧 อีเมลที่รับมา:", credentials?.email);
+        console.log("Auth authorize starting");
+        console.log("Email received:", credentials?.email);
         
         if (!credentials?.email || !credentials?.password) {
-          console.log("❌ ไม่มีอีเมลหรือรหัสผ่าน");
-          throw new Error("กรุณากรอกอีเมลและรหัสผ่าน");
+          console.log("No email or password");
+          throw new Error("Please provide email and password");
         }
 
         try {
-          console.log("Student Login -  Email:", credentials.email, "Password:", credentials.password);
-          
           // Check if it's a student email (ends with @student.com)
           if (credentials.email?.endsWith('@student.com')) {
             console.log("Student authentication detected");
             
             // Connect to database for student authentication
-            console.log("🔄 Connecting to database for student auth...");
+            console.log("Connecting to database for student auth...");
             await connectDB();
-            console.log("✅ Database connected for student auth");
+            console.log("Database connected for student auth");
             
             // Extract student ID from email
             const studentId = credentials.email.replace('@student.com', '');
@@ -79,49 +78,46 @@ export const authOptions = {
 
           // Regular user authentication
           console.log("Regular user authentication");
-          console.log("🔄 กำลังเชื่อมต่อฐานข้อมูล...");
+          console.log("Connecting to database...");
           await connectDB();
-          console.log("✅ เชื่อมต่อฐานข้อมูลสำเร็จ");
+          console.log("Database connected");
 
-          console.log("🔍 กำลังค้นหาผู้ใช้:", credentials.email);
+          console.log("Finding user:", credentials.email);
           const user = await User.findOne({ 
             email: credentials.email.toLowerCase().trim() 
           });
           
           if (!user) {
-            console.log("❌ ไม่พบผู้ใช้ในระบบ:", credentials.email);
-            throw new Error("ไม่พบผู้ใช้งานในระบบ");
+            console.log("User not found:", credentials.email);
+            throw new Error("User not found");
           }
 
-          console.log("✅ พบผู้ใช้:", {
+          console.log("User found:", {
             id: user._id.toString(),
             email: user.email,
             role: user.role,
-            is_active: user.is_active,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            has_password: !!user.password
+            is_active: user.is_active
           });
 
           if (!user.is_active) {
-            console.log("❌ ผู้ใช้ถูกปิดการใช้งาน:", user.email);
-            throw new Error("บัญชีนี้ถูกปิดการใช้งาน");
+            console.log("User is inactive:", user.email);
+            throw new Error("Account is disabled");
           }
 
-          console.log("🔐 กำลังตรวจสอบรหัสผ่าน...");
+          console.log("Checking password...");
           const isValid = await bcrypt.compare(credentials.password, user.password);
           
           if (!isValid) {
-            console.log("❌ รหัสผ่านไม่ถูกต้องสำหรับ:", user.email);
-            throw new Error("รหัสผ่านไม่ถูกต้อง");
+            console.log("Invalid password for:", user.email);
+            throw new Error("Invalid password");
           }
 
-          console.log("✅ รหัสผ่านถูกต้อง");
+          console.log("Password valid");
 
-          // อัปเดต last_login
+          // Update last_login
           user.last_login = new Date();
           await user.save();
-          console.log("✅ อัปเดต last_login สำเร็จ");
+          console.log("Updated last_login");
 
           const userData = {
             id: user._id.toString(),
@@ -131,7 +127,7 @@ export const authOptions = {
             image: user.image || null,
           };
 
-          console.log("🎉 Login สำเร็จ! ส่งข้อมูลผู้ใช้กลับ:", {
+          console.log("Login successful! Returning user data:", {
             email: userData.email,
             role: userData.role,
             name: userData.name
@@ -141,16 +137,32 @@ export const authOptions = {
           return userData;
 
         } catch (error: any) {
-          console.error("❌ Error ใน authorize:", error.message);
+          console.error("Error in authorize:", error.message);
           console.log("=".repeat(50));
           throw error;
         }
       }
-    })
+    }),
+
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+
+    Facebook({
+      clientId: process.env.FACEBOOK_CLIENT_ID!,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+    }),
   ],
+
+  session: {
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60,
+  },
+
   callbacks: {
-    async jwt({ token, user }: any) {
-      console.log("🔑 JWT callback:", { 
+    async jwt({ token, user, account }: any) {
+      console.log("JWT callback:", { 
         hasUser: !!user, 
         tokenRole: token?.role,
         userId: user?.id 
@@ -161,8 +173,9 @@ export const authOptions = {
       }
       return token;
     },
+
     async session({ session, token }: any) {
-      console.log("📝 Session callback:", { 
+      console.log("Session callback:", { 
         tokenRole: token?.role,
         tokenId: token?.id 
       });
@@ -172,6 +185,7 @@ export const authOptions = {
       }
       return session;
     },
+
     async redirect({ url, baseUrl }: any) {
       console.log("Redirect callback:", { url, baseUrl });
       
@@ -184,15 +198,15 @@ export const authOptions = {
       return url.startsWith(baseUrl) ? url : baseUrl;
     }
   },
+
   pages: {
     signIn: "/login",
     error: "/login",
   },
-  session: {
-    strategy: "jwt" as SessionStrategy,
-    maxAge: 30 * 24 * 60 * 60,
-  },
   secret: process.env.NEXTAUTH_SECRET,
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET,
+  },
 };
 
 const handler = NextAuth(authOptions);

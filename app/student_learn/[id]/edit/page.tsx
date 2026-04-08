@@ -423,23 +423,6 @@ export default function EditHomeroomPlanPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="collapse navbar-collapse justify-content-end">
-            <ul className="navbar-nav">
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/student">รายชื่อผู้เรียน</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/committees">คณะกรรมการ</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3 active" href="/student_learn">โฮมรูม</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/referrals">ส่งต่อ</a></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-
       <div className="container-fluid py-4">
         <div className="row mb-4">
           <div className="col-12">
@@ -449,8 +432,7 @@ export default function EditHomeroomPlanPage() {
                 แก้ไขแผนกิจกรรมโฮมรูม
               </h2>
               <div>
-                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name} ({userRole})</span>
-                <span className="badge bg-dark text-white rounded-0">ปีการศึกษา 2568</span>
+                <span className="badge bg-dark text-white rounded-0">2568</span>
               </div>
             </div>
           </div>
@@ -884,15 +866,5 @@ export default function EditHomeroomPlanPage() {
           </div>
         </form>
       </div>
-
-      <footer className="bg-dark text-white mt-5 py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 small"><i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล</div>
-            <div className="col-md-6 text-end small"><span className="me-3">เวอร์ชัน 2.0.0</span><span>เข้าสู่ระบบ: {teacher_name} ({userRole})</span></div>
-          </div>
-        </div>
-      </footer>
     </div>
-  );
-}
+  );}

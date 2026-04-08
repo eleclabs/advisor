@@ -35,15 +35,11 @@ export default function CreateCustomFormPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [students, setStudents] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: 'custom' as 'psychological' | 'survey' | 'custom',
-    targetRoles: [] as string[],
-    targetStudents: [] as string[],
-    targetAllStudents: false,
     status: 'draft' as 'active' | 'inactive' | 'draft',
     startDate: '',
     endDate: ''
@@ -93,7 +89,7 @@ export default function CreateCustomFormPage() {
       const studentRes = await fetch('/api/student');
       const studentData = await studentRes.json();
       if (studentData.success) {
-        setStudents(studentData.students || []);
+        // Removed students state
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -369,23 +365,6 @@ export default function CreateCustomFormPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const roleOptions = [
-    { value: 'STUDENT', label: 'นักเรียน', color: '#007bff' },
-    { value: 'TEACHER', label: 'อาจารย์', color: '#28a745' },
-    { value: 'ADMIN', label: 'ผู้ดูแลระบบ', color: '#dc3545' },
-    { value: 'EXECUTIVE', label: 'ผู้บริหาร', color: '#6f42c1' },
-    { value: 'COMMITTEE', label: 'คณะกรรมการ', color: '#17a2b8' }
-  ];
-
-  const handleRoleToggle = (roleValue: string) => {
-    setFormData(prev => ({
-      ...prev,
-      targetRoles: prev.targetRoles.includes(roleValue) 
-        ? prev.targetRoles.filter(r => r !== roleValue)
-        : [...prev.targetRoles, roleValue]
-    }));
   };
 
   return (
@@ -786,109 +765,6 @@ export default function CreateCustomFormPage() {
                 ยังไม่มีหัวข้อ คลิก "เพิมหัวข้อ" เพื่อเริ่มสร้างแบบฟอร์ม
               </div>
             )}
-          </div>
-
-          {/* กลุ่มเป้าหมาย */}
-          <div style={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #dee2e6', padding: '24px', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 20px', color: '#212529' }}>
-              กลุ่มเป้าหมาย
-            </h2>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#495057', marginBottom: '12px' }}>
-                เลือกตามบทบาท
-              </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                {roleOptions.map((role) => (
-                  <button
-                    key={role.value}
-                    type="button"
-                    onClick={() => handleRoleToggle(role.value)}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: formData.targetRoles.includes(role.value) ? role.color : 'white',
-                      color: formData.targetRoles.includes(role.value) ? 'white' : '#495057',
-                      border: `1px solid ${formData.targetRoles.includes(role.value) ? role.color : '#dee2e6'}`,
-                      borderRadius: '20px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {role.label}
-                  </button>
-                ))}
-              </div>
-              <p style={{ fontSize: '12px', color: '#dc3545', marginTop: '8px' }}>
-                ⚠️ ผู้ดูแลระบบ (Admin) จะเห็นแบบฟอร์มทั้งหมด ไม่สามารถซ่อนได้
-              </p>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <label style={{ fontSize: '14px', fontWeight: 500, color: '#495057' }}>
-                  เลือกนักเรียนเฉพาะ (ถ้ามี)
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#495057', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.targetAllStudents}
-                    onChange={(e) => setFormData(prev => ({ ...prev, targetAllStudents: e.target.checked }))}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  เลือกนักเรียนทั้งหมด ({students.length} คน)
-                </label>
-              </div>
-
-              {!formData.targetAllStudents && (
-                <div style={{ 
-                  maxHeight: '300px', 
-                  overflowY: 'auto', 
-                  border: '1px solid #dee2e6', 
-                  borderRadius: '4px',
-                  padding: '12px'
-                }}>
-                  {students.length === 0 ? (
-                    <p style={{ color: '#6c757d', fontSize: '14px', textAlign: 'center', padding: '20px' }}>
-                      ไม่พบข้อมูลนักเรียน
-                    </p>
-                  ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '8px' }}>
-                      {students.map((student) => (
-                        <label
-                          key={student._id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '8px 12px',
-                            backgroundColor: formData.targetStudents.includes(student._id) ? '#e7f3ff' : 'white',
-                            border: `1px solid ${formData.targetStudents.includes(student._id) ? '#007bff' : '#dee2e6'}`,
-                            borderRadius: '4px',
-                            fontSize: '13px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={formData.targetStudents.includes(student._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFormData(prev => ({ ...prev, targetStudents: [...prev.targetStudents, student._id] }));
-                              } else {
-                                setFormData(prev => ({ ...prev, targetStudents: prev.targetStudents.filter(id => id !== student._id) }));
-                              }
-                            }}
-                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                          />
-                          <span>{student.prefix} {student.first_name} {student.last_name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* ปุ่มดำเนินการ */}

@@ -445,9 +445,7 @@ useEffect(() => {
                 แผนกิจกรรมโฮมรูม
               </h2>
               <div>
-                <span className="text-muted me-3">ครูที่ปรึกษา: {teacher_name} ({userRole})</span>
-                <span className="badge bg-dark text-white rounded-0">ปีการศึกษา {academic_year}</span>
-              </div>
+                              </div>
             </div>
           </div>
         </div>

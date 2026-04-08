@@ -49,18 +49,7 @@ export default function StudentProblemPage() {
   const userId = session?.user?.id;
 
   useEffect(() => {
-    // Load Bootstrap
-    const bootstrapLink = document.createElement("link");
-    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
-    bootstrapLink.rel = "stylesheet";
-    document.head.appendChild(bootstrapLink);
 
-    const iconLink = document.createElement("link");
-    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
-    iconLink.rel = "stylesheet";
-    document.head.appendChild(iconLink);
-
-    fetchData();
   }, []);
 
   const fetchData = async () => {
@@ -153,16 +142,7 @@ export default function StudentProblemPage() {
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div className="container-fluid">
-          <Link className="navbar-brand text-warning fw-bold" href="/">
-            <i className="bi bi-mortarboard-fill me-2"></i>
-            ระบบดูแลผู้เรียนรายบุคคล
-          </Link>
-        </div>
-      </nav>
-
+      
       {/* Main Content */}
       <div className="container-fluid py-4">
         {/* Header */}
@@ -174,7 +154,6 @@ export default function StudentProblemPage() {
                   <i className="bi bi-shield-check text-warning me-2"></i>
                   ป้องกันและแก้ไขปัญหาผู้เรียน
                 </h2>
-                <div className="text-muted small">ครูที่ปรึกษา: {teacher_name} ({userRole})</div>
               </div>
               <div>
                 <span className="badge bg-warning text-dark rounded-0 p-2 me-2">

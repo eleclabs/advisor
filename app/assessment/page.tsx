@@ -526,15 +526,13 @@ function AssessmentContent() {
   ];
 
   const gradeOptions = [
-    { value: 'ม.1', label: 'มัธยมศึกษาปีที่ 1' },
-    { value: 'ม.2', label: 'มัธยมศึกษาปีที่ 2' },
-    { value: 'ม.3', label: 'มัธยมศึกษาปีที่ 3' },
-    { value: 'ม.4', label: 'มัธยมศึกษาปีที่ 4' },
-    { value: 'ม.5', label: 'มัธยมศึกษาปีที่ 5' },
-    { value: 'ม.6', label: 'มัธยมศึกษาปีที่ 6' },
+
     { value: 'ปวช.1', label: 'ประกาศนียบัตรวิชาชีพ ชั้นปี 1' },
     { value: 'ปวช.2', label: 'ประกาศนียบัตรวิชาชีพ ชั้นปี 2' },
-    { value: 'ปวช.3', label: 'ประกาศนียบัตรวิชาชีพ ชั้นปี 3' }
+    { value: 'ปวช.3', label: 'ประกาศนียบัตรวิชาชีพ ชั้นปี 3' },
+    { value: 'ปวส.1', label: 'ประกาศนียบัตรวิชาชีพชั้นสูง ชั้นปี 1' },
+    { value: 'ปวส.2', label: 'ประกาศนียบัตรวิชาชีพชั้นสูง ชั้นปี 2' },
+ 
   ];
 
   useEffect(() => {
@@ -990,7 +988,7 @@ function AssessmentContent() {
             color: '#212529',
             margin: '0 0 12px 0'
           }}>
-            {activeForm === 'sdq' ? 'แบบประเมิน SDQ' : 'แบระเมิน DASS-21'}
+            {activeForm === 'sdq' ? 'แบบประเมิน SDQ' : 'แบบประเมิน DASS-21'}
           </h1>
           <p style={{
             fontSize: '14px',

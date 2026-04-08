@@ -930,42 +930,6 @@ export default function CustomFormPage() {
                 {form.description}
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Link href="/assessment/charts" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                backgroundColor: '#17a2b8',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 500,
-                transition: 'background-color 0.15s ease'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#138496'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#17a2b8'; }}>
-                📊 แผนภูมิสรุป
-              </Link>
-              <Link href={`/forms/${formId}/responses`} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 500,
-                transition: 'background-color 0.15s ease'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0056b3'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#007bff'; }}>
-                📊 ดูผลการตอบ
-              </Link>
-            </div>
           </div>
           <div style={{
             marginTop: '16px',
