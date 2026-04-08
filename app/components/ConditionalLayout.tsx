@@ -3,7 +3,6 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import Header from "./Header";
-import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 
@@ -46,7 +45,6 @@ function ConditionalLayoutContent({ children }: ConditionalLayoutProps) {
   return (
     <>
       <Header />
-      <Navbar />
       <div className="row g-0">
         <div className="col-md-3 col-lg-2">
           <Sidebar />

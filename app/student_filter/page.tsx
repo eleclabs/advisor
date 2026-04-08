@@ -425,12 +425,9 @@ export default function StudentAnalyticsDashboard() {
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
           <h2 className="mb-1 fw-bold">
-            <i className="bi bi-graph-up me-2 text-warning"></i>
-            ระบบวิเคราะห์ข้อมูลนักเรียนขั้นสูง
+            <i className="bi bi-filter me-2 text-warning"></i>
+            นักเรียนในความดูแล
           </h2>
-          <p className="text-muted mb-0">
-            ปีการศึกษา {academic_year} | ครูที่ปรึกษา: {teacher_name}
-          </p>
         </div>
         <Link href="/student" className="btn btn-outline-secondary">
           <i className="bi bi-people me-1"></i>จัดการนักเรียน

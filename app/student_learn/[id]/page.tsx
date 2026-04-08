@@ -99,7 +99,6 @@ export default function HomeroomPlanDetailPage() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
   const photosPerPage = 12;
 
-  const teacher_name = "อาจารย์วิมลรัตน์";
 
   // ดึงข้อมูลแผนและนักเรียน
   useEffect(() => {
@@ -396,7 +395,7 @@ export default function HomeroomPlanDetailPage() {
                 รายละเอียดแผนกิจกรรมโฮมรูม
               </h2>
               <div className="d-flex align-items-center gap-3">
-                <span className="text-muted">ครูที่ปรึกษา: {plan.created_by || teacher_name}</span>
+                <span className="text-muted">ครูที่ปรึกษา: {plan.created_by}</span>
                 {getStatusBadge(plan.status)}
                 {plan.has_record && (
                   <span className="badge bg-info rounded-0 px-3 py-2">บันทึกผลแล้ว</span>

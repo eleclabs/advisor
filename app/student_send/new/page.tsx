@@ -135,9 +135,9 @@ const loadStudents = async () => {
                               s.id.toLowerCase().includes(searchTerm.toLowerCase())
                             )
                             .slice(0, 10)
-                            .map((s: any) => (
+                            .map((s: any, index: number) => (
                             <div 
-                              key={s.id} 
+                              key={`${s.id}-${index}`} 
                               className="p-2 border-bottom cursor-pointer hover-bg-light"
                               style={{cursor: 'pointer'}}
                               onClick={() => handleStudentSelect(s)}

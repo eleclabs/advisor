@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface Task {
   id: string;
@@ -22,6 +23,7 @@ interface TimelineEvent {
 }
 
 export default function PDCAProjectPlanPage() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"checklist" | "timeline">("checklist");
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -36,8 +38,9 @@ export default function PDCAProjectPlanPage() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const teacher_name = "อาจารย์วิมลรัตน์";
+  const teacher_name = session?.user?.name || "ผู้ใช้";
 
   useEffect(() => {
     const bootstrapLink = document.createElement("link");
@@ -50,45 +53,85 @@ export default function PDCAProjectPlanPage() {
     iconLink.rel = "stylesheet";
     document.head.appendChild(iconLink);
 
-    // Mock data
-    const mockTasks: Task[] = [
-      { id: "1", phase: "P", task: "วิเคราะห์สภาพปัจจุบันและปัญหาของผู้เรียน", responsible: "คณะกรรมการบริหาร", startDate: "2024-05-01", endDate: "2024-05-15", status: "completed", notes: "ดำเนินการสำรวจข้อมูลเบื้องต้น" },
-      { id: "2", phase: "P", task: "กำหนดเป้าหมายและตัวชี้วัด", responsible: "คณะกรรมการบริหาร", startDate: "2024-05-16", endDate: "2024-05-30", status: "completed", notes: "กำหนด KPIs ร่วมกับที่ปรึกษา" },
-      { id: "3", phase: "P", task: "วางแผนกิจกรรมโฮมรูมรายสัปดาห์", responsible: "คณะกรรมการดำเนินงาน", startDate: "2024-06-01", endDate: "2024-06-15", status: "in_progress", notes: "อยู่ระหว่างออกแบบกิจกรรม" },
-      { id: "4", phase: "D", task: "ดำเนินกิจกรรมโฮมรูมตามแผน", responsible: "ครูที่ปรึกษาทุกคน", startDate: "2024-06-16", endDate: "2024-09-30", status: "pending", notes: "" },
-      { id: "5", phase: "D", task: "บันทึกผลกิจกรรมหลังดำเนินการ", responsible: "ครูที่ปรึกษา", startDate: "2024-06-16", endDate: "2024-09-30", status: "pending", notes: "" },
-      { id: "6", phase: "C", task: "ติดตามและประเมินผลรายเดือน", responsible: "คณะกรรมการติดตาม", startDate: "2024-07-01", endDate: "2024-10-15", status: "pending", notes: "" },
-      { id: "7", phase: "C", task: "สรุปผลการดำเนินงานรายภาคเรียน", responsible: "คณะกรรมการประเมินผล", startDate: "2024-10-01", endDate: "2024-10-30", status: "pending", notes: "" },
-      { id: "8", phase: "A", task: "ประชุมทบทวนและปรับปรุงแผน", responsible: "คณะกรรมการบริหาร", startDate: "2024-11-01", endDate: "2024-11-15", status: "pending", notes: "" },
-      { id: "9", phase: "A", task: "จัดทำแผนพัฒนาในภาคเรียนถัดไป", responsible: "คณะกรรมการทั้งหมด", startDate: "2024-11-16", endDate: "2024-11-30", status: "pending", notes: "" },
-    ];
-    setTasks(mockTasks);
+    fetchTasks();
   }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/pdca-tasks');
+      const result = await response.json();
+      
+      if (result.success) {
+        const formattedTasks = result.data.map((task: any) => ({
+          id: task._id,
+          phase: task.phase,
+          task: task.task,
+          responsible: task.responsible,
+          startDate: task.startDate ? new Date(task.startDate).toISOString().split('T')[0] : '',
+          endDate: task.endDate ? new Date(task.endDate).toISOString().split('T')[0] : '',
+          status: task.status,
+          notes: task.notes
+        }));
+        setTasks(formattedTasks);
+      }
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setNewTask(prev => ({ ...prev, [name]: value }));
   };
 
-  const saveTask = () => {
+  const saveTask = async () => {
     if (!newTask.task || !newTask.responsible || !newTask.startDate || !newTask.endDate) {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
 
-    if (editingId) {
-      // Update existing task
-      setTasks(tasks.map(t => t.id === editingId ? { ...t, ...newTask, id: editingId } as Task : t));
-    } else {
-      // Add new task
-      const newId = (tasks.length + 1).toString();
-      setTasks([...tasks, { ...newTask, id: newId } as Task]);
-    }
+    try {
+      let response;
+      
+      if (editingId) {
+        // Update existing task
+        response = await fetch(`/api/pdca-tasks/${editingId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newTask),
+        });
+      } else {
+        // Add new task
+        response = await fetch('/api/pdca-tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newTask),
+        });
+      }
 
-    // Reset form
-    setNewTask({ phase: "P", task: "", responsible: "", startDate: "", endDate: "", status: "pending", notes: "" });
-    setEditingId(null);
-    setShowForm(false);
+      const result = await response.json();
+      
+      if (result.success) {
+        await fetchTasks(); // Refresh the tasks list
+        
+        // Reset form
+        setNewTask({ phase: "P", task: "", responsible: "", startDate: "", endDate: "", status: "pending", notes: "" });
+        setEditingId(null);
+        setShowForm(false);
+      } else {
+        alert(result.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      }
+    } catch (error) {
+      console.error('Error saving task:', error);
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+    }
   };
 
   const editTask = (task: Task) => {
@@ -97,9 +140,24 @@ export default function PDCAProjectPlanPage() {
     setShowForm(true);
   };
 
-  const deleteTask = (id: string) => {
+  const deleteTask = async (id: string) => {
     if (confirm("ต้องการลบงานนี้?")) {
-      setTasks(tasks.filter(t => t.id !== id));
+      try {
+        const response = await fetch(`/api/pdca-tasks/${id}`, {
+          method: 'DELETE',
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          await fetchTasks(); // Refresh the tasks list
+        } else {
+          alert(result.error || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+        }
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        alert('เกิดข้อผิดพลาดในการลบข้อมูล');
+      }
     }
   };
 
@@ -256,6 +314,14 @@ export default function PDCAProjectPlanPage() {
                 <i className="bi bi-plus-circle me-2"></i>เพิ่มงานใหม่
               </button>
             </div>
+
+            {loading && (
+              <div className="text-center py-4">
+                <div className="spinner-border text-warning" role="status">
+                  <span className="visually-hidden">กำลังโหลด...</span>
+                </div>
+              </div>
+            )}
 
             {/* Add/Edit Form */}
             {showForm && (

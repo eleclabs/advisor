@@ -75,8 +75,8 @@ export default function SDQResultsPage() {
     switch (interpretation) {
       case 'ปกติ': return '#28a745';
       case 'เสี่ยง': return '#ffc107';
-      case 'สูง': return '#fd7e14';
-      case 'สูงมาก': return '#dc3545';
+      case 'คาบเกี่ยว': return '#fd7e14';
+      case 'มีปัญหา': return '#dc3545';
       default: return '#6c757d';
     }
   };
@@ -543,7 +543,7 @@ export default function SDQResultsPage() {
                         textAlign: 'center'
                       }}>
                         <button
-                          onClick={() => router.push(`/assessment/sdq/results/${response._id}`)}
+                          onClick={() => setSelectedResponse(response)}
                           style={{
                             backgroundColor: '#007bff',
                             color: 'white',

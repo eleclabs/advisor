@@ -6,47 +6,97 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
-  const { data: session } = useSession();
   const pathname = usePathname();
-
-  // ถ้าไม่มี session หรือกำลังอยู่หน้า login/register ไม่ต้องแสดง Navbar
-  if (!session || pathname === "/login" || pathname === "/register") {
-    return null;
-  }
-
-  const navItems = [
-    { name: "หน้าหลัก", href: "/", icon: "bi-house-door" },
-    { name: "นักเรียน", href: "/student", icon: "bi-people" },
-    { name: "กิจกรรม", href: "/student_learn", icon: "bi-calendar-event" },
-    { name: "ปัญหา", href: "/student_problem", icon: "bi-exclamation-triangle" },
-    { name: "ส่งต่อ", href: "/student_send", icon: "bi-send" },
-    { name: "ผู้ใช้", href: "/user", icon: "bi-person-badge" },
-    { name: "รายงาน", href: "/committees/plan", icon: "bi-file-text" },
-  ];
+  const { data: session } = useSession();
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-warning">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container-fluid">
-        <Link className="navbar-brand fw-bold text-warning" href="/">
-          <i className="bi bi-mortarboard-fill me-2"></i>
-          Smart Advisor
+        <Link className="navbar-brand" href="/">
+          ระบบที่ปรึกษา
         </Link>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        
+        <button 
+          className="navbar-toggler" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav"
+        >
           <span className="navbar-toggler-icon"></span>
         </button>
+        
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
-            {navItems.map((item) => (
-              <li className="nav-item" key={item.href}>
-                <Link
-                  className={`nav-link ${pathname === item.href ? "active text-warning" : ""}`}
-                  href={item.href}
+            <li className="nav-item">
+              <Link 
+                className={`nav-link ${pathname === '/' ? 'active' : ''}`} 
+                href="/"
+              >
+                หน้าแรก
+              </Link>
+            </li>
+            {session?.user?.role !== 'STUDENT' && (
+              <>
+                <li className="nav-item">
+                  <Link 
+                    className={`nav-link ${pathname.startsWith('/students') ? 'active' : ''}`} 
+                    href="/students"
+                  >
+                    นักเรียน
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link 
+                    className={`nav-link ${pathname.startsWith('/forms') ? 'active' : ''}`} 
+                    href="/forms"
+                  >
+                    แบบฟอร์ม
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link 
+                    className={`nav-link ${pathname.startsWith('/assessment') ? 'active' : ''}`} 
+                    href="/assessment"
+                  >
+                    การประเมิน
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
+          
+          <ul className="navbar-nav">
+            {session ? (
+              <li className="nav-item dropdown">
+                <a 
+                  className="nav-link dropdown-toggle" 
+                  href="#" 
+                  role="button" 
+                  data-bs-toggle="dropdown"
                 >
-                  <i className={`bi ${item.icon} me-1`}></i>
-                  {item.name}
+                  {session.user?.name}
+                </a>
+                <ul className="dropdown-menu">
+                  <li>
+                    <Link className="dropdown-item" href="/profile">
+                      โปรไฟล์
+                    </Link>
+                  </li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <Link className="dropdown-item" href="/api/auth/signout">
+                      ออกจากระบบ
+                    </Link>
+                  </li>
+                </ul>
+              </li>
+            ) : (
+              <li className="nav-item">
+                <Link className="nav-link" href="/login">
+                  เข้าสู่ระบบ
                 </Link>
               </li>
-            ))}
+            )}
           </ul>
         </div>
       </div>

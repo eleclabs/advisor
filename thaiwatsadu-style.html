@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ไทวัสดุ - สินค้าก่อสร้างและตกแต่งบ้าน</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-orange: #f15a24;
+            --primary-blue: #002c6a;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Sarabun', 'Prompt', sans-serif;
+            background-color: var(--white);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background-color: var(--light-gray);
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .top-bar a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .top-bar a:hover {
+            color: var(--primary-orange);
+        }
+
+        /* Main Header */
+        .main-header {
+            background-color: var(--white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            border-radius: 25px;
+            padding-right: 45px;
+            border: 2px solid var(--light-gray);
+        }
+
+        .search-box button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            border: none;
+            background-color: var(--primary-orange);
+            color: white;
+        }
+
+        .nav-menu {
+            background-color: var(--primary-blue);
+            padding: 0;
+        }
+
+        .nav-menu .nav-link {
+            color: white !important;
+            padding: 15px 20px;
+            border-radius: 0;
+            transition: background-color 0.3s;
+        }
+
+        .nav-menu .nav-link:hover {
+            background-color: var(--primary-orange);
+        }
+
+        /* Hero Carousel */
+        .carousel-item {
+            height: 400px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-orange));
+        }
+
+        .carousel-caption {
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        /* Product Cards */
+        .product-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .product-card img {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .product-price {
+            color: var(--primary-orange);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-orange);
+            border-color: var(--primary-orange);
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #d64515;
+            border-color: #d64515;
+        }
+
+        .btn-outline-custom {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+
+        .btn-outline-custom:hover {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        /* Section Headers */
+        .section-header {
+            border-bottom: 3px solid var(--primary-orange);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        .section-header h2 {
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        /* Article Cards */
+        .article-card {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .article-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .article-card img {
+            height: 150px;
+            object-fit: cover;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 40px 0 20px;
+        }
+
+        footer h5 {
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: var(--primary-orange);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            margin-top: 30px;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 20px;
+            }
+            
+            .carousel-item {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <i class="bi bi-geo-alt"></i> 
+                    <select class="form-select form-select-sm d-inline-block w-auto" style="border: none; background: transparent;">
+                        <option>เลือกสาขา</option>
+                        <option>สาขาสุขุมวิท</option>
+                        <option>สาขารัชดา</option>
+                        <option>สาขาลาดพร้าว</option>
+                    </select>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="#" class="me-3"><i class="bi bi-person"></i> เข้าสู่ระบบ</a>
+                    <a href="#"><i class="bi bi-cart"></i> ตะกร้า (0)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container py-3">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <a href="#" class="logo">ไทวัสดุ</a>
+                </div>
+                <div class="col-md-6">
+                    <div class="search-box">
+                        <input type="text" class="form-control" placeholder="ค้นหาสินค้า...">
+                        <button type="button"><i class="bi bi-search"></i></button>
+                    </div>
+                </div>
+                <div class="col-md-3 text-end">
+                    <span class="me-3"><i class="bi bi-telephone"></i> 02-123-4567</span>
+                    <i class="bi bi-heart"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="nav-menu">
+            <div class="container">
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-percent"></i> โปรโมชั่น</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-box"></i> สินค้า</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-tools"></i> บริการ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-percent-circle"></i> สมาชิก</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-info-circle"></i> เกี่ยวกับเรา</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Carousel -->
+    <section id="hero-carousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="2"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="carousel-caption">
+                        <h2>โปรโมชั่นพิเศษ</h2>
+                        <p>สินค้าคุณภาพราคาพิเศษเฉพาะช่วงนี้</p>
+                        <button class="btn btn-primary-custom">ดูโปรโมชั่น</button>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="carousel-caption">
+                        <h2>สินค้าใหม่ล่าสุด</h2>
+                        <p>นวัตกรรมใหม่สำหรับบ้านของคุณ</p>
+                        <button class="btn btn-primary-custom">สั่งซื้อเลย</button>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="d-flex align-items-center justify-content-center h-100">
+                    <div class="carousel-caption">
+                        <h2>บริการจัดส่ง</h2>
+                        <p>จัดส่งถึงหน้างานทั่วประเทศ</p>
+                        <button class="btn btn-primary-custom">ติดต่อเรา</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#hero-carousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </section>
+
+    <!-- Hot Promotions -->
+    <section class="py-5">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="bi bi-fire"></i> โปรโมชั่นเด็ด</h2>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/promo1/300/200.jpg" class="card-img-top" alt="โปรโมชั่น">
+                        <div class="card-body">
+                            <h5 class="card-title">เครื่องมือช่าง</h5>
+                            <p class="card-text">ลดสูงสุด 50%</p>
+                            <p class="product-price">฿1,299</p>
+                            <button class="btn btn-primary-custom w-100">เพิ่มลงตะกร้า</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/promo2/300/200.jpg" class="card-img-top" alt="โปรโมชั่น">
+                        <div class="card-body">
+                            <h5 class="card-title">วัสดุก่อสร้าง</h5>
+                            <p class="card-text">ซื้อ 3 แถม 1</p>
+                            <p class="product-price">฿899</p>
+                            <button class="btn btn-primary-custom w-100">เพิ่มลงตะกร้า</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/promo3/300/200.jpg" class="card-img-top" alt="โปรโมชั่น">
+                        <div class="card-body">
+                            <h5 class="card-title">ของตกแต่ง</h5>
+                            <p class="card-text">ราคาพิเศษ</p>
+                            <p class="product-price">฿2,499</p>
+                            <button class="btn btn-primary-custom w-100">เพิ่มลงตะกร้า</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/promo4/300/200.jpg" class="card-img-top" alt="โปรโมชั่น">
+                        <div class="card-body">
+                            <h5 class="card-title">อุปกรณ์ไฟฟ้า</h5>
+                            <p class="card-text">ลด 30%</p>
+                            <p class="product-price">฿3,299</p>
+                            <button class="btn btn-primary-custom w-100">เพิ่มลงตะกร้า</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Products -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="bi bi-star"></i> สินค้าใหม่</h2>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/new1/300/200.jpg" class="card-img-top" alt="สินค้าใหม่">
+                        <div class="card-body">
+                            <h5 class="card-title">เครื่องเจาะไฟฟ้า</h5>
+                            <p class="card-text">รุ่นใหม่ล่าสุด</p>
+                            <p class="product-price">฿4,599</p>
+                            <button class="btn btn-outline-custom w-100">ดูรายละเอียด</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/new2/300/200.jpg" class="card-img-top" alt="สินค้าใหม่">
+                        <div class="card-body">
+                            <h5 class="card-title">สีทาบ้าน</h5>
+                            <p class="card-text">สีใหม่ 2024</p>
+                            <p class="product-price">฿1,899</p>
+                            <button class="btn btn-outline-custom w-100">ดูรายละเอียด</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/new3/300/200.jpg" class="card-img-top" alt="สินค้าใหม่">
+                        <div class="card-body">
+                            <h5 class="card-title">หลอดLED</h5>
+                            <p class="card-text">ประหยัดพลังงาน</p>
+                            <p class="product-price">฿299</p>
+                            <button class="btn btn-outline-custom w-100">ดูรายละเอียด</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card">
+                        <img src="https://picsum.photos/seed/new4/300/200.jpg" class="card-img-top" alt="สินค้าใหม่">
+                        <div class="card-body">
+                            <h5 class="card-title">อุปกรณ์ทำความสะอาด</h5>
+                            <p class="card-text">นวัตกรรมใหม่</p>
+                            <p class="product-price">฿899</p>
+                            <button class="btn btn-outline-custom w-100">ดูรายละเอียด</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interesting Articles -->
+    <section class="py-5">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="bi bi-newspaper"></i> เรื่องราวน่าสนใจ</h2>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card article-card">
+                        <img src="https://picsum.photos/seed/article1/400/250.jpg" class="card-img-top" alt="บทความ">
+                        <div class="card-body">
+                            <h5 class="card-title">เทคนิคการเลือกวัสดุก่อสร้าง</h5>
+                            <p class="card-text">คำแนะนำในการเลือกวัสดุที่เหมาะสมกับบ้านของคุณ</p>
+                            <a href="#" class="btn btn-sm btn-outline-custom">อ่านต่อ</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card article-card">
+                        <img src="https://picsum.photos/seed/article2/400/250.jpg" class="card-img-top" alt="บทความ">
+                        <div class="card-body">
+                            <h5 class="card-title">การตกแต่งบ้านสไตล์โมเดิร์น</h5>
+                            <p class="card-text">ไอเดียการตกแต่งบ้านให้ดูทันสมัย</p>
+                            <a href="#" class="btn btn-sm btn-outline-custom">อ่านต่อ</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card article-card">
+                        <img src="https://picsum.photos/seed/article3/400/250.jpg" class="card-img-top" alt="บทความ">
+                        <div class="card-body">
+                            <h5 class="card-title">การบำรุงรักษาบ้าน</h5>
+                            <p class="card-text">วิธีการดูแลบ้านให้ทนทานต่อไป</p>
+                            <a href="#" class="btn btn-sm btn-outline-custom">อ่านต่อ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <h5>หมวดหมู่สินค้า</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">วัสดุก่อสร้าง</a></li>
+                        <li><a href="#">เครื่องมือช่าง</a></li>
+                        <li><a href="#">ของตกแต่งบ้าน</a></li>
+                        <li><a href="#">อุปกรณ์ไฟฟ้า</a></li>
+                        <li><a href="#">สวนและภายนอก</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>บริการของเรา</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#">จัดส่งสินค้า</a></li>
+                        <li><a href="#">บริการติดตั้ง</a></li>
+                        <li><a href="#">คำปรึกษา</a></li>
+                        <li><a href="#">รับประกันสินค้า</a></li>
+                        <li><a href="#">การคืนสินค้า</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>ข้อมูลติดต่อ</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-geo-alt"></i> 123 ถนนสุขุมวิท กรุงเทพฯ</li>
+                        <li><i class="bi bi-telephone"></i> 02-123-4567</li>
+                        <li><i class="bi bi-envelope"></i> info@thaiwatsadu.com</li>
+                        <li><i class="bi bi-clock"></i> จันทร์-เสาร์ 8:00-18:00</li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>ติดตามเรา</h5>
+                    <div class="d-flex gap-3 mb-3">
+                        <a href="#" class="text-white fs-4"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white fs-4"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white fs-4"><i class="bi bi-youtube"></i></a>
+                        <a href="#" class="text-white fs-4"><i class="bi bi-line"></i></a>
+                    </div>
+                    <p>รับข่าวสารและโปรโมชั่นพิเศษ</p>
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="อีเมลของคุณ">
+                        <button class="btn btn-warning">สมัคร</button>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ไทวัสดุ. สงวนลิขสิทธิ์ | นโยบายความเป็นส่วนตัว | เงื่อนไขการใช้บริการ</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
