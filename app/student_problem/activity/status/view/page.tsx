@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ActivityStatusViewPage() {
+function ActivityStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -310,5 +310,21 @@ export default function ActivityStatusViewPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function ActivityStatusViewPage() {
+  return (
+    <Suspense fallback={
+      <div className="d-flex flex-column min-vh-100 bg-light">
+        <div className="flex-grow-1 d-flex align-items-center justify-content-center">
+          <div className="spinner-border text-warning" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    }>
+      <ActivityStatusContent />
+    </Suspense>
   );
 }

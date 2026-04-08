@@ -31,6 +31,11 @@ export const authOptions = {
           if (credentials.email?.endsWith('@student.com')) {
             console.log("Student authentication detected");
             
+            // Connect to database for student authentication
+            console.log("🔄 Connecting to database for student auth...");
+            await connectDB();
+            console.log("✅ Database connected for student auth");
+            
             // Extract student ID from email
             const studentId = credentials.email.replace('@student.com', '');
             console.log("Student ID extracted:", studentId);

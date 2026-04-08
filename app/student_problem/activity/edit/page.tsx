@@ -1,7 +1,7 @@
 // D:\advisor-main\app\student_problem\activity\edit\page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -30,7 +30,7 @@ interface Activity {
   }>;
 }
 
-export default function EditActivityPage() {
+function EditActivityContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -374,7 +374,17 @@ export default function EditActivityPage() {
                     ยกเลิก
                   </Link>
                   <button type="submit" className="btn btn-warning" disabled={saving}>
-                    {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
+                    {saving ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        กำลังบันทึก...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bi bi-check-circle me-2"></i>
+                        บันทึกการแก้ไข
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -383,5 +393,22 @@ export default function EditActivityPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function EditActivityPage() {
+  return (
+    <Suspense fallback={
+      <div className="container py-5">
+        <div className="text-center">
+          <div className="spinner-border text-warning" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2 text-muted">กำลังโหลด...</p>
+        </div>
+      </div>
+    }>
+      <EditActivityContent />
+    </Suspense>
   );
 }

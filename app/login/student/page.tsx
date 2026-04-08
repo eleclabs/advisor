@@ -1,18 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function StudentLoginPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginAttempted, setLoginAttempted] = useState(false);
+
+  // Handle session changes after login attempt
+  useEffect(() => {
+    if (loginAttempted && status === "authenticated" && session?.user) {
+      // Set student session in localStorage for backward compatibility
+      const studentName = `${firstName} ${lastName}`;
+      localStorage.setItem('studentName', studentName);
+      localStorage.setItem('studentId', studentId);
+      localStorage.setItem('studentMongoId', session.user.id || ''); // Use session ID
+      localStorage.setItem('isStudent', 'true');
+      localStorage.setItem('token', 'student-session');
+      
+      // Redirect to student assessment page
+      router.push("/assessment/student");
+      setLoginAttempted(false);
+      setLoading(false);
+    } else if (loginAttempted && status === "unauthenticated") {
+      setError("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้");
+      setLoginAttempted(false);
+      setLoading(false);
+    }
+  }, [session, status, loginAttempted, firstName, lastName, studentId, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,29 +54,16 @@ export default function StudentLoginPage() {
 
       if (result?.error) {
         setError("การเข้าสู่ระบบล้มเหลว กรุณาตรวจสอบข้อมูลอีกครั้ง");
+        setLoading(false);
       } else {
-        // Wait for session to be available
-        setTimeout(() => {
-          if (session?.user) {
-            // Set student session in localStorage for backward compatibility
-            const studentName = `${firstName} ${lastName}`;
-            localStorage.setItem('studentName', studentName);
-            localStorage.setItem('studentId', studentId);
-            localStorage.setItem('studentMongoId', session.user.id || ''); // Use session ID
-            localStorage.setItem('isStudent', 'true');
-            localStorage.setItem('token', 'student-session');
-            
-            // Redirect to student assessment page
-            router.push("/assessment/student");
-          } else {
-            setError("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้");
-          }
-        }, 1000);
+        // Mark that login was attempted, useEffect will handle the rest
+        setLoginAttempted(true);
+        // Don't set loading to false here - useEffect will handle it
       }
     } catch (error) {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-    } finally {
       setLoading(false);
+      setLoginAttempted(false);
     }
   };
 

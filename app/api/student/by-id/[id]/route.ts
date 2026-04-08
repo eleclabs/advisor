@@ -4,12 +4,12 @@ import Student from '@/models/Student';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const studentId = params.id;
+    const { id: studentId } = await params;
     
     // Find student by ID field (not MongoDB _id)
     const student = await Student.findOne({ id: studentId });
