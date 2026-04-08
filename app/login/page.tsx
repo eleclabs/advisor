@@ -156,22 +156,7 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  {/* Remember & Forgot */}
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input rounded-0"
-                        id="remember"
-                      />
-                      <label className="form-check-label small" htmlFor="remember">
-                        จดจำฉันไว้
-                      </label>
-                    </div>
-                    <Link href="/forgot-password" className="text-decoration-none small">
-                      ลืมรหัสผ่าน?
-                    </Link>
-                  </div>
+                  
 
                   {/* Submit Button */}
                   <button
@@ -236,8 +221,8 @@ export default function LoginPage() {
               {/* Footer */}
               <div className="card-footer bg-light text-center py-3 rounded-0">
                 <small className="text-muted">
-                  <i className="bi bi-c-circle me-1"></i>
-                  2568 ระบบดูแลผู้เรียนรายบุคคล
+              
+                 
                 </small>
               </div>
             </div>

@@ -290,27 +290,7 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
-                  {/* Terms */}
-                  <div className="mb-4">
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input rounded-0"
-                        id="terms"
-                        required
-                      />
-                      <label className="form-check-label small" htmlFor="terms">
-                        ข้าพเจ้ายอมรับ{" "}
-                        <Link href="/terms" className="text-warning text-decoration-none">
-                          ข้อกำหนดและเงื่อนไข
-                        </Link>{" "}
-                        และ{" "}
-                        <Link href="/privacy" className="text-warning text-decoration-none">
-                          นโยบายความเป็นส่วนตัว
-                        </Link>
-                      </label>
-                    </div>
-                  </div>
+                 
 
                   {/* Submit Button */}
                   <button
@@ -344,8 +324,8 @@ export default function RegisterPage() {
               {/* Footer */}
               <div className="card-footer bg-light text-center py-3 rounded-0">
                 <small className="text-muted">
-                  <i className="bi bi-c-circle me-1"></i>
-                  2568 ระบบดูแลผู้เรียนรายบุคคล
+         
+            
                 </small>
               </div>
             </div>
