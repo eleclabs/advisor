@@ -57,7 +57,7 @@ export default function StudentSidebar() {
   };
 
   return (
-    <div className="bg-dark text-white min-vh-100 p-0" style={{ width: '250px' }}>
+    <div className="bg-primary text-white min-vh-100 p-0" style={{ width: '250px' }}>
       {/* โปรไฟล์ผู้ใช้ */}
       <div className="p-3 border-bottom border-warning bg-dark text-center">
         <div className="mb-2">

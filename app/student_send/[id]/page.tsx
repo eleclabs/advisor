@@ -215,8 +215,8 @@ export default function ViewReferralPage() {
                 <div className="p-3">
                   <p className="mb-2"><strong>รหัสนักเรียน:</strong> {referral.student_id}</p>
                   <p className="mb-2"><strong>ชื่อ:</strong> {referral.student_name}</p>
-                  <p className="mb-2"><strong>ระดับ:</strong> {referral.student_level}</p>
-                  <p className="mb-0"><strong>ชั้น/ห้อง:</strong> {referral.student_class}/{referral.student_number}</p>
+                  <p className="mb-2"><strong>ระดับชั้น:</strong> {referral.student_level}</p>
+                  <p className="mb-0"><strong>ห้อง:</strong> {referral.student_class}/{referral.student_number}</p>
                 </div>
               </div>
 

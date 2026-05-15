@@ -65,12 +65,13 @@ export default function StudentReport() {
               <i className="bi bi-graph-up me-2 text-warning"></i>
               การรายงานและสถิติ
             </h1>
-            <p className="text-muted mb-0 mt-2">ภาพรวมสถานะนักเรียนและการดำเนินงาน</p>
+           {/*  <p className="text-muted mb-0 mt-2">ภาพรวมสถานะนักเรียนและการดำเนินงาน</p> */}
           </div>
         </div>
       </div>
 
       {/* Student Status Overview */}
+{/* 
       <div className="row mb-4">
         <div className="col-12">
           <h3 className="mb-3">
@@ -139,8 +140,10 @@ export default function StudentReport() {
           </div>
         </div>
       </div>
+  */}     
 
       {/* Problem Categories */}
+{/*       
       <div className="row mb-4">
         <div className="col-12">
           <h3 className="mb-3">
@@ -194,8 +197,10 @@ export default function StudentReport() {
           </div>
         </div>
       </div>
+ */}
 
       {/* Intervention Statistics */}
+{/*       
       <div className="row mb-4">
         <div className="col-12">
           <h3 className="mb-3">
@@ -234,6 +239,7 @@ export default function StudentReport() {
           </div>
         </div>
       </div>
+ */}
 
       {/* Summary Table */}
       <div className="row">

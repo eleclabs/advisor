@@ -426,7 +426,7 @@ export default function StudentAnalyticsDashboard() {
         <div>
           <h2 className="mb-1 fw-bold">
             <i className="bi bi-filter me-2 text-warning"></i>
-            นักเรียนในความดูแล
+            ผู้เรียนในความดูแล
           </h2>
         </div>
         <Link href="/student" className="btn btn-outline-secondary">
@@ -435,13 +435,14 @@ export default function StudentAnalyticsDashboard() {
       </div>
 
       {/* Main Statistics Cards */}
+{/*       
       <div className="row mb-4 g-3">
         <div className="col-md-3">
           <div className="card bg-primary text-white border-0 shadow-sm">
             <div className="card-body">
               <h6 className="card-title opacity-75">ทั้งหมด</h6>
               <h3 className="mb-0 fw-bold">{stats.total}</h3>
-              <small>นักเรียนในความดูแล</small>
+              <small>ผู้เรียนในความดูแล</small>
             </div>
           </div>
         </div>
@@ -473,8 +474,9 @@ export default function StudentAnalyticsDashboard() {
           </div>
         </div>
       </div>
-
+ */}
       {/* Risk Factors Statistics */}
+{/*       
       <div className="row mb-4 g-3">
         <div className="col-md-3">
           <div className="card border-danger">
@@ -525,8 +527,9 @@ export default function StudentAnalyticsDashboard() {
           </div>
         </div>
       </div>
-
+ */}
       {/* Assessment Summary */}
+{/*       
       <div className="row mb-4 g-3">
         <div className="col-md-6">
           <div className="card border-info">
@@ -553,7 +556,7 @@ export default function StudentAnalyticsDashboard() {
           </div>
         </div>
       </div>
-
+ */}
       {/* Filter Section */}
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body">
@@ -640,7 +643,7 @@ export default function StudentAnalyticsDashboard() {
         <div className="card-header bg-white border-bottom">
           <h6 className="mb-0 fw-semibold">
             <i className="bi bi-people-fill me-2 text-warning"></i>
-            รายชื่อนักเรียน ({filteredStudents.length} คน)
+            รายชื่อผู้เรียน ({filteredStudents.length} คน)
           </h6>
         </div>
         <div className="card-body p-0">
