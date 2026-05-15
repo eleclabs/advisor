@@ -45,9 +45,10 @@ export default function Sidebar() {
   const filteredRoleMenus = roleMenus.filter(m => m.roles.includes(userRole || ""));
 
   return (
-    <div className="bg-dark text-white min-vh-100 p-0">
+    <div className="bg-primary text-white min-vh-100 p-0">
       {/* โปรไฟล์ผู้ใช้ */}
-      <div className="p-3 border-bottom border-warning bg-dark text-center">
+
+{/*   <div className="p-3 border-bottom border-warning bg-dark text-center">
         <div className="mb-2">
           <i className="bi bi-person-circle fs-1 text-warning"></i>
         </div>
@@ -55,7 +56,7 @@ export default function Sidebar() {
         <span className="badge bg-warning text-dark rounded-0 mt-1 px-3 py-1">
           {userRole}
         </span>
-      </div>
+      </div> */}
 
       {/* เมนูตาม Role */}
       {filteredRoleMenus.length > 0 && (
@@ -104,6 +105,8 @@ export default function Sidebar() {
       )}
 
       {/* เมนูเพิ่มเติม */}
+
+{/*       
       <div className="p-2 mt-3 border-top border-secondary">
         <Link
           key="profile"  // ✅ เพิ่ม key
@@ -129,7 +132,9 @@ export default function Sidebar() {
           <i className="bi bi-box-arrow-right me-2"></i>
           ออกจากระบบ
         </Link>
-      </div>
+      </div> 
+    */}
+
 
       <style jsx>{`
         .hover-bg-warning:hover {

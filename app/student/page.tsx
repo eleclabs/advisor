@@ -329,8 +329,8 @@ function StudentListPage() {
   };
 
   const getPageTitle = () => {
-    if (userRole === "ADMIN") return "การรู้จักผู้เรียนเป็นรายบุคคล";
-    if (userRole === "TEACHER") return "รายชื่อผู้เรียนในความดูแล";
+    if (userRole === "ADMIN") return "รายชื่อผู้เรียน";
+    if (userRole === "TEACHER") return "รายชื่อผู้เรียน";
     return "รายชื่อผู้เรียน";
   };
 
@@ -532,10 +532,6 @@ function StudentListPage() {
               <i className="bi bi-people-fill me-2 text-warning"></i>
               {getPageTitle()}
             </h2>
-            <div>
-              
-              
-            </div>
           </div>
         </div>
       </div>
@@ -550,7 +546,7 @@ function StudentListPage() {
             <input 
               type="text" 
               className="form-control rounded-0" 
-              placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา..."
+              placeholder="ค้นหา"
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
             />
@@ -563,12 +559,13 @@ function StudentListPage() {
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value)}
           >
-            <option value="">ระดับชั้นทั้งหมด</option>
+            <option value="">ระดับชั้น</option>
             <option value="ปวช.1">ปวช.1</option>
             <option value="ปวช.2">ปวช.2</option>
             <option value="ปวช.3">ปวช.3</option>
             <option value="ปวส.1">ปวส.1</option>
             <option value="ปวส.2">ปวส.2</option>
+            <option value="ป.ตรี">ป.ตรี</option>
           </select>
         </div>
         
@@ -588,13 +585,26 @@ function StudentListPage() {
         </div>
         
         <div className="col-md-2">
+          <select 
+            className="form-select rounded-0"
+            value={selectedClassNumber}
+            onChange={(e) => setSelectedClassNumber(e.target.value)}
+          >
+            <option value="">ห้อง(ถ้ามี)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+
+         {/*       
           <input
             type="text"
             className="form-control rounded-0"
             placeholder="ห้อง เช่น 1, 2, 3"
             value={selectedClassNumber}
             onChange={(e) => setSelectedClassNumber(e.target.value)}
-          />
+          /> 
+        */}
         </div>
         
         <div className="col-md-3">
@@ -603,7 +613,7 @@ function StudentListPage() {
               href="/student/student_filter"
               className="btn btn-warning rounded-0 w-100 text-uppercase fw-semibold"
             >
-              <i className="bi bi-funnel me-2"></i>เลือกนักเรียนในความดูแล
+              <i className="bi bi-funnel me-2"></i>เลือกนักเรียน
             </Link>
           )}
         </div>
@@ -670,7 +680,7 @@ function StudentListPage() {
             <div className="text-center py-5">
               <div className="alert alert-info rounded-0">
                 <i className="bi bi-info-circle me-2"></i>
-                ยังไม่มีนักเรียนในความดูแล กรุณา{" "}
+                ยังไม่มีนักเรียน กรุณา{" "}
                 <Link href="/student/student_filter" className="alert-link">
                   คลิกที่นี่
                 </Link>{" "}
@@ -749,7 +759,7 @@ function StudentListPage() {
                             <button 
                               className="btn btn-sm btn-outline-success rounded-0"
                               onClick={() => router.push(`/student/student_detail/${student._id}/interview`)}
-                              title="แบบประเมินผู้ปกครอง"
+                              title="แบบคัดกรอง"
                             >
                               <i className="bi bi-clipboard-check"></i>
                             </button>

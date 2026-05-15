@@ -72,7 +72,7 @@ export default function StudentSendPage() {
               <div className="border-bottom border-3 border-warning pb-2">
                 <h2 className="text-uppercase fw-bold m-0">
                   <i className="bi bi-send me-2 text-warning"></i>
-                  ระบบบริหารการส่งต่อ
+                  การส่งต่อภายใน/ภายนอก
                 </h2>
               </div>
             </div>

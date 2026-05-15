@@ -154,7 +154,7 @@ function StudentFilterPage() {
   // บันทึกการมอบหมาย
   const handleSave = async () => {
     if (!session?.user?.id) {
-      alert("กรุณาเข้าสู่ระบบก่อน");
+      alert("กรุณาเข้าสู่ระบบ");
       return;
     }
 
@@ -204,7 +204,7 @@ function StudentFilterPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-funnel me-2 text-warning"></i>
-                เลือกสาขาวิชาในความดูแล
+                เลือกสาขาวิชา
               </h2>
               <div>
                 <span className="badge bg-info rounded-0 p-2 me-2">
@@ -243,6 +243,7 @@ function StudentFilterPage() {
                       <option value="ปวช.3">ปวช.3</option>
                       <option value="ปวส.1">ปวส.1</option>
                       <option value="ปวส.2">ปวส.2</option>
+                      <option value="ป.ตรี">ป.ตรี</option>
                     </select>
                   </div>
                   
@@ -264,13 +265,25 @@ function StudentFilterPage() {
                   
                   <div className="col-md-3">
                     <label className="form-label text-uppercase small fw-semibold">ห้อง</label>
-                    <input
+                      <select 
+                        className="form-select rounded-0"
+                        value={selectedClassNumber}
+                        onChange={(e) => setSelectedClassNumber(e.target.value)}
+                      >
+                      <option value="">ห้อง(ถ้ามี)</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      </select>
+
+{/*                 <input
                       type="text"
                       className="form-control rounded-0"
                       placeholder="เช่น 1, 2, 3"
                       value={selectedClassNumber}
                       onChange={(e) => setSelectedClassNumber(e.target.value)}
                     />
+ */}
                   </div>
                   
                   <div className="col-md-3">

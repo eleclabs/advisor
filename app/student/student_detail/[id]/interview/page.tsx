@@ -308,7 +308,7 @@ export default function InterviewViewPage() {
               <div>
                 <h2 className="text-uppercase fw-bold m-0">
                   <i className="bi bi-journal-text me-2 text-warning"></i>
-                  บันทึกการสัมภาษณ์: {interviewData.student_name}
+                  แบบคัดกรอง: {interviewData.student_name}
                 </h2>
                 <p className="text-muted mb-0 mt-1">
                   <i className="bi bi-clock me-1"></i>บันทึกเมื่อ: {interviewData.created_at} | แก้ไขล่าสุด: {interviewData.updated_at}

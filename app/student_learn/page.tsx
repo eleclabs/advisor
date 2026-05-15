@@ -460,7 +460,7 @@ useEffect(() => {
               <input 
                 type="text" 
                 className="form-control rounded-0" 
-                placeholder="ค้นหาด้วยหัวข้อ..."
+                placeholder="ค้นหา"
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
               />
@@ -483,9 +483,14 @@ useEffect(() => {
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
             >
-              <option value="2568">ปี 2568</option>
-              <option value="2567">ปี 2567</option>
-              <option value="2566">ปี 2566</option>
+              <option value="2569">2569</option>
+              <option value="2570">2570</option>
+              <option value="2571">2571</option>
+              <option value="2572">2572</option>
+              <option value="2573">2573</option>
+              <option value="2574">2574</option>
+              <option value="2575">2575</option>
+
             </select>
           </div>
           <div className="col-md-2">
@@ -500,11 +505,11 @@ useEffect(() => {
               <option value="บันทึกผลแล้ว">บันทึกผลแล้ว</option>
             </select>
           </div>
-          <div className="col-md-3">
+{/*           <div className="col-md-3">
             <button className="btn btn-warning rounded-0 w-100 text-uppercase fw-semibold">
               <i className="bi bi-funnel me-2"></i>ค้นหา
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* View Toggle and Action Bar */}
