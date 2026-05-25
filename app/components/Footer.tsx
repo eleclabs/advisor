@@ -11,7 +11,7 @@ export default function Footer({ name, role }: any) {
               
             </div>
             <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 1.0.1</span>
+              <span className="me-3">เวอร์ชัน 1.13</span>
             </div>
           </div>
         </div>

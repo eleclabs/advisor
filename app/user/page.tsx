@@ -352,7 +352,7 @@ export default function UserManagementPage() {
               <div className="card-body p-0">
                 <div className="table-responsive">
                   <table className="table table-hover table-striped mb-0">
-                    <thead className="table-dark">
+                    <thead className="table-primary text-white">
                       <tr>
                         <th className="text-uppercase small">รูป</th>
                         <th className="text-uppercase small">ชื่อ-นามสกุล</th>
