@@ -470,11 +470,9 @@ export default function StudentFormsPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0, color: '#212529' }}>
-                📝 แบบฟอร์มนักเรียน
+                📝 แบบฟอร์ม SDQ/DASS-21
               </h1>
-              <p style={{ margin: '4px 0 0', color: '#6c757d', fontSize: '14px' }}>
-                เลือกแบบประเมินที่ต้องการทำ
-              </p>
+        
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
               <Link href="/assessment/charts" style={{
@@ -559,8 +557,9 @@ export default function StudentFormsPage() {
                 borderRadius: '8px 8px 0 0'
               }}
             >
-              🧠 แบบประเมินจิตวิทยา ({assessments.length})
+              🧠 แบบประเมิน SDQ / DASS-21 ({assessments.length})
             </button>
+{/*             
             <button
               onClick={() => setActiveTab('evaluations')}
               style={{
@@ -577,6 +576,7 @@ export default function StudentFormsPage() {
             >
               📊 แบบประเมินความพึงพอใจ ({evaluations.length})
             </button>
+ */}
             {(currentUser?.role === 'ADMIN' || currentUser?.role === 'TEACHER') && (
               <button
                 onClick={() => setActiveTab('custom')}

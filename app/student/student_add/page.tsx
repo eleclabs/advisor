@@ -192,11 +192,8 @@ function StudentAddBasicPage() {
               <div>
                 <h2 className="text-uppercase fw-bold m-0">
                   <i className="bi bi-plus-circle-fill me-2 text-warning"></i>
-                  เพิ่มผู้เรียนใหม่
+                 การรู้จักผู้เรียนเป็นรายบุคคล : เพิ่มผู้เรียน
                 </h2>
-                <div className="mt-2">
-                  <span className="badge bg-primary rounded-0 p-2">เพิ่มข้อมูลนักเรียนใหม่</span>
-                </div>
               </div>
               <Link href="/student" className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
                 <i className="bi bi-arrow-left me-2"></i>กลับ
@@ -213,14 +210,14 @@ function StudentAddBasicPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-info-circle me-2 text-warning"></i>
-                    ข้อมูลพื้นฐาน <span className="text-warning small ms-2">(กรอกข้อมูลที่จำเป็น)</span>
+                    ข้อมูลพื้นฐาน 
                   </h5>
                 </div>
                 <div className="p-4">
                   <div className="row g-3">
                     {/* รูปโปรไฟล์ */}
                     <div className="col-md-12">
-                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์นักเรียน</label>
+                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์</label>
                       <div className="d-flex align-items-start gap-4">
                         <div className="text-center">
                           {imagePreview ? (
@@ -246,14 +243,14 @@ function StudentAddBasicPage() {
                             onChange={handleImageChange}
                             className="form-control rounded-0"
                           />
-                          <small className="text-muted">รองรับไฟล์รูปภาพ .jpg, .png, .gif ขนาดไม่เกิน 5MB</small>
+                          <small className="text-muted">รองรับไฟล์ .jpg, .png, .gif ขนาดไม่เกิน 5MB</small>
                         </div>
                       </div>
                     </div>
 
                     {/* รหัสนักศึกษา */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา <span className="text-danger">*</span></label>
+                      <label className="form-label text-uppercase fw-semibold small">รหัสผู้เรียน <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
                         name="id"
@@ -330,7 +327,6 @@ function StudentAddBasicPage() {
                       >
                         <option>ชาย</option>
                         <option>หญิง</option>
-                        <option>ไม่ระบุ</option>
                       </select>
                     </div>
 
@@ -361,6 +357,7 @@ function StudentAddBasicPage() {
                         <option>ปวช.3</option>
                         <option>ปวส.1</option>
                         <option>ปวส.2</option>
+                        <option>ป.ตรี</option>
                       </select>
                     </div>
 
@@ -455,7 +452,7 @@ function StudentAddBasicPage() {
                         rows={3}
                         value={formData.address}
                         onChange={handleInputChange}
-                        placeholder="บ้านห้อง หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์"
+                       /*  placeholder="บ้านห้อง หมู่ที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" */
                       />
                     </div>
 
@@ -539,11 +536,11 @@ function StudentAddBasicPage() {
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-save me-2"></i>บันทึกข้อมูล
+                    <i className="bi bi-save me-2"></i>บันทึก
                   </>
                 )}
               </button>
-              <button 
+{/*               <button 
                 type="button"
                 className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
                 onClick={handleSave}
@@ -559,7 +556,7 @@ function StudentAddBasicPage() {
                     บันทึกและถัดไป <i className="bi bi-arrow-right ms-2"></i>
                   </>
                 )}
-              </button>
+              </button> */}
             </div>
           </div>
         </form>

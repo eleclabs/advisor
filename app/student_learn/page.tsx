@@ -250,7 +250,7 @@ useEffect(() => {
               return false; // ถ้าไม่มีนักเรียนเลย ไม่เห็นแผนเผยแพร่
             }
             
-            // เช็คว่ามีนักเรียนในระดับชั้นนี้หรือไม่
+            // เช็คว่ามีผู้เรียนในระดับชั้นนี้หรือไม่
             const hasLevel = assignedStudents.some(s => s.level === plan.level);
             if (!hasLevel) return false;
             
@@ -442,7 +442,7 @@ useEffect(() => {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-calendar-check me-2 text-warning"></i>
-                แผนกิจกรรมโฮมรูม
+                การส่งเสริมและพัฒนาผู้เรียน
               </h2>
               <div>
                               </div>
@@ -535,7 +535,7 @@ useEffect(() => {
                 href="/student_learn/create"
                 className="btn btn-primary rounded-0 text-uppercase fw-semibold"
               >
-                <i className="bi bi-plus-circle me-2"></i>สร้างแผนกิจกรรมโฮมรูม
+                <i className="bi bi-plus-circle me-2"></i>สร้างแผนกิจกรรม
               </Link>
             </div>
           </div>
@@ -559,10 +559,11 @@ useEffect(() => {
                         <th className="text-uppercase fw-semibold" style={{width: '50px'}}>ลำดับ</th>
                         <th className="text-uppercase fw-semibold">หัวข้อหลัก</th>
                         <th className="text-uppercase fw-semibold">ระดับชั้น</th>
+
                         <th className="text-uppercase fw-semibold">สัปดาห์ที่</th>
                         <th className="text-uppercase fw-semibold">วันที่จัดกิจกรรม</th>
                         <th className="text-uppercase fw-semibold">สถานะ</th>
-                        <th className="text-uppercase fw-semibold">สาขาวิชาเป้าหมาย</th>
+                        <th className="text-uppercase fw-semibold">สาขาวิชา</th>
                         <th className="text-uppercase fw-semibold">จัดการ</th>
                       </tr>
                     </thead>
@@ -657,7 +658,7 @@ useEffect(() => {
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                       <h6 className="fw-bold mb-0">
                                         <i className="bi bi-people-fill me-2 text-info"></i>
-                                        รายชื่อนักเรียนที่เข้าร่วม ({planStudents[plan.id].length} คน)
+                                        รายชื่อผู้เรียน ({planStudents[plan.id].length} คน)
                                       </h6>
                                       <small className="text-muted">
                                         {getPlanTargetText(plan)}
@@ -670,10 +671,10 @@ useEffect(() => {
                                           <thead className="table-secondary">
                                             <tr>
                                               <th>#</th>
-                                              <th>รหัสนักเรียน</th>
+                                              <th>รหัสผู้เรียน</th>
                                               <th>ชื่อ-นามสกุล</th>
                                               <th>ระดับชั้น</th>
-                                              <th>สาขาวิชาเรียน</th>
+                                              <th>สาขาวิชา</th>
                                               <th>ห้อง</th>
                                             </tr>
                                           </thead>
@@ -708,7 +709,7 @@ useEffect(() => {
                                         </table>
                                       </div>
                                     ) : (
-                                      <p className="text-muted">ไม่มีนักเรียนตามเงื่อนไขนี้</p>
+                                      <p className="text-muted">ไม่มีผู้เรียน</p>
                                     )}
                                   </div>
                                 </td>
@@ -720,7 +721,7 @@ useEffect(() => {
                         <tr>
                           <td colSpan={8} className="text-center text-muted py-5">
                             <i className="bi bi-calendar-x fs-1 d-block mb-3"></i>
-                            <h5>ไม่พบแผนกิจกรรมโฮมรูม</h5>
+                            <h5>ไม่พบแผนกิจกรรม</h5>
                             <p className="mb-0">ลองปรับเปลี่ยนตัวกรอง หรือสร้างแผนใหม่</p>
                           </td>
                         </tr>
@@ -992,17 +993,17 @@ useEffect(() => {
           <div className="modal-content rounded-0">
             <div className="modal-header bg-dark text-white">
               <h5 className="modal-title text-uppercase fw-semibold">
-                <i className="bi bi-exclamation-triangle-fill text-warning me-2"></i>ยืนยันการลบข้อมูล
+                <i className="bi bi-exclamation-triangle-fill text-warning me-2"></i>ยืนยัน
               </h5>
               <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
-              <p>คุณต้องการลบแผนกิจกรรมโฮมรูมนี้ใช่หรือไม่?</p>
+              <p>คุณต้องการลบแผนกิจกรรมนี้ใช่หรือไม่?</p>
               <p className="text-danger small">การลบข้อมูลนี้จะส่งผลต่อประวัติการบันทึกผลกิจกรรมที่เกี่ยวข้องทั้งหมด</p>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary rounded-0 text-uppercase fw-semibold" data-bs-dismiss="modal">ยกเลิก</button>
-              <button type="button" className="btn btn-danger rounded-0 text-uppercase fw-semibold" onClick={handleDelete}>ยืนยันการลบ</button>
+              <button type="button" className="btn btn-danger rounded-0 text-uppercase fw-semibold" onClick={handleDelete}>ยืนยัน</button>
             </div>
           </div>
         </div>

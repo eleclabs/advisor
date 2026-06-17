@@ -48,7 +48,7 @@ function StudentBasicPage() {
   const params = useParams();
   const { data: session } = useSession();
   const studentDocId = params?.id as string;
-  
+
   console.log("Student _id from params:", studentDocId);
 
   const [student, setStudent] = useState<StudentBasic | null>(null);
@@ -63,10 +63,10 @@ function StudentBasicPage() {
     const isStudent = localStorage.getItem('isStudent') === 'true';
     const studentMongoId = localStorage.getItem('studentMongoId');
     const token = localStorage.getItem('token');
-    
+
     setIsStudentUser(isStudent);
     setCurrentStudentId(studentMongoId);
-    
+
     console.log("Is student user:", isStudent);
     console.log("Current student ID:", studentMongoId);
     console.log("Viewing student ID:", studentDocId);
@@ -77,11 +77,11 @@ function StudentBasicPage() {
       const response = await fetch("/api/user?role=TEACHER");
       const data = await response.json();
       console.log("Teachers API response:", data);
-      
+
       if (data.success) {
         let allTeachers = data.data;
         const assignedTeachers = [];
-        
+
         for (const teacher of allTeachers) {
           try {
             const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
@@ -92,7 +92,7 @@ function StudentBasicPage() {
                   const studentId = assignment.student_id?._id || assignment.student_id;
                   return studentId === studentDocId;
                 });
-                
+
                 if (isAssigned) {
                   assignedTeachers.push(teacher);
                 }
@@ -102,7 +102,7 @@ function StudentBasicPage() {
             console.error(`Error checking assignments for teacher ${teacher._id}:`, error);
           }
         }
-        
+
         setTeachers(assignedTeachers);
         console.log("Assigned teachers loaded:", assignedTeachers);
       } else {
@@ -126,22 +126,22 @@ function StudentBasicPage() {
         setLoading(false);
         return;
       }
-      
+
       try {
         setLoading(true);
         console.log("Fetching student with _id:", studentDocId);
-        
+
         const response = await fetch(`/api/student/${studentDocId}`);
         const result = await response.json();
-        
+
         let foundStudent = null;
         if (result.success && result.data) {
           foundStudent = result.data;
         }
-        
+
         if (foundStudent) {
           console.log("Found student data:", foundStudent);
-          
+
           const formattedData: StudentBasic = {
             _id: foundStudent._id,
             id: foundStudent.id || foundStudent._id,
@@ -219,8 +219,8 @@ function StudentBasicPage() {
         <div className="alert alert-danger mb-0" style={{ minWidth: '300px' }}>
           <p className="mb-0">{error || "ไม่พบข้อมูลนักเรียน"}</p>
           <div className="mt-3 d-flex gap-2">
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="btn btn-sm btn-warning"
             >
               <i className="bi bi-arrow-repeat me-2"></i>ลองอีกครั้ง
@@ -245,19 +245,25 @@ function StudentBasicPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-person-badge me-2 text-warning"></i>
-                ข้อมูลพื้นฐาน: {student.name}
+                การรู้จักผู้เรียนเป็นรายบุคคล: {student.name}
               </h2>
               <div>
                 {/* แสดงปุ่มประเมินผู้เรียนเฉพาะ admin/teacher หรือ student ที่ดูโปรไฟล์ตัวเอง */}
                 {(!isStudentUser || isOwnProfile) && (
                   <Link
                     href={`/student/student_detail/${student._id}/interview`}
-                    className="btn btn-warning rounded-0 text-uppercase fw-semibold"
+                    className="btn btn-warning "
                   >
                     <i className="bi bi-clipboard-check me-2"></i>
                     ประเมินผู้เรียน
                   </Link>
-                )}
+                )} 
+                <button
+                  onClick={handleGoBack}
+                  className="btn btn-outline-dark"
+                >
+                  <i className="bi bi-arrow-left me-2"></i>กลับไป
+                </button>
               </div>
             </div>
           </div>
@@ -278,14 +284,14 @@ function StudentBasicPage() {
                     <div className="d-flex align-items-start gap-4 mb-4">
                       <div className="text-center">
                         {student.image ? (
-                          <img 
-                            src={student.image} 
-                            alt="รูปโปรไฟล์" 
+                          <img
+                            src={student.image}
+                            alt="รูปโปรไฟล์"
                             className="rounded-circle border border-3 border-warning"
                             style={{ width: '120px', height: '120px', objectFit: 'cover' }}
                           />
                         ) : (
-                          <div 
+                          <div
                             className="rounded-circle border border-3 border-secondary d-flex align-items-center justify-content-center bg-light"
                             style={{ width: '120px', height: '120px' }}
                           >
@@ -295,7 +301,7 @@ function StudentBasicPage() {
                       </div>
                       <div className="flex-grow-1">
                         <h4 className="fw-bold mb-1">{student.name}</h4>
-                        <p className="text-muted mb-2">รหัสนักศึกษา: {student.id}</p>
+                        <p className="text-muted mb-2">รหัสผู้เรียน: {student.id}</p>
                       </div>
                     </div>
                   </div>
@@ -392,6 +398,7 @@ function StudentBasicPage() {
         <div className="row mb-4">
           <div className="col-12 d-flex justify-content-end gap-2">
             {/* แสดงปุ่ม SDQ และ DASS-21 เฉพาะ admin/teacher หรือ student ที่ดูโปรไฟล์ตัวเอง */}
+            {/*             
             {!isStudentUser && (
               <div className="d-flex gap-2">
                 <Link
@@ -408,8 +415,10 @@ function StudentBasicPage() {
                 </Link>
               </div>
             )}
-            
+ */}
+
             {/* แสดงปุ่มแก้ไขข้อมูลเฉพาะ admin/teacher เท่านั้น (student ไม่เห็น) */}
+            {/* 
             {!isStudentUser && (
               <Link
                 href={`/student/student_detail/${student._id}/edit`}
@@ -418,14 +427,14 @@ function StudentBasicPage() {
                 <i className="bi bi-pencil me-2"></i>แก้ไขข้อมูล
               </Link>
             )}
-            
-            {/* ปุ่มกลับ - ย้ายมาอยู่ข้างปุ่มแก้ไข แทนที่ปุ่มพิมพ์ */}
+
             <button
               onClick={handleGoBack}
               className="btn btn-dark rounded-0 text-uppercase fw-semibold"
             >
               <i className="bi bi-arrow-left me-2"></i>กลับไป
             </button>
+  */}          
           </div>
         </div>
       </div>

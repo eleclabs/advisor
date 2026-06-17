@@ -162,7 +162,7 @@ export default function StudentAnalyticsDashboard() {
         setFilteredStudents([]);
         setLoading(false);
         if (sessionData.user.role === 'TEACHER') {
-          alert('คุณยังไม่มีนักเรียนที่ถูกมอบหมาย กรุณาติดต่อ Admin');
+          alert('คุณยังไม่มีผู้เรียน กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่มผู้เรียนในความดูแลของคุณ');
           router.push('/dashboard');
         }
         return;
@@ -399,7 +399,7 @@ export default function StudentAnalyticsDashboard() {
           <div className="spinner-border text-warning" role="status">
             <span className="visually-hidden">กำลังโหลด...</span>
           </div>
-          <p className="mt-3 text-muted">กำลังดึงข้อมูลนักเรียนจากระบบ...</p>
+          <p className="mt-3 text-muted">กำลังดึงข้อมูล...</p>
         </div>
       </div>
     );
@@ -409,10 +409,10 @@ export default function StudentAnalyticsDashboard() {
     return (
       <div className="container-fluid p-4">
         <div className="alert alert-info">
-          <h5><i className="bi bi-info-circle-fill me-2"></i>ไม่พบนักเรียนในความดูแล</h5>
-          <p>คุณยังไม่มีนักเรียนที่ถูกมอบหมายให้ดูแล</p>
+          <h5><i className="bi bi-info-circle-fill me-2"></i>ไม่พบข้อมูล</h5>
+          <p>คุณยังไม่มีข้อมูลผู้เรียน</p>
           <Link href="/student/student_filter" className="btn btn-primary">
-            <i className="bi bi-person-plus me-1"></i>เลือกนักเรียนในความดูแล
+            <i className="bi bi-person-plus me-1"></i>เลือกผู้เรียน
           </Link>
         </div>
       </div>
@@ -426,11 +426,11 @@ export default function StudentAnalyticsDashboard() {
         <div>
           <h2 className="mb-1 fw-bold">
             <i className="bi bi-filter me-2 text-warning"></i>
-            ผู้เรียนในความดูแล
+            คัดกรองผู้เรียน
           </h2>
         </div>
         <Link href="/student" className="btn btn-outline-secondary">
-          <i className="bi bi-people me-1"></i>จัดการนักเรียน
+          <i className="bi bi-people me-1"></i>จัดการผู้เรียน
         </Link>
       </div>
 
@@ -566,7 +566,7 @@ export default function StudentAnalyticsDashboard() {
               <input
                 type="text"
                 className="form-control"
-                placeholder="ชื่อหรือรหัสนักเรียน..."
+                placeholder="ชื่อหรือรหัสผู้เรียน..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -805,7 +805,7 @@ export default function StudentAnalyticsDashboard() {
                 <div className="modal-header bg-primary text-white">
                   <h5 className="modal-title">
                     <i className="bi bi-person-badge me-2"></i>
-                    ข้อมูลนักเรียน: {modal.student.name}
+                    ข้อมูลผู้เรียน: {modal.student.name}
                   </h5>
                   <button type="button" className="btn-close btn-close-white" onClick={closeModal}></button>
                 </div>
@@ -823,7 +823,7 @@ export default function StudentAnalyticsDashboard() {
                         <div className="col-md-6">
                           <table className="table table-sm table-borderless">
                             <tbody>
-                              <tr><td className="fw-semibold">รหัสนักเรียน:</td><td>{modal.student.id}</td></tr>
+                              <tr><td className="fw-semibold">รหัสผู้เรียน:</td><td>{modal.student.id}</td></tr>
                               <tr><td className="fw-semibold">ชื่อ-นามสกุล:</td><td>{modal.student.name}</td></tr>
                               <tr><td className="fw-semibold">เพศ:</td><td>{modal.student.studentData?.gender || 'ไม่ระบุ'}</td></tr>
                               <tr><td className="fw-semibold">วันเกิด:</td><td>{modal.student.studentData?.birth_date || 'ไม่ระบุ'}</td></tr>
@@ -836,7 +836,7 @@ export default function StudentAnalyticsDashboard() {
                         <div className="col-md-6">
                           <table className="table table-sm table-borderless">
                             <tbody>
-                              <tr><td className="fw-semibold">สาขาวิชานักเรียน:</td><td>{modal.student.studentData?.student_group || 'ไม่ระบุ'}</td></tr>
+                              <tr><td className="fw-semibold">ภาค:</td><td>{modal.student.studentData?.student_group || 'ไม่ระบุ'}</td></tr>
                               <tr><td className="fw-semibold">สถานะ:</td><td><span className={`badge bg-${modal.student.status === 'มีปัญหา' ? 'danger' : modal.student.status === 'เสี่ยง' ? 'warning' : 'success'}`}>{modal.student.status}</span></td></tr>
                               <tr><td className="fw-semibold">ระดับความเสี่ยง:</td><td><span className={`badge bg-${getRiskBadgeColor(modal.student.riskLevel)}`}>{getRiskThaiText(modal.student.riskLevel)}</span></td></tr>
                               <tr><td className="fw-semibold">การเยี่ยมบ้าน:</td><td>{modal.student.hasHomeVisit ? '✅ เยี่ยมบ้านแล้ว' : '⏳ ยังไม่เยี่ยมบ้าน'}</td></tr>

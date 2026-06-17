@@ -24,27 +24,27 @@ interface InterviewFormData {
   parent_name: string;
   parent_relationship: string;
   parent_phone: string;
-  
+
   family_status: string[];
   living_with: string;
   living_with_other: string;
   housing_type: string;
   housing_type_other: string;
   transportation: string[];
-  
+
   strengths: string;
   weak_subjects: string;
   hobbies: string;
   home_behavior: string;
-  
+
   chronic_disease: string;
   risk_behaviors: string[];
   parent_concerns: string;
-  
+
   family_income: string;
   daily_allowance: string;
   assistance_needs: string[];
-  
+
   student_group: string;
   help_guidelines: string;
   home_visit_file: string;
@@ -54,18 +54,18 @@ export default function InterviewEditPage() {
   const router = useRouter();
   const params = useParams();
   const studentDocId = params?.id as string;  // รับ _id จาก URL
-  
+
   console.log("📝 Student _id from params:", studentDocId);
 
   const [student, setStudent] = useState<StudentBasicInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  
+
   // State สำหรับจัดการไฟล์เยี่ยมบ้าน
   const [homeVisitFiles, setHomeVisitFiles] = useState<File[]>([]);
   const [existingHomeVisitFiles, setExistingHomeVisitFiles] = useState<{ name: string; url: string }[]>([]);
-  
+
   const [formData, setFormData] = useState<InterviewFormData>({
     student_id: "",
     semester: "2",
@@ -73,47 +73,47 @@ export default function InterviewEditPage() {
     parent_name: "",
     parent_relationship: "",
     parent_phone: "",
-    
+
     family_status: [],
     living_with: "",
     living_with_other: "",
     housing_type: "",
     housing_type_other: "",
     transportation: [],
-    
+
     strengths: "",
     weak_subjects: "",
     hobbies: "",
     home_behavior: "",
-    
+
     chronic_disease: "",
     risk_behaviors: [],
     parent_concerns: "",
-    
+
     family_income: "",
     daily_allowance: "",
     assistance_needs: [],
-    
+
     student_group: "ปกติ",
     help_guidelines: "",
     home_visit_file: "",
   });
 
   useEffect(() => {
-   
+
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!studentDocId) return;
-      
+
       try {
         setLoading(true);
-        
+
         // ดึงข้อมูลนักเรียนและข้อมูลเยี่ยมบ้าน
         const studentRes = await fetch(`/api/student/${studentDocId}`);
         const studentResult = await studentRes.json();
-        
+
         if (studentResult.success && studentResult.data) {
           const studentData = studentResult.data;
           setStudent({
@@ -127,7 +127,7 @@ export default function InterviewEditPage() {
             level: studentData.level || "",
             class_group: studentData.class_group || "",
           });
-          
+
           // ดึงข้อมูลการสัมภาษณ์จาก student data
           setFormData(prev => ({
             ...prev,
@@ -157,18 +157,18 @@ export default function InterviewEditPage() {
             help_guidelines: studentData.help_guidelines || "",
             home_visit_file: studentData.home_visit_file || ""
           }));
-          
+
           // ดึงไฟล์เยี่ยมบ้านที่มีอยู่
           if (studentData.home_visit_files && Array.isArray(studentData.home_visit_files)) {
             setExistingHomeVisitFiles(studentData.home_visit_files);
           }
-          
+
           // ถ้ามีข้อมูลการสัมภาษณ์อยู่แล้ว ให้เป็น edit mode
           if (studentData.parent_name || studentData.family_status?.length > 0) {
             setIsEditMode(true);
           }
         }
-        
+
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -203,9 +203,9 @@ export default function InterviewEditPage() {
       const currentFileNames = homeVisitFiles.map(f => f.name);
       const existingFileNames = existingHomeVisitFiles.map(m => m.name);
       const allFileNames = [...currentFileNames, ...existingFileNames];
-      
+
       const uniqueFiles = newFiles.filter(file => !allFileNames.includes(file.name));
-      
+
       if (uniqueFiles.length > 0) {
         setHomeVisitFiles(prev => [...prev, ...uniqueFiles]);
         console.log(`✅ Added ${uniqueFiles.length} new files:`, uniqueFiles.map(f => f.name));
@@ -224,11 +224,11 @@ export default function InterviewEditPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    
+
     try {
       // สร้าง FormData สำหรับส่งไฟล์และข้อมูล
       const submitFormData = new FormData();
-      
+
       // เพิ่มข้อมูลฟอร์มทั้งหมด
       Object.entries(formData).forEach(([key, value]) => {
         if (Array.isArray(value)) {
@@ -237,33 +237,33 @@ export default function InterviewEditPage() {
           submitFormData.append(key, String(value));
         }
       });
-      
+
       // เพิ่มไฟล์ใหม่
       homeVisitFiles.forEach((file, index) => {
         submitFormData.append(`home_visit_files[${index}]`, file);
       });
-      
+
       // เพิ่มไฟล์เดิมที่คงไว้
       existingHomeVisitFiles.forEach((file, index) => {
         submitFormData.append(`existingHomeVisitFiles[${index}]`, JSON.stringify(file));
       });
-      
+
       // ถ้าไม่มีไฟล์เดิมและไม่มีไฟล์ใหม่ ให้ส่งค่าว่างเพื่อล้างข้อมูลเดิม
       if (existingHomeVisitFiles.length === 0 && homeVisitFiles.length === 0) {
         submitFormData.append('home_visit_files_clear', 'true');
       }
-      
+
       console.log("📤 Submitting FormData with files:");
       console.log("  New files count:", homeVisitFiles.length);
       console.log("  Existing files count:", existingHomeVisitFiles.length);
-      
+
       const response = await fetch(`/api/student/${studentDocId}`, {
         method: 'PUT',
         body: submitFormData,
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         router.push(`/student/student_detail/${studentDocId}/interview`);
       } else {
@@ -297,7 +297,7 @@ export default function InterviewEditPage() {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="alert alert-danger mb-0">
-          <p className="mb-0">ไม่พบข้อมูลนักเรียน</p>
+          <p className="mb-0">ไม่พบข้อมูล</p>
           <Link href={`/student/student_detail/${studentDocId}/interview`} className="btn btn-sm btn-dark mt-3">
             <i className="bi bi-arrow-left me-2"></i>กลับไป
           </Link>
@@ -308,7 +308,7 @@ export default function InterviewEditPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      
+
       <div className="container-fluid py-4">
         {/* Page Header */}
         <div className="row mb-4">
@@ -316,14 +316,17 @@ export default function InterviewEditPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-journal-text me-2 text-warning"></i>
-                {isEditMode ? "แก้ไข" : "เพิ่ม"}บันทึกการสัมภาษณ์
+                การรู้จักผู้เรียนเป็นรายบุคคล {/*  {isEditMode ? "แก้ไข" : "เพิ่ม"}  */}
               </h2>
+            {/* 
               <div>
+                             
                 <span 
                   className={`badge bg-${getStatusColor()} rounded-0 text-uppercase fw-semibold p-2 me-2`}
                 >
                   สรุปสถานะ: {formData.student_group}
-                </span>
+                </span> 
+             
                 <Link
                   href={`/student/student_detail/${studentDocId}/interview`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold"
@@ -331,6 +334,7 @@ export default function InterviewEditPage() {
                   <i className="bi bi-x-circle me-2"></i>ยกเลิก
                 </Link>
               </div>
+            */}
             </div>
           </div>
         </div>
@@ -343,7 +347,7 @@ export default function InterviewEditPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-person-badge me-2 text-warning"></i>
-                    ข้อมูลนักเรียน
+                    ข้อมูลผู้เรียน
                   </h5>
                 </div>
                 <div className="p-3 bg-light">
@@ -379,7 +383,7 @@ export default function InterviewEditPage() {
             <div className="col-md-3">
               <div className="border bg-white p-3">
                 <label className="form-label text-uppercase fw-semibold small">ภาคเรียนที่ <span className="text-danger">*</span></label>
-                <select 
+                <select
                   name="semester"
                   className="form-select rounded-0"
                   value={formData.semester}
@@ -395,7 +399,7 @@ export default function InterviewEditPage() {
             <div className="col-md-3">
               <div className="border bg-white p-3">
                 <label className="form-label text-uppercase fw-semibold small">ปีการศึกษา <span className="text-danger">*</span></label>
-                <select 
+                <select
                   name="academic_year"
                   className="form-select rounded-0"
                   value={formData.academic_year}
@@ -410,9 +414,9 @@ export default function InterviewEditPage() {
             </div>
             <div className="col-md-6">
               <div className="border bg-white p-3">
-                <label className="form-label text-uppercase fw-semibold small">ชื่อ-นามสกุล (ผู้ปกครองที่ให้ข้อมูล) <span className="text-danger">*</span></label>
-                <input 
-                  type="text" 
+                <label className="form-label text-uppercase fw-semibold small">ชื่อผู้ปกครอง <span className="text-danger">*</span></label>
+                <input
+                  type="text"
                   name="parent_name"
                   className="form-control rounded-0"
                   value={formData.parent_name}
@@ -427,8 +431,8 @@ export default function InterviewEditPage() {
             <div className="col-md-3">
               <div className="border bg-white p-3">
                 <label className="form-label text-uppercase fw-semibold small">ความสัมพันธ์ <span className="text-danger">*</span></label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="parent_relationship"
                   className="form-control rounded-0"
                   value={formData.parent_relationship}
@@ -439,9 +443,9 @@ export default function InterviewEditPage() {
             </div>
             <div className="col-md-3">
               <div className="border bg-white p-3">
-                <label className="form-label text-uppercase fw-semibold small">เบอร์โทรศัพท์ติดต่อ <span className="text-danger">*</span></label>
-                <input 
-                  type="text" 
+                <label className="form-label text-uppercase fw-semibold small">เบอร์โทรศัพท์ <span className="text-danger">*</span></label>
+                <input
+                  type="text"
                   name="parent_phone"
                   className="form-control rounded-0"
                   value={formData.parent_phone}
@@ -459,7 +463,7 @@ export default function InterviewEditPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-house-heart me-2 text-warning"></i>
-                    2. สถานภาพครอบครัวและการเป็นอยู่
+                    2. สถานภาพครอบครัว
                   </h5>
                 </div>
                 <div className="p-3">
@@ -468,9 +472,9 @@ export default function InterviewEditPage() {
                     <div className="row">
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="อยู่ด้วยกัน"
                             checked={formData.family_status.includes("อยู่ด้วยกัน")}
                             onChange={(e) => handleCheckboxChange(e, "family_status")}
@@ -480,9 +484,9 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="แยกกันอยู่"
                             checked={formData.family_status.includes("แยกกันอยู่")}
                             onChange={(e) => handleCheckboxChange(e, "family_status")}
@@ -492,9 +496,9 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="หย่าร้าง"
                             checked={formData.family_status.includes("หย่าร้าง")}
                             onChange={(e) => handleCheckboxChange(e, "family_status")}
@@ -504,9 +508,9 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="บิดา/มารดาเสียชีวิต"
                             checked={formData.family_status.includes("บิดา/มารดาเสียชีวิต")}
                             onChange={(e) => handleCheckboxChange(e, "family_status")}
@@ -518,14 +522,14 @@ export default function InterviewEditPage() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">นักเรียนพักอาศัยกับ</label>
+                    <label className="form-label text-uppercase fw-semibold small">พักอาศัยกับ</label>
                     <div className="row">
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="living_with"
-                            className="form-check-input rounded-0" 
+                            className="form-check-input rounded-0"
                             value="บิดา-มารดา"
                             checked={formData.living_with === "บิดา-มารดา"}
                             onChange={handleInputChange}
@@ -535,25 +539,25 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="living_with"
-                            className="form-check-input rounded-0" 
-                            value="บุคคลอื่น"
-                            checked={formData.living_with === "บุคคลอื่น"}
+                            className="form-check-input rounded-0"
+                            value="อื่นๆ"
+                            checked={formData.living_with === "อื่นๆ"}
                             onChange={handleInputChange}
                           />
-                          <label className="form-check-label">บุคคลอื่น</label>
+                          <label className="form-check-label">อื่นๆ</label>
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <input 
-                          type="text" 
-                          className="form-control rounded-0" 
+                        <input
+                          type="text"
+                          className="form-control rounded-0"
                           placeholder="ระบุ"
                           value={formData.living_with_other}
                           onChange={(e) => setFormData(prev => ({ ...prev, living_with_other: e.target.value }))}
-                          disabled={formData.living_with !== "บุคคลอื่น"}
+                          disabled={formData.living_with !== "อื่นๆ"}
                         />
                       </div>
                     </div>
@@ -564,10 +568,10 @@ export default function InterviewEditPage() {
                     <div className="row">
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="housing_type"
-                            className="form-check-input rounded-0" 
+                            className="form-check-input rounded-0"
                             value="บ้านตนเอง"
                             checked={formData.housing_type === "บ้านตนเอง"}
                             onChange={handleInputChange}
@@ -577,10 +581,10 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="housing_type"
-                            className="form-check-input rounded-0" 
+                            className="form-check-input rounded-0"
                             value="บ้านเช่า"
                             checked={formData.housing_type === "บ้านเช่า"}
                             onChange={handleInputChange}
@@ -590,10 +594,10 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="housing_type"
-                            className="form-check-input rounded-0" 
+                            className="form-check-input rounded-0"
                             value="หอพัก"
                             checked={formData.housing_type === "หอพัก"}
                             onChange={handleInputChange}
@@ -603,10 +607,10 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="radio" 
+                          <input
+                            type="radio"
                             name="housing_type"
-                            className="form-check-input rounded-0" 
+                            className="form-check-input rounded-0"
                             value="อื่นๆ"
                             checked={formData.housing_type === "อื่นๆ"}
                             onChange={handleInputChange}
@@ -615,9 +619,9 @@ export default function InterviewEditPage() {
                         </div>
                       </div>
                       <div className="col-md-6 mt-2">
-                        <input 
-                          type="text" 
-                          className="form-control rounded-0" 
+                        <input
+                          type="text"
+                          className="form-control rounded-0"
                           placeholder="ระบุ"
                           value={formData.housing_type_other}
                           onChange={(e) => setFormData(prev => ({ ...prev, housing_type_other: e.target.value }))}
@@ -632,21 +636,21 @@ export default function InterviewEditPage() {
                     <div className="row">
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="รถส่วนตัว"
-                            checked={formData.transportation.includes("รถส่วนตัว")}
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
+                            value="รถยนต์ส่วนตัว"
+                            checked={formData.transportation.includes("รถยนต์ส่วนตัว")}
                             onChange={(e) => handleCheckboxChange(e, "transportation")}
                           />
-                          <label className="form-check-label">รถส่วนตัว</label>
+                          <label className="form-check-label">รถยนต์ส่วนตัว</label>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="รถรับส่ง"
                             checked={formData.transportation.includes("รถรับส่ง")}
                             onChange={(e) => handleCheckboxChange(e, "transportation")}
@@ -656,28 +660,28 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="รถเมล์/รถสาธารณะ"
-                            checked={formData.transportation.includes("รถเมล์/รถสาธารณะ")}
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
+                            value="รถขนส่งสาธารณะ"
+                            checked={formData.transportation.includes("รถขนส่งสาธารณะ")}
                             onChange={(e) => handleCheckboxChange(e, "transportation")}
                           />
-                          <label className="form-check-label">รถเมล์/รถสาธารณะ</label>
+                          <label className="form-check-label">รถขนส่งสาธารณะ</label>
                         </div>
                       </div>
-                      <div className="col-md-3">
+                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="เดิน"
-                            checked={formData.transportation.includes("เดิน")}
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
+                            value="เดินทางด้วยตนเอง"
+                            checked={formData.transportation.includes("เดินทางด้วยตนเอง")}
                             onChange={(e) => handleCheckboxChange(e, "transportation")}
                           />
-                          <label className="form-check-label">เดิน</label>
+                          <label className="form-check-label">เดินทางด้วยตนเอง</label>
                         </div>
-                      </div>
+                      </div> 
                     </div>
                   </div>
                 </div>
@@ -697,30 +701,30 @@ export default function InterviewEditPage() {
                 </div>
                 <div className="p-3">
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">วิชาที่ชอบ / จุดแข็ง</label>
-                    <textarea 
+                    <label className="form-label text-uppercase fw-semibold small">วิชาที่ชอบ </label>
+                    <textarea
                       name="strengths"
-                      className="form-control rounded-0" 
+                      className="form-control rounded-0"
                       rows={2}
                       value={formData.strengths}
                       onChange={handleInputChange}
                     ></textarea>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">วิชาที่ไม่ถนัด / ปัญหาการเรียน</label>
-                    <textarea 
+                    <label className="form-label text-uppercase fw-semibold small">วิชาที่ไม่ถนัด(ปัญหาการเรียน)</label>
+                    <textarea
                       name="weak_subjects"
-                      className="form-control rounded-0" 
+                      className="form-control rounded-0"
                       rows={2}
                       value={formData.weak_subjects}
                       onChange={handleInputChange}
                     ></textarea>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">งานอดิเรก/ความสนใจพิเศษ</label>
-                    <textarea 
+                    <label className="form-label text-uppercase fw-semibold small">งานอดิเรก (ความสนใจพิเศษ)</label>
+                    <textarea
                       name="hobbies"
-                      className="form-control rounded-0" 
+                      className="form-control rounded-0"
                       rows={2}
                       value={formData.hobbies}
                       onChange={handleInputChange}
@@ -728,9 +732,9 @@ export default function InterviewEditPage() {
                   </div>
                   <div className="mb-3">
                     <label className="form-label text-uppercase fw-semibold small">พฤติกรรมที่บ้าน</label>
-                    <textarea 
+                    <textarea
                       name="home_behavior"
-                      className="form-control rounded-0" 
+                      className="form-control rounded-0"
                       rows={3}
                       value={formData.home_behavior}
                       onChange={handleInputChange}
@@ -749,15 +753,15 @@ export default function InterviewEditPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-heart-pulse me-2 text-warning"></i>
-                    4. ด้านสุขภาพและปัจจัยเสี่ยง
+                    4. ด้านสุขภาพ
                   </h5>
                 </div>
                 <div className="p-3">
                   <div className="mb-3">
                     <label className="form-label text-uppercase fw-semibold small">โรคประจำตัว/แพ้อาหาร</label>
-                    <textarea 
+                    <textarea
                       name="chronic_disease"
-                      className="form-control rounded-0" 
+                      className="form-control rounded-0"
                       rows={2}
                       value={formData.chronic_disease}
                       onChange={handleInputChange}
@@ -765,13 +769,13 @@ export default function InterviewEditPage() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">พฤติกรรมเสี่ยงที่ควรเฝ้าระวัง</label>
+                    <label className="form-label text-uppercase fw-semibold small">พฤติกรรมเสี่ยง</label>
                     <div className="row">
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="การใช้สารเสพติด/บุหรี่"
                             checked={formData.risk_behaviors.includes("การใช้สารเสพติด/บุหรี่")}
                             onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
@@ -779,35 +783,37 @@ export default function InterviewEditPage() {
                           <label className="form-check-label">การใช้สารเสพติด/บุหรี่</label>
                         </div>
                       </div>
+                      {/*                       
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="การใช้ความรุนแรง"
                             checked={formData.risk_behaviors.includes("การใช้ความรุนแรง")}
                             onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
                           />
                           <label className="form-check-label">การใช้ความรุนแรง</label>
                         </div>
-                      </div>
+                      </div> 
+                      */}
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="สภาวะทางอารมณ์/ซึมเศร้า"
                             checked={formData.risk_behaviors.includes("สภาวะทางอารมณ์/ซึมเศร้า")}
                             onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
                           />
-                          <label className="form-check-label">สภาวะทางอารมณ์/ซึมเศร้า</label>
+                          <label className="form-check-label">สภาวะทางอารมณ์</label>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="ไม่มี"
                             checked={formData.risk_behaviors.includes("ไม่มี")}
                             onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
@@ -819,10 +825,10 @@ export default function InterviewEditPage() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">ความกังวลใจของผู้ปกครองที่มีต่อนักเรียน</label>
-                    <textarea 
+                    <label className="form-label text-uppercase fw-semibold small">ข้อเสนอแนะของผู้ปกครองที่มีต่อผู้เรียน</label>
+                    <textarea
                       name="parent_concerns"
-                      className="form-control rounded-0" 
+                      className="form-control rounded-0"
                       rows={3}
                       value={formData.parent_concerns}
                       onChange={handleInputChange}
@@ -846,9 +852,9 @@ export default function InterviewEditPage() {
                 <div className="p-3">
                   <div className="row g-3 mb-3">
                     <div className="col-md-6">
-                      <label className="form-label text-uppercase fw-semibold small">รายได้เฉลี่ยต่อเดือนของครอบครัว (บาท)</label>
-                      <input 
-                        type="text" 
+                      <label className="form-label text-uppercase fw-semibold small">รายได้เฉลี่ยต่อเดือนของครอบครัว(บาท)</label>
+                      <input
+                        type="text"
                         name="family_income"
                         className="form-control rounded-0"
                         value={formData.family_income}
@@ -856,9 +862,9 @@ export default function InterviewEditPage() {
                       />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label text-uppercase fw-semibold small">เงินมาโรงเรียนต่อวัน (บาท)</label>
-                      <input 
-                        type="text" 
+                      <label className="form-label text-uppercase fw-semibold small">ได้รับเงินต่อวัน(บาท)</label>
+                      <input
+                        type="text"
                         name="daily_allowance"
                         className="form-control rounded-0"
                         value={formData.daily_allowance}
@@ -872,9 +878,9 @@ export default function InterviewEditPage() {
                     <div className="row">
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="ทุนการศึกษา"
                             checked={formData.assistance_needs.includes("ทุนการศึกษา")}
                             onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
@@ -884,9 +890,9 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="อุปกรณ์การเรียน"
                             checked={formData.assistance_needs.includes("อุปกรณ์การเรียน")}
                             onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
@@ -896,21 +902,21 @@ export default function InterviewEditPage() {
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="ชุดนักเรียน"
                             checked={formData.assistance_needs.includes("ชุดนักเรียน")}
                             onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
                           />
-                          <label className="form-check-label">ชุดนักเรียน</label>
+                          <label className="form-check-label">ชุดยุนิฟอร์ม</label>
                         </div>
                       </div>
                       <div className="col-md-3">
                         <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
+                          <input
+                            type="checkbox"
+                            className="form-check-input rounded-0"
                             value="อื่นๆ"
                             checked={formData.assistance_needs.includes("อื่นๆ")}
                             onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
@@ -938,24 +944,24 @@ export default function InterviewEditPage() {
                 <div className="p-3">
                   <div className="row g-3 mb-3">
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชานักเรียน <span className="text-danger">*</span></label>
-                      <select 
+                      <label className="form-label text-uppercase fw-semibold small">สรุป <span className="text-danger">*</span></label>
+                      <select
                         name="student_group"
                         className="form-select rounded-0"
                         value={formData.student_group}
                         onChange={handleInputChange}
                         required
                       >
-                        <option value="ปกติ">สาขาวิชาปกติ</option>
-                        <option value="เสี่ยง">สาขาวิชาเสี่ยง</option>
-                        <option value="มีปัญหา">สาขาวิชามีปัญหา</option>
+                        <option value="ปกติ">ปกติ</option>
+                        <option value="เสี่ยง">เสี่ยง</option>
+
                       </select>
                     </div>
                     <div className="col-md-9">
-                      <label className="form-label text-uppercase fw-semibold small">แนวทางการช่วยเหลือ/ส่งต่อ</label>
-                      <textarea 
+                      <label className="form-label text-uppercase fw-semibold small">แนวทางการดูแลช่วยเหลือ/ส่งต่อ</label>
+                      <textarea
                         name="help_guidelines"
-                        className="form-control rounded-0" 
+                        className="form-control rounded-0"
                         rows={3}
                         value={formData.help_guidelines}
                         onChange={handleInputChange}
@@ -965,15 +971,15 @@ export default function InterviewEditPage() {
 
                   <div className="mb-3">
                     <label className="form-label text-uppercase fw-semibold small">แบบเยี่ยมบ้าน (แนบไฟล์/ภาพได้)</label>
-                    <input 
-                      type="file" 
-                      className="form-control rounded-0" 
+                    <input
+                      type="file"
+                      className="form-control rounded-0"
                       onChange={handleFileChange}
                       multiple
                       accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
                     />
                     <small className="text-muted">รองรับไฟล์ .jpg, .png, .pdf, .doc, .docx ขนาดไม่เกิน 10MB</small>
-                    
+
                     {homeVisitFiles.length > 0 && (
                       <div className="mt-3">
                         <label className="form-label">ไฟล์ใหม่ที่เลือก:</label>
@@ -984,7 +990,7 @@ export default function InterviewEditPage() {
                                 <i className="bi bi-file-earmark me-2"></i>
                                 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                               </small>
-                              <button 
+                              <button
                                 type="button"
                                 className="btn btn-sm btn-outline-danger rounded-0"
                                 onClick={() => handleRemoveFile(index)}
@@ -996,7 +1002,7 @@ export default function InterviewEditPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {existingHomeVisitFiles.length > 0 && (
                       <div className="mt-3">
                         <label className="form-label">ไฟล์เดิม:</label>
@@ -1007,7 +1013,7 @@ export default function InterviewEditPage() {
                                 <i className="bi bi-file-earmark me-2"></i>
                                 {file.name}
                               </small>
-                              <button 
+                              <button
                                 type="button"
                                 className="btn btn-sm btn-outline-danger rounded-0"
                                 onClick={() => handleRemoveExistingFile(index)}
@@ -1026,15 +1032,15 @@ export default function InterviewEditPage() {
                       <i className={`bi bi-${getStatusColor() === 'success' ? 'check-circle' : getStatusColor() === 'warning' ? 'exclamation-triangle' : 'exclamation-octagon'} fs-1 me-3`}></i>
                       <div>
                         <h5 className="fw-bold mb-1">
-                          ระบบสรุปผล: 
+                          ระบบสรุปผล:
                           <span className={`ms-2 badge bg-${getStatusColor()} rounded-0 p-2`}>
                             {formData.student_group}
                           </span>
                         </h5>
                         <p className="mb-0">
-                          {getStatusColor() === 'success' && 'นักเรียนอยู่ในเกณฑ์ปกติ เหมาะสมกับการดูแลทั่วไป'}
-                          {getStatusColor() === 'warning' && 'นักเรียนอยู่ในสาขาวิชาเสี่ยง ควรได้รับการดูแลและติดตามอย่างใกล้ชิด'}
-                          {getStatusColor() === 'danger' && 'นักเรียนอยู่ในสาขาวิชามีปัญหา จำเป็นต้องได้รับการช่วยเหลือและส่งต่อทันที'}
+                          {getStatusColor() === 'success' && 'ผู้เรียนอยู่ในเกณฑ์ปกติ เหมาะสมกับการดูแลทั่วไป'}
+                          {getStatusColor() === 'warning' && 'ผู้เรียนอยู่ในเกณฑ์เสี่ยง ควรได้รับการดูแลและติดตามอย่างใกล้ชิด'}
+               
                         </p>
                       </div>
                     </div>
@@ -1053,8 +1059,8 @@ export default function InterviewEditPage() {
               >
                 <i className="bi bi-x-circle me-2"></i>ยกเลิก
               </Link>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
                 disabled={saving}
               >
@@ -1074,7 +1080,7 @@ export default function InterviewEditPage() {
         </form>
       </div>
 
-     
+
     </div>
   );
 }
