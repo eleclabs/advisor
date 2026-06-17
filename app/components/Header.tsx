@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 export default function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
-  
+
   // Hide login button on student login page
   const isStudentLoginPage = pathname === "/login/student";
 
@@ -23,28 +23,22 @@ export default function Header() {
       <div className="d-flex align-items-center gap-3">
         {session ? (
           <>
-          <Link
-          key="profile"  // ✅ เพิ่ม key
-          href="/profile"
-          className={`d-block py-2 px-3 mb-1 text-decoration-none rounded-0 ${
-            pathname === "/profile"
-              ? "bg-warning text-dark"
-              : "text-white hover-bg-warning hover-text-dark"
-          }`}
-        >
-          <i className="bi bi-person-circle me-2"></i>
-          โปรไฟล์ของฉัน
-        </Link>
-
-            <span className="text-white-50">
-              {/* <i className="bi bi-person-circle me-2"></i> */}
+            <Link
+              key="profile"  // ✅ เพิ่ม key
+              href="/profile"
+              className={`d-block py-2 px-3 mb-1 text-decoration-none rounded-0 ${pathname === "/profile"
+                  ? "bg-warning text-dark"
+                  : "text-white hover-bg-warning hover-text-dark"
+                }`}
+            >
+              <i className="bi bi-person-circle me-2"></i>
               {session.user?.name || session.user?.email}
               {session.user?.role && (
-                <span className="badge bg-warning text-dark ms-2 rounded-0">
+                <div className="badge bg-warning text-dark ms-2 rounded-0">
                   {session.user.role}
-                </span>
+                </div>
               )}
-            </span>
+            </Link>
 
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}

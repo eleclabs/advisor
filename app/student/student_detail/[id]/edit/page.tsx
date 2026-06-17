@@ -160,7 +160,7 @@ export default function EditStudentPage() {
   useEffect(() => {
     const fetchStudentData = async () => {
       if (!studentDocId) {
-        setError("ไม่พบรหัสนักศึกษา");
+        setError("ไม่พบรหัสผู้เรียน");
         setLoading(false);
         return;
       }
@@ -268,7 +268,7 @@ export default function EditStudentPage() {
         );
         
         if (existingStudent) {
-          alert("รหัสนักศึกษานี้มีอยู่ในระบบแล้ว");
+          alert("รหัสผู้เรียน นี้มีอยู่ในระบบแล้ว");
           setSaving(false);
           return;
         }
@@ -341,8 +341,9 @@ export default function EditStudentPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-pencil-square me-2 text-warning"></i>
-                แก้ไขข้อมูล: {studentData.first_name} {studentData.last_name}
+                การรู้จักผู้เรียนเป็นรายบุคคล 
               </h2>
+              <p> แก้ไขข้อมูล: {studentData.first_name} {studentData.last_name}</p>
               <div>
                 <Link 
                   href={`/student/student_detail/${studentDocId}`}
@@ -369,7 +370,7 @@ export default function EditStudentPage() {
                   <div className="row g-3">
                     {/* รูปโปรไฟล์ */}
                     <div className="col-md-12">
-                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์นักเรียน</label>
+                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์</label>
                       <div className="d-flex align-items-start gap-4">
                         <div className="text-center">
                           {imagePreview || studentData.image ? (
@@ -407,7 +408,7 @@ export default function EditStudentPage() {
 
                     <div className="col-md-3">
                       <label className="form-label text-uppercase fw-semibold small">
-                        รหัสนักศึกษา <span className="text-danger">*</span>
+                        รหัสผู้เรียน <span className="text-danger">*</span>
                       </label>
                       <input 
                         type="text" 

@@ -240,7 +240,7 @@ export default function InterviewViewPage() {
       <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="alert alert-danger mb-0 text-center">
           <i className="bi bi-exclamation-triangle-fill fs-1 d-block mb-3"></i>
-          <h5>ไม่พบข้อมูลนักเรียน</h5>
+          <h5>ไม่พบข้อมูล</h5>
           <Link href={`/student/student_detail/${studentDocId}`} className="btn btn-dark mt-3">
             <i className="bi bi-arrow-left me-2"></i>กลับไป
           </Link>
@@ -308,32 +308,34 @@ export default function InterviewViewPage() {
               <div>
                 <h2 className="text-uppercase fw-bold m-0">
                   <i className="bi bi-journal-text me-2 text-warning"></i>
-                  แบบคัดกรอง: {interviewData.student_name}
+                 การรู้จักผู้เรียนเป็นรายบุคคล: {interviewData.student_name}
                 </h2>
                 <p className="text-muted mb-0 mt-1">
                   <i className="bi bi-clock me-1"></i>บันทึกเมื่อ: {interviewData.created_at} | แก้ไขล่าสุด: {interviewData.updated_at}
                 </p>
               </div>
               <div>
+              {/*                 
                 <span
                   className={`badge bg-${getStatusColor(interviewData.student_group)} rounded-0 text-uppercase fw-semibold p-2 me-2`}
                 >
                   {interviewData.student_group}
-                </span>
+                </span> 
+              */}
                 {/* แสดงปุ่มแก้ไขบันทึกเฉพาะ admin/teacher เท่านั้น (student ไม่เห็น) */}
                 {!isStudentUser && (
                   <Link
                     href={`/student/student_detail/${studentDocId}/interview/edit`}
                     className="btn btn-warning rounded-0 text-uppercase fw-semibold me-2"
                   >
-                    <i className="bi bi-pencil me-2"></i>แก้ไขบันทึก
+                    <i className="bi bi-pencil me-2"></i>แก้ไข
                   </Link>
                 )}
                 <Link
                   href={`/student/student_detail/${studentDocId}`}
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold"
                 >
-                  <i className="bi bi-arrow-left me-2"></i>กลับข้อมูลพื้นฐาน
+                  <i className="bi bi-arrow-left me-2"></i>กลับ
                 </Link>
               </div>
             </div>
@@ -377,7 +379,7 @@ export default function InterviewViewPage() {
               <div className="p-3 border-bottom bg-dark">
                 <h5 className="text-uppercase fw-semibold m-0 text-white">
                   <i className="bi bi-house-heart me-2 text-warning"></i>
-                  ข้อมูลครอบครัวและการเป็นอยู่
+                  ข้อมูลครอบครัว
                 </h5>
               </div>
               <div className="p-3">
@@ -438,11 +440,11 @@ export default function InterviewViewPage() {
               </div>
               <div className="p-3">
                 <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ชอบ / จุดแข็ง</label>
+                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ชอบ/จุดแข็ง</label>
                   <p>{interviewData.strengths}</p>
                 </div>
                 <div className="mb-3">
-                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ไม่ถนัด / ปัญหาการเรียน</label>
+                  <label className="form-label text-uppercase fw-semibold small text-muted">วิชาที่ไม่ถนัด/ปัญหาการเรียน</label>
                   <p>{interviewData.weak_subjects}</p>
                 </div>
                 <div className="mb-3">
@@ -461,7 +463,7 @@ export default function InterviewViewPage() {
               <div className="p-3 border-bottom bg-dark">
                 <h5 className="text-uppercase fw-semibold m-0 text-white">
                   <i className="bi bi-heart-pulse me-2 text-warning"></i>
-                  ด้านสุขภาพและปัจจัยเสี่ยง
+                  ด้านสุขภาพ
                 </h5>
               </div>
               <div className="p-3">

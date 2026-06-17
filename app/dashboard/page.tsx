@@ -83,11 +83,11 @@ export default function Dashboard() {
                   <div className="mb-3">
                     <i className="bi bi-people-fill" style={{ fontSize: "3rem", color: "#007bff" }}></i>
                   </div>
-                  <h5 className="card-title">นักเรียน</h5>
+                  <h5 className="card-title">ผู้เรียน</h5>
                   <p className="display-4 fw-bold text-primary">
                     {loading ? "..." : stats?.studentCount || 0}
                   </p>
-                  <p className="text-muted">นักเรียนทั้งหมด</p>
+      
                 </div>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function Dashboard() {
                   <p className="display-4 fw-bold text-success">
                     {loading ? "..." : stats?.teacherCount || 0}
                   </p>
-                  <p className="text-muted">ครูทั้งหมด</p>
+            
                 </div>
               </div>
             </div>
@@ -117,7 +117,7 @@ export default function Dashboard() {
                   <p className="display-4 fw-bold text-danger">
                     {loading ? "..." : stats?.adminCount || 0}
                   </p>
-                  <p className="text-muted">ผู้ดูแลระบบทั้งหมด</p>
+          
                 </div>
               </div>
             </div>
@@ -135,8 +135,8 @@ export default function Dashboard() {
                     <div className="mb-3">
                       <i className="bi bi-person-lines-fill" style={{ fontSize: "3rem", color: "#007bff" }}></i>
                     </div>
-                    <h5 className="card-title">จัดการนักเรียน</h5>
-                    <p className="text-muted">ดูและจัดการข้อมูลนักเรียน</p>
+                    <h5 className="card-title">จัดการผู้เรียน</h5>
+           
                     <Link href="/student" className="btn btn-primary w-100">
                       <i className="bi bi-arrow-right me-1"></i> ไปยังนักเรียน
                     </Link>
@@ -152,7 +152,6 @@ export default function Dashboard() {
                     <i className="bi bi-file-earmark-bar-graph-fill" style={{ fontSize: "3rem", color: "#28a745" }}></i>
                   </div>
                   <h5 className="card-title">รายงานและสถิติ</h5>
-                  <p className="text-muted">ดูรายงานและการวิเคราะห์โดยละเอียด</p>
                   <Link href="/student/report" className="btn btn-outline-primary w-100">
                     <i className="bi bi-graph-up me-1"></i> ดูรายงาน
                   </Link>

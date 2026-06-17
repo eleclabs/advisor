@@ -42,7 +42,7 @@ export default function Navbar() {
                     className={`nav-link ${pathname.startsWith('/students') ? 'active' : ''}`} 
                     href="/students"
                   >
-                    นักเรียน
+                    ผู้เรียน
                   </Link>
                 </li>
                 <li className="nav-item">

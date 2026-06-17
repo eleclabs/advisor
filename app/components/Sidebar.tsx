@@ -37,7 +37,7 @@ export default function Sidebar() {
     { id: "problem", name: "การป้องกันและแก้ปัญหา", href: "/student_problem", icon: "bi-shield" },
     { id: "send", name: "การส่งต่อผู้เรียน", href: "/student_send", icon: "bi-send" },
     { id: "report", name: "การรายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
-    { id: "forms", name: "แบบฟอร์ม/เครื่องมือ", href: "/forms", icon: "bi-file-earmark-text" },
+    { id: "forms", name: "แบบฟอร์ม SDQ/DASS-21", href: "/forms", icon: "bi-file-earmark-text" },
   /*   { id: "evaluation", name: "⭐ แบบประเมินความพึงพอใจ", href: "/evaluation", icon: "bi-star" }, */
   ];
 

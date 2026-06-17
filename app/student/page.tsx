@@ -530,7 +530,7 @@ function StudentListPage() {
           <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
             <h2 className="text-uppercase fw-bold m-0">
               <i className="bi bi-people-fill me-2 text-warning"></i>
-              {getPageTitle()}
+              การรู้จักผู้เรียนเป็นรายบุคคล : {getPageTitle()}
             </h2>
           </div>
         </div>
@@ -613,7 +613,7 @@ function StudentListPage() {
               href="/student/student_filter"
               className="btn btn-warning rounded-0 w-100 text-uppercase fw-semibold"
             >
-              <i className="bi bi-funnel me-2"></i>เลือกนักเรียน
+              <i className="bi bi-funnel me-2"></i>เลือกผู้เรียน
             </Link>
           )}
         </div>
@@ -653,7 +653,7 @@ function StudentListPage() {
                   href="/student/student_filter"
                   className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
                 >
-                  <i className="bi bi-funnel me-2"></i>เลือกนักเรียน
+                  <i className="bi bi-funnel me-2"></i>เลือกผู้เรียน
                 </Link>
                 <Link
                   href="/student/student_add"
@@ -693,7 +693,7 @@ function StudentListPage() {
                 <thead className="bg-dark text-white">
                   <tr>
                     <th className="text-center" style={{width: "50px"}}>ลำดับ</th>
-                    <th className="text-uppercase fw-semibold">รหัสนักศึกษา</th>
+                    <th className="text-uppercase fw-semibold">รหัสผู้เรียน</th>
                     <th className="text-uppercase fw-semibold">ชื่อ-นามสกุล</th>
                     <th className="text-uppercase fw-semibold">ระดับชั้น</th>
                     <th className="text-uppercase fw-semibold">สาขาวิชา</th>
