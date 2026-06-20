@@ -146,7 +146,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
       <div className="container py-5">
         <div className="text-center">
           <i className="bi bi-exclamation-triangle fs-1 text-warning d-block mb-3"></i>
-          <h4>ไม่พบข้อมูลนักเรียน</h4>
+          <h4>ไม่พบข้อมูลผู้เรียน</h4>
           <p className="text-muted">อาจถูกลบหรือไม่มีอยู่ในระบบ</p>
           <Link href="/student_problem" className="btn btn-warning mt-3">
             <i className="bi bi-arrow-left me-2"></i>กลับไปหน้ารายการ
@@ -164,14 +164,14 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
           <div className="d-flex justify-content-between align-items-center border-bottom border-3 border-warning pb-2">
             <h2 className="fw-bold">
               <i className="bi bi-person text-warning me-2"></i>
-              รายละเอียดนักเรียน: {problem.student_name}
+              รายละเอียดผู้เรียน: {problem.student_name}
             </h2>
             <div>
               <Link href={`/student_problem/${problem._id}/edit`} className="btn btn-warning btn-sm me-2">
                 <i className="bi bi-pencil me-1"></i>แก้ไขแผน
               </Link>
               <Link href={`/student_problem/${problem._id}/result`} className="btn btn-info btn-sm">
-                <i className="bi bi-bar-chart me-1"></i>ผลประเมิน
+                <i className="bi bi-bar-chart me-1"></i>ประเมินผล
               </Link>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                 className={`nav-link ${activeTab === 'isp' ? 'active bg-dark text-white' : ''}`}
                 onClick={() => setActiveTab('isp')}
               >
-                <i className="bi bi-clipboard-check me-2"></i>แผน ISP
+                <i className="bi bi-clipboard-check me-2"></i>แผน
               </button>
             </li>
             <li className="nav-item">
@@ -228,7 +228,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                 <div className="row">
                   <div className="col-md-6">
                     <div className="mb-4">
-                      <h6 className="text-muted mb-2">รหัสนักเรียน</h6>
+                      <h6 className="text-muted mb-2">รหัส</h6>
                       <p className="fs-5 fw-bold">{problem.student_id}</p>
                     </div>
                     <div className="mb-4">
@@ -250,19 +250,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                         {problem.isp_status || 'ไม่ระบุ'}
                       </span>
                     </div>
-                    <div className="mb-4">
-                      <h6 className="text-muted mb-2">ความคืบหน้า</h6>
-                      <div className="d-flex align-items-center">
-                        <div className="progress flex-grow-1" style={{ height: '20px' }}>
-                          <div 
-                            className={`progress-bar bg-${getProgressColor(problem.progress || 0)}`}
-                            style={{ width: `${problem.progress || 0}%` }}
-                          >
-                            {problem.progress || 0}%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    
                     <div className="mb-4">
                       <h6 className="text-muted mb-2">อัปเดตล่าสุด</h6>
                       <p>{formatDateTime(problem.updatedAt)}</p>
@@ -454,7 +442,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                       <thead className="table-light">
                         <tr>
                           <th>ครั้งที่</th>
-                          <th>วันที่ประเมิน</th>
+                          <th>วันที่</th>
                           <th>ระดับการเปลี่ยนแปลง</th>
                           <th>ผลสรุป</th>
                           <th>หมายเหตุ</th>

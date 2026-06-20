@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
       id: learn._id.toString(),
       title: learn.topic || 'ไม่มีหัวข้อ',
       level: learn.level || '-',
-      week: learn.week ? `สัปดาห์ที่ ${learn.week}` : '-',
+      week: learn.week ? ` ${learn.week}` : '-',
       semester: learn.semester ? `ภาคเรียนที่ ${learn.semester}` : '-',
       academicYear: learn.academicYear || '-',
       createdAt: learn.created_at || new Date(learn.createdAt).toLocaleDateString('th-TH'),

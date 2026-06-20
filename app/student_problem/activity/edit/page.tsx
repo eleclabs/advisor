@@ -1,7 +1,7 @@
 // D:\advisor-main\app\student_problem\activity\edit\page.tsx
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -30,7 +30,7 @@ interface Activity {
   }>;
 }
 
-function EditActivityContent() {
+export default function EditActivityPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -196,7 +196,7 @@ function EditActivityContent() {
             <div className="card-header bg-dark text-white">
               <h4 className="mb-0">
                 <i className="bi bi-pencil-square me-2"></i>
-                แก้ไขกิจกรรมสาขาวิชา
+                แก้ไขกิจกรรม
               </h4>
             </div>
             <div className="card-body">
@@ -283,7 +283,7 @@ function EditActivityContent() {
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label fw-bold">ละลายพฤติกรรม</label>
+                      <label className="form-label fw-bold">สรุปผลกิจกรรม</label>
                       <input
                         type="text"
                         className="form-control"
@@ -292,31 +292,15 @@ function EditActivityContent() {
                       />
                     </div>
 
-                    <div className="mb-3">
-                      <label className="form-label fw-bold">โจทย์สาขาวิชา</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={formData.group_task}
-                        onChange={(e) => setFormData({...formData, group_task: e.target.value})}
-                      />
-                    </div>
 
-                    <div className="mb-3">
-                      <label className="form-label fw-bold">ถอดบทเรียน (AAR)</label>
-                      <textarea
-                        className="form-control"
-                        rows={3}
-                        value={formData.debrief}
-                        onChange={(e) => setFormData({...formData, debrief: e.target.value})}
-                      />
-                    </div>
+
+                   
                   </div>
 
                   {/* ส่วนเลือกนักเรียน */}
                   <div className="col-md-5">
                     <h5 className="border-bottom pb-2 mb-3">
-                      👥 เลือกนักเรียนที่เข้าร่วม 
+                      👥 เลือกผู้เรียนที่เข้าร่วม 
                       <small className="text-muted ms-2">(ไม่บังคับ)</small>
                     </h5>
                     
@@ -328,7 +312,7 @@ function EditActivityContent() {
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="ค้นหาชื่อหรือรหัสนักเรียน..."
+                          placeholder="ค้นหาชื่อหรือรหัส..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -339,7 +323,7 @@ function EditActivityContent() {
                       <div className="border p-3 bg-light" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                         {filteredStudents.length === 0 ? (
                           <div className="text-center py-4">
-                            <p className="text-muted mb-0">ไม่พบนักเรียน</p>
+                            <p className="text-muted mb-0">ไม่พบผู้เรียน</p>
                           </div>
                         ) : (
                           filteredStudents.map((student) => (
@@ -374,17 +358,7 @@ function EditActivityContent() {
                     ยกเลิก
                   </Link>
                   <button type="submit" className="btn btn-warning" disabled={saving}>
-                    {saving ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2"></span>
-                        กำลังบันทึก...
-                      </>
-                    ) : (
-                      <>
-                        <i className="bi bi-check-circle me-2"></i>
-                        บันทึกการแก้ไข
-                      </>
-                    )}
+                    {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
                   </button>
                 </div>
               </form>
@@ -393,22 +367,5 @@ function EditActivityContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function EditActivityPage() {
-  return (
-    <Suspense fallback={
-      <div className="container py-5">
-        <div className="text-center">
-          <div className="spinner-border text-warning" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2 text-muted">กำลังโหลด...</p>
-        </div>
-      </div>
-    }>
-      <EditActivityContent />
-    </Suspense>
   );
 }

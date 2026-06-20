@@ -1,4 +1,3 @@
-// D:\advisor-main\app\student_problem\[id]\edit\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -30,6 +29,14 @@ interface Activity {
   updatedAt?: string;
 }
 
+// ✅ ตัวเลือกวิธีการแก้ไขเริ่มต้น
+const DEFAULT_METHODS = [
+  "การให้คำปรึกษาเบื้องต้น",
+  "กิจกรรมปรับเปลี่ยนพฤติกรรม",
+  "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง",
+  "การส่งต่อ"
+];
+
 export default function EditProblemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -41,13 +48,14 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   const [activitySearchTerm, setActivitySearchTerm] = useState("");
   
+  // ✅ State สำหรับวิธีการแก้ไขแบบไดนามิก
+  const [methods, setMethods] = useState<string[]>(DEFAULT_METHODS);
+  const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+  const [newMethod, setNewMethod] = useState("");
+  
   const [formData, setFormData] = useState({
     problem: "",
     goal: "",
-    counseling: false,
-    behavioral_contract: false,
-    home_visit: false,
-    referral: false,
     duration: "",
     responsible: "",
     progress: 0,
@@ -67,13 +75,26 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
       
       if (data.success && data.data) {
         setProblem(data.data);
+        
+        // ✅ โหลดวิธีการแก้ไขจาก API (ถ้ามี)
+        if (data.data.methods && Array.isArray(data.data.methods)) {
+          setSelectedMethods(data.data.methods);
+          // รวม methods จาก API เข้ากับ DEFAULT_METHODS
+          const allMethods = [...new Set([...DEFAULT_METHODS, ...data.data.methods])];
+          setMethods(allMethods);
+        } else {
+          // fallback จาก checkbox เก่า
+          const loadedMethods: string[] = [];
+          if (data.data.counseling) loadedMethods.push("การให้คำปรึกษาเบื้องต้น");
+          if (data.data.behavioral_contract) loadedMethods.push("กิจกรรมปรับเปลี่ยนพฤติกรรม");
+          if (data.data.home_visit) loadedMethods.push("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง");
+          if (data.data.referral) loadedMethods.push("การส่งต่อ");
+          setSelectedMethods(loadedMethods);
+        }
+        
         setFormData({
           problem: data.data.problem || "",
           goal: data.data.goal || "",
-          counseling: data.data.counseling || false,
-          behavioral_contract: data.data.behavioral_contract || false,
-          home_visit: data.data.home_visit || false,
-          referral: data.data.referral || false,
           duration: data.data.duration || "",
           responsible: data.data.responsible || "",
           progress: data.data.progress || 0,
@@ -83,7 +104,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
         // เตรียมกิจกรรมที่เลือกไว้แล้ว
         if (data.data.activities && data.data.activities.length > 0) {
           const selectedIds = data.data.activities
-            .filter((a: any) => a.activity_id) // กรองเฉพาะที่มี activity_id
+            .filter((a: any) => a.activity_id)
             .map((a: any) => a.activity_id.toString());
           setSelectedActivities(selectedIds);
         }
@@ -103,6 +124,31 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
     } catch (error) {
       console.error("Error fetching activities:", error);
     }
+  };
+
+  // ✅ Toggle วิธีการแก้ไข
+  const toggleMethod = (method: string) => {
+    setSelectedMethods(prev => 
+      prev.includes(method)
+        ? prev.filter(m => m !== method)
+        : [...prev, method]
+    );
+  };
+
+  // ✅ เพิ่มวิธีการแก้ไขใหม่
+  const addNewMethod = () => {
+    const trimmed = newMethod.trim();
+    if (trimmed && !methods.includes(trimmed)) {
+      setMethods(prev => [...prev, trimmed]);
+      setSelectedMethods(prev => [...prev, trimmed]);
+      setNewMethod("");
+    }
+  };
+
+  // ✅ ลบวิธีการแก้ไข (เฉพาะที่เพิ่มเอง)
+  const removeMethod = (method: string) => {
+    setMethods(prev => prev.filter(m => m !== method));
+    setSelectedMethods(prev => prev.filter(m => m !== method));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,12 +173,12 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
         } : null;
       }).filter(Boolean);
 
-      // อัปเดตแผน
       const res = await fetch(`/api/problem/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          methods: selectedMethods, // ✅ ส่งวิธีการแก้ไข
           activities: selectedActivitiesData
         })
       });
@@ -185,7 +231,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
             <div className="card-header bg-dark text-white">
               <h4 className="mb-0">
                 <i className="bi bi-pencil-square me-2"></i>
-                แก้ไขแผนการช่วยเหลือ
+                แก้ไขแผนการช่วยเหลือ (การป้องกันและแก้ไขปัญหา)
               </h4>
             </div>
             <div className="card-body">
@@ -210,7 +256,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                 <div className="row">
                   {/* ฟอร์มแผน ISP */}
                   <div className="col-md-6">
-                    <h5 className="border-bottom pb-2 mb-3">📋 แผน ISP</h5>
+                    <h5 className="border-bottom pb-2 mb-3">📋 แผน</h5>
                     
                     <div className="mb-3">
                       <label className="form-label fw-bold">ปัญหาที่พบ</label>
@@ -236,58 +282,77 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                       />
                     </div>
 
+                    {/* ✅ วิธีการแก้ไข - แบบไดนามิก */}
                     <div className="mb-3">
                       <label className="form-label fw-bold">วิธีการแก้ไข</label>
-                      <div className="border p-3">
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="counseling"
-                            checked={formData.counseling}
-                            onChange={(e) => setFormData({...formData, counseling: e.target.checked})}
-                          />
-                          <label className="form-check-label" htmlFor="counseling">
-                            การให้คำปรึกษาเบื้องต้น
-                          </label>
-                        </div>
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="behavioral"
-                            checked={formData.behavioral_contract}
-                            onChange={(e) => setFormData({...formData, behavioral_contract: e.target.checked})}
-                          />
-                          <label className="form-check-label" htmlFor="behavioral">
-                            กิจกรรมปรับเปลี่ยนพฤติกรรม
-                          </label>
-                        </div>
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="homevisit"
-                            checked={formData.home_visit}
-                            onChange={(e) => setFormData({...formData, home_visit: e.target.checked})}
-                          />
-                          <label className="form-check-label" htmlFor="homevisit">
-                            การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง
-                          </label>
-                        </div>
-                        <div className="form-check">
-                          <input
-                            type="checkbox"
-                            className="form-check-input"
-                            id="referral"
-                            checked={formData.referral}
-                            onChange={(e) => setFormData({...formData, referral: e.target.checked})}
-                          />
-                          <label className="form-check-label" htmlFor="referral">
-                            การส่งต่อ
-                          </label>
-                        </div>
+                      
+                      <div className="border p-3 mb-2">
+                        {methods.map((method) => (
+                          <div key={method} className="form-check d-flex align-items-center gap-2">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              id={`method-${method}`}
+                              checked={selectedMethods.includes(method)}
+                              onChange={() => toggleMethod(method)}
+                            />
+                            <label className="form-check-label flex-grow-1" htmlFor={`method-${method}`}>
+                              {method}
+                            </label>
+                            {!DEFAULT_METHODS.includes(method) && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-danger rounded-0"
+                                onClick={() => removeMethod(method)}
+                                title="ลบรายการนี้"
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
+
+                      {/* ✅ ช่องเพิ่มวิธีการแก้ไขใหม่ */}
+                      <div className="input-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="พิมพ์วิธีการแก้ไข..."
+                          value={newMethod}
+                          onChange={(e) => setNewMethod(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addNewMethod();
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-warning rounded-0"
+                          onClick={addNewMethod}
+                          disabled={!newMethod.trim()}
+                        >
+                          <i className="bi bi-plus-lg me-1"></i>เพิ่ม
+                        </button>
+                      </div>
+                      
+                      {selectedMethods.length > 0 && (
+                        <div className="mt-2">
+                          <span className="badge bg-success rounded-0">
+                            <i className="bi bi-check-circle me-1"></i>
+                            เลือก {selectedMethods.length} วิธี
+                          </span>
+                          <div className="mt-1">
+                            {selectedMethods.map(m => (
+                              <span key={m} className="badge bg-light text-dark me-1 mb-1 border">
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="row">
@@ -296,7 +361,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="เช่น 3 เดือน"
+                          placeholder=""
                           value={formData.duration}
                           onChange={(e) => setFormData({...formData, duration: e.target.value})}
                         />
@@ -314,17 +379,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                     </div>
 
                     <div className="row">
-                      <div className="col-md-6 mb-3">
-                        <label className="form-label fw-bold">ความคืบหน้า (%)</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          min="0"
-                          max="100"
-                          value={formData.progress}
-                          onChange={(e) => setFormData({...formData, progress: parseInt(e.target.value) || 0})}
-                        />
-                      </div>
+                      
                       <div className="col-md-6 mb-3">
                         <label className="form-label fw-bold">สถานะ</label>
                         <select

@@ -40,12 +40,12 @@ export async function GET(request: NextRequest) {
     const hyperactivityScore = calculateHyperactivityScore(answers);
     const peerScore = calculatePeerScore(answers);
     const prosocialScore = calculateProsocialScore(answers);
-    const totalScore = emotionalScore + conductScore + hyperactivityScore + peerScore + prosocialScore;
+    const totalScore = emotionalScore + conductScore + hyperactivityScore + peerScore;
     
     // กำหนดระดับความเสี่ยง
     let overallRisk = 'normal';
-    if (totalScore >= 20) overallRisk = 'high';
-    else if (totalScore >= 16) overallRisk = 'medium';
+    if (totalScore >= 19) overallRisk = 'high';
+    else if (totalScore >= 17) overallRisk = 'medium';
     
     return NextResponse.json({
       success: true,

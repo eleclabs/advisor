@@ -6,18 +6,13 @@ import Link from 'next/link';
 // ==================== CONSTANTS ====================
 const SDQ_CONSTANTS = {
   MAX_PER_CATEGORY: 10,
-  TOTAL_MAX: 40,
-  RISK_THRESHOLDS: {
-    HIGH: 80,
-    MEDIUM: 60,
-    LOW: 40
-  }
+  TOTAL_MAX: 40
 } as const;
 
 const RISK_CONFIG = {
-  high: { color: '#dc3545', label: 'เสี่ยงสูง', bgLight: '#fee' },
-  medium: { color: '#ffc107', label: 'เสี่ยงปานกลาง', bgLight: '#fff3cd' },
-  low: { color: '#fd7e14', label: 'เสี่ยงต่ำ', bgLight: '#ffe8e0' },
+  problem: { color: '#dc3545', label: 'มีปัญหา', bgLight: '#fee' },
+  risk: { color: '#ffc107', label: 'เสี่ยง', bgLight: '#fff3cd' },
+  borderline: { color: '#fd7e14', label: 'คาบเกี่ยว', bgLight: '#ffe8e0' },
   normal: { color: '#28a745', label: 'ปกติ', bgLight: '#e8f5e9' }
 } as const;
 
@@ -97,14 +92,70 @@ const getRiskConfig = (risk: string): { color: string; label: string; bgLight: s
   return RISK_CONFIG[risk as RiskLevel] || RISK_CONFIG.normal;
 };
 
-const getScoreColor = (score: number, maxScore: number): string => {
-  if (maxScore <= 0) return RISK_CONFIG.normal.color;
-  const percentage = (score / maxScore) * 100;
+const getScoreColor = (score: number, category: string): string => {
+  // Emotional: 0-5 normal, 6 risk, 7-10 problem
+  if (category === 'emotional') {
+    if (score <= 5) return RISK_CONFIG.normal.color;
+    if (score === 6) return RISK_CONFIG.risk.color;
+    return RISK_CONFIG.problem.color;
+  }
   
-  if (percentage >= SDQ_CONSTANTS.RISK_THRESHOLDS.HIGH) return RISK_CONFIG.high.color;
-  if (percentage >= SDQ_CONSTANTS.RISK_THRESHOLDS.MEDIUM) return RISK_CONFIG.medium.color;
-  if (percentage >= SDQ_CONSTANTS.RISK_THRESHOLDS.LOW) return RISK_CONFIG.low.color;
+  // Conduct: 0-4 normal, 5 risk, 6-10 problem
+  if (category === 'conduct') {
+    if (score <= 4) return RISK_CONFIG.normal.color;
+    if (score === 5) return RISK_CONFIG.risk.color;
+    return RISK_CONFIG.problem.color;
+  }
+  
+  // Hyperactivity: 0-5 normal, 6 risk, 7-10 problem
+  if (category === 'hyperactivity') {
+    if (score <= 5) return RISK_CONFIG.normal.color;
+    if (score === 6) return RISK_CONFIG.risk.color;
+    return RISK_CONFIG.problem.color;
+  }
+  
+  // Peer: 0-3 normal, 4 risk, 5-10 problem
+  if (category === 'peer') {
+    if (score <= 3) return RISK_CONFIG.normal.color;
+    if (score === 4) return RISK_CONFIG.risk.color;
+    return RISK_CONFIG.problem.color;
+  }
+  
+  // Prosocial: 4-10 strength, 0-3 below threshold
+  if (category === 'prosocial') {
+    if (score >= 4) return RISK_CONFIG.normal.color;
+    return RISK_CONFIG.problem.color;
+  }
+  
+  // Total (4 aspects): 0-15 normal, 16-19 borderline, 20+ problem
+  if (category === 'total') {
+    if (score <= 15) return RISK_CONFIG.normal.color;
+    if (score <= 19) return RISK_CONFIG.borderline.color;
+    return RISK_CONFIG.problem.color;
+  }
+  
   return RISK_CONFIG.normal.color;
+};
+
+// ✅ ฟังก์ชันคำนวณระดับความเสี่ยงจากคะแนนรวม 4 ด้าน (ตามเกณฑ์มาตรฐาน SDQ)
+const calculateRiskLevelFromTotalScore = (totalScore: number): RiskLevel => {
+  if (totalScore <= 15) return 'normal';
+  if (totalScore <= 19) return 'borderline';
+  return 'problem';
+};
+
+// ✅ ฟังก์ชันคำนวณคะแนนรวม 4 ด้านจริงๆ (ไม่รวม prosocial)
+const calculateActualTotalScore = (response: SDQResponse): number => {
+  return response.emotionalScore + response.conductScore + response.hyperactivityScore + response.peerScore;
+};
+
+const getSDQTotalInterpretation = (totalScore: number): { interpretation: string; color: string } => {
+  if (!totalScore && totalScore !== 0) {
+    return { interpretation: 'ยังไม่ประเมิน', color: '#6c757d' };
+  }
+  if (totalScore <= 15) return { interpretation: 'ปกติ', color: '#28a745' };
+  if (totalScore <= 19) return { interpretation: 'คาบเกี่ยว', color: '#fd7e14' };
+  return { interpretation: 'มีปัญหา', color: '#dc3545' };
 };
 
 const validateSDQResponse = (response: SDQResponse): boolean => {
@@ -203,7 +254,19 @@ const useSDQResponses = (studentId: string) => {
         if (data.success && Array.isArray(data.data)) {
           // Validate and sort responses (newest first)
           const validResponses = data.data.filter(validateSDQResponse);
-          const sortedResponses = validResponses.sort((a: any, b: any): number => 
+          
+          // ✅ แก้ไข: คำนวณ totalScore และ overallRisk ใหม่ให้ถูกต้อง
+          const fixedResponses = validResponses.map((resp: SDQResponse) => {
+            const actualTotal = calculateActualTotalScore(resp);
+            const correctRisk = calculateRiskLevelFromTotalScore(actualTotal);
+            return {
+              ...resp,
+              totalScore: actualTotal,
+              overallRisk: correctRisk
+            };
+          });
+          
+          const sortedResponses = fixedResponses.sort((a: any, b: any): number => 
             new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
           );
           setResponses(sortedResponses);
@@ -396,14 +459,14 @@ const StatCard: React.FC<StatCardProps> = ({ value, label, color = '#007bff' }) 
 
 interface ScoreCellProps {
   score: number;
-  maxScore: number;
+  category: string;
 }
 
-const ScoreCell: React.FC<ScoreCellProps> = ({ score, maxScore }) => (
+const ScoreCell: React.FC<ScoreCellProps> = ({ score, category }) => (
   <td style={{
     padding: '12px 16px',
     fontSize: '14px',
-    color: getScoreColor(score, maxScore),
+    color: getScoreColor(score, category),
     borderBottom: '1px solid #e9ecef',
     textAlign: 'center',
     fontWeight: 500
@@ -448,6 +511,19 @@ export default function StudentSDQResultsPage() {
   
   // Memoized computed values
   const latestResponse = useMemo(() => responses[0], [responses]);
+  
+  // ✅ คำนวณคะแนนล่าสุด (รวม 4 ด้าน) จากข้อมูลจริง
+  const latestTotalScore = useMemo(() => {
+    if (!latestResponse) return 0;
+    return calculateActualTotalScore(latestResponse);
+  }, [latestResponse]);
+  
+  // ✅ คำนวณระดับความเสี่ยงล่าสุดจากคะแนนจริง
+  const latestRiskLevel = useMemo(() => {
+    if (!latestResponse) return 'normal';
+    return calculateRiskLevelFromTotalScore(latestTotalScore);
+  }, [latestResponse, latestTotalScore]);
+  
   const totalEvaluations = useMemo(() => responses.length, [responses]);
   const hasResponses = useMemo(() => responses.length > 0, [responses]);
   
@@ -467,8 +543,8 @@ export default function StudentSDQResultsPage() {
   
   // Handle new assessment
   const handleNewAssessment = useCallback(() => {
-    router.push(`/assessment?type=sdq&studentId=${studentDocId}`);
-  }, [router, studentDocId]);
+    router.push(`/assessment?type=sdq&studentId=${student?.id || studentDocId}`);
+  }, [router, student, studentDocId]);
   
   // Handle back navigation
   const handleBack = useCallback(() => {
@@ -509,7 +585,7 @@ export default function StudentSDQResultsPage() {
           <EmptyState
             message="ยังไม่มีข้อมูลการประเมิน SDQ"
             description="นักเรียนยังไม่เคยได้รับการประเมินด้วยแบบ SDQ"
-            actionLink={`/assessment?type=sdq&studentId=${studentDocId}`}
+            actionLink={`/assessment?type=sdq&studentId=${student?.id || studentDocId}`}
             actionLabel="เริ่มทำแบบประเมิน SDQ"
           />
         </div>
@@ -540,14 +616,14 @@ export default function StudentSDQResultsPage() {
         }}>
           <StatCard value={totalEvaluations} label="ครั้งที่ประเมิน" color="#007bff" />
           <StatCard 
-            value={latestResponse?.totalScore || 0} 
-            label="คะแนนล่าสุด" 
-            color={getScoreColor(latestResponse?.totalScore || 0, SDQ_CONSTANTS.TOTAL_MAX)}
+            value={`${latestTotalScore} `}
+            label="คะแนนล่าสุด (รวม 4 ด้าน)"
+            color={getScoreColor(latestTotalScore, 'total')}
           />
           <StatCard 
-            value={getRiskConfig(latestResponse?.overallRisk || 'normal').label} 
+            value={getRiskConfig(latestRiskLevel).label} 
             label="ระดับความเสี่ยงล่าสุด"
-            color={getRiskConfig(latestResponse?.overallRisk || 'normal').color}
+            color={getRiskConfig(latestRiskLevel).color}
           />
         </div>
         
@@ -723,6 +799,9 @@ interface ResponseRowProps {
 const ResponseRow: React.FC<ResponseRowProps> = ({ response, index, totalCount }) => {
   const rowNumber = totalCount - index;
   
+  // ✅ คำนวณคะแนนรวมจริงสำหรับแถวนี้ (เผื่อไว้ใช้)
+  const actualTotal = response.emotionalScore + response.conductScore + response.hyperactivityScore + response.peerScore;
+  
   return (
     <tr style={{
       backgroundColor: index % 2 === 0 ? 'white' : '#fafafa',
@@ -747,12 +826,12 @@ const ResponseRow: React.FC<ResponseRowProps> = ({ response, index, totalCount }
       }}>
         {formatDate(response.submittedAt)}
       </td>
-      <ScoreCell score={response.emotionalScore} maxScore={SDQ_CONSTANTS.MAX_PER_CATEGORY} />
-      <ScoreCell score={response.conductScore} maxScore={SDQ_CONSTANTS.MAX_PER_CATEGORY} />
-      <ScoreCell score={response.hyperactivityScore} maxScore={SDQ_CONSTANTS.MAX_PER_CATEGORY} />
-      <ScoreCell score={response.peerScore} maxScore={SDQ_CONSTANTS.MAX_PER_CATEGORY} />
-      <ScoreCell score={response.prosocialScore} maxScore={SDQ_CONSTANTS.MAX_PER_CATEGORY} />
-      <ScoreCell score={response.totalScore} maxScore={SDQ_CONSTANTS.TOTAL_MAX} />
+      <ScoreCell score={response.emotionalScore} category="emotional" />
+      <ScoreCell score={response.conductScore} category="conduct" />
+      <ScoreCell score={response.hyperactivityScore} category="hyperactivity" />
+      <ScoreCell score={response.peerScore} category="peer" />
+      <ScoreCell score={response.prosocialScore} category="prosocial" />
+      <ScoreCell score={actualTotal} category="total" />
       <td style={{
         padding: '12px 16px',
         fontSize: '14px',

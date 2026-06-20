@@ -87,7 +87,7 @@ export default function LoginPage() {
           <div className="col-md-6 col-lg-5">
             <div className="card shadow-lg border-0 rounded-0">
               {/* Header */}
-              <div className="card-header bg-dark text-white text-center py-4 rounded-0">
+              <div className="card-header bg-primary text-white text-center py-4 rounded-0">
                 <h3 className="fw-bold mb-0">
                   <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
                   ระบบดูแลช่วยเหลือผู้เรียน

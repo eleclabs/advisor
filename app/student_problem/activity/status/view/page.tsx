@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function ActivityStatusContent() {
+export default function ActivityStatusViewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -191,7 +191,7 @@ function ActivityStatusContent() {
                 <i className="bi bi-pencil me-2"></i>แก้ไขสถานะ
               </Link>
               <Link href={`/student_problem/${student.student_id}`} className="btn btn-info rounded-0 text-uppercase fw-semibold">
-                <i className="bi bi-person-circle me-2"></i>โปรไฟล์นักเรียน
+                <i className="bi bi-person-circle me-2"></i>โปรไฟล์ผู้เรียน
               </Link>
             </div>
           </div>
@@ -202,11 +202,11 @@ function ActivityStatusContent() {
                 <div className="p-3 border-bottom bg-dark">
                   <h6 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-person me-2 text-warning"></i>
-                    ข้อมูลนักเรียน
+                    ข้อมูลผู้เรียน
                   </h6>
                 </div>
                 <div className="p-3">
-                  <p className="mb-2"><strong>รหัสนักเรียน:</strong> {student.student_id}</p>
+                  <p className="mb-2"><strong>รหัส:</strong> {student.student_id}</p>
                   <p className="mb-2"><strong>ชื่อ:</strong> {student.student_name}</p>
                   <p className="mb-2"><strong>ระดับ:</strong> {student.level}</p>
                   <p className="mb-0"><strong>ชั้น/ห้อง:</strong> {student.class_group}/{student.class_number}</p>
@@ -281,12 +281,12 @@ function ActivityStatusContent() {
                   {!activityData || activityData.status === 'ยังไม่เข้าร่วม' ? (
                     <div className="alert alert-warning rounded-0" role="alert">
                       <i className="bi bi-exclamation-triangle me-2"></i>
-                      นักเรียนยังไม่ได้เข้าร่วมกิจกรรมนี้
+                      ผู้เรียนยังไม่ได้เข้าร่วมกิจกรรมนี้
                     </div>
                   ) : (
                     <div className="alert alert-success rounded-0" role="alert">
                       <i className="bi bi-check-circle me-2"></i>
-                      นักเรียน{activityData.status === 'เสร็จสิ้น' ? 'ได้เข้าร่วมและเสร็จสิ้นกิจกรรมนี้แล้ว' : 'ได้เข้าร่วมกิจกรรมนี้แล้ว'}
+                      ผู้เรียน{activityData.status === 'เสร็จสิ้น' ? 'ได้เข้าร่วมและเสร็จสิ้นกิจกรรมนี้แล้ว' : 'ได้เข้าร่วมกิจกรรมนี้แล้ว'}
                     </div>
                   )}
                 </div>
@@ -310,21 +310,5 @@ function ActivityStatusContent() {
         </div>
       </footer>
     </div>
-  );
-}
-
-export default function ActivityStatusViewPage() {
-  return (
-    <Suspense fallback={
-      <div className="d-flex flex-column min-vh-100 bg-light">
-        <div className="flex-grow-1 d-flex align-items-center justify-content-center">
-          <div className="spinner-border text-warning" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      </div>
-    }>
-      <ActivityStatusContent />
-    </Suspense>
   );
 }

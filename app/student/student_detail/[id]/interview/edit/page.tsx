@@ -53,9 +53,7 @@ interface InterviewFormData {
 export default function InterviewEditPage() {
   const router = useRouter();
   const params = useParams();
-  const studentDocId = params?.id as string;  // รับ _id จาก URL
-  
-  console.log("📝 Student _id from params:", studentDocId);
+  const studentDocId = params?.id as string;
 
   const [student, setStudent] = useState<StudentBasicInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +63,12 @@ export default function InterviewEditPage() {
   // State สำหรับจัดการไฟล์เยี่ยมบ้าน
   const [homeVisitFiles, setHomeVisitFiles] = useState<File[]>([]);
   const [existingHomeVisitFiles, setExistingHomeVisitFiles] = useState<{ name: string; url: string }[]>([]);
+  
+  // State สำหรับ "อื่นๆ"
+  const [otherRiskBehavior, setOtherRiskBehavior] = useState("");
+  const [otherAssistanceNeed, setOtherAssistanceNeed] = useState("");
+  const [showOtherRisk, setShowOtherRisk] = useState(false);
+  const [showOtherAssistance, setShowOtherAssistance] = useState(false);
   
   const [formData, setFormData] = useState<InterviewFormData>({
     student_id: "",
@@ -100,17 +104,12 @@ export default function InterviewEditPage() {
   });
 
   useEffect(() => {
-   
-  }, []);
-
-  useEffect(() => {
     const fetchData = async () => {
       if (!studentDocId) return;
       
       try {
         setLoading(true);
         
-        // ดึงข้อมูลนักเรียนและข้อมูลเยี่ยมบ้าน
         const studentRes = await fetch(`/api/student/${studentDocId}`);
         const studentResult = await studentRes.json();
         
@@ -128,7 +127,30 @@ export default function InterviewEditPage() {
             class_group: studentData.class_group || "",
           });
           
-          // ดึงข้อมูลการสัมภาษณ์จาก student data
+          // จัดการข้อมูล risk_behaviors แยก "อื่นๆ"
+          let riskBehaviors = studentData.risk_behaviors || [];
+          let otherRiskValue = "";
+          let showOtherRiskFlag = false;
+          
+          const otherRiskItem = riskBehaviors.find((r: string) => r.startsWith("อื่นๆ:"));
+          if (otherRiskItem) {
+            otherRiskValue = otherRiskItem.replace("อื่นๆ:", "");
+            riskBehaviors = riskBehaviors.filter((r: string) => !r.startsWith("อื่นๆ:"));
+            showOtherRiskFlag = true;
+          }
+          
+          // จัดการข้อมูล assistance_needs แยก "อื่นๆ"
+          let assistanceNeeds = studentData.assistance_needs || [];
+          let otherAssistanceValue = "";
+          let showOtherAssistanceFlag = false;
+          
+          const otherAssistanceItem = assistanceNeeds.find((a: string) => a.startsWith("อื่นๆ:"));
+          if (otherAssistanceItem) {
+            otherAssistanceValue = otherAssistanceItem.replace("อื่นๆ:", "");
+            assistanceNeeds = assistanceNeeds.filter((a: string) => !a.startsWith("อื่นๆ:"));
+            showOtherAssistanceFlag = true;
+          }
+          
           setFormData(prev => ({
             ...prev,
             student_id: studentData.id || "",
@@ -148,22 +170,25 @@ export default function InterviewEditPage() {
             hobbies: studentData.hobbies || "",
             home_behavior: studentData.home_behavior || "",
             chronic_disease: studentData.chronic_disease || "",
-            risk_behaviors: studentData.risk_behaviors || [],
+            risk_behaviors: riskBehaviors,
             parent_concerns: studentData.parent_concerns || "",
             family_income: studentData.family_income || "",
             daily_allowance: studentData.daily_allowance || "",
-            assistance_needs: studentData.assistance_needs || [],
+            assistance_needs: assistanceNeeds,
             student_group: studentData.student_group || "ปกติ",
             help_guidelines: studentData.help_guidelines || "",
             home_visit_file: studentData.home_visit_file || ""
           }));
           
-          // ดึงไฟล์เยี่ยมบ้านที่มีอยู่
+          setOtherRiskBehavior(otherRiskValue);
+          setShowOtherRisk(showOtherRiskFlag);
+          setOtherAssistanceNeed(otherAssistanceValue);
+          setShowOtherAssistance(showOtherAssistanceFlag);
+          
           if (studentData.home_visit_files && Array.isArray(studentData.home_visit_files)) {
             setExistingHomeVisitFiles(studentData.home_visit_files);
           }
           
-          // ถ้ามีข้อมูลการสัมภาษณ์อยู่แล้ว ให้เป็น edit mode
           if (studentData.parent_name || studentData.family_status?.length > 0) {
             setIsEditMode(true);
           }
@@ -181,6 +206,23 @@ export default function InterviewEditPage() {
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
     const { value, checked } = e.target;
+    
+    if (field === "risk_behaviors" && value === "อื่นๆ") {
+      setShowOtherRisk(checked);
+      if (!checked) {
+        setOtherRiskBehavior("");
+      }
+      return;
+    }
+    
+    if (field === "assistance_needs" && value === "อื่นๆ") {
+      setShowOtherAssistance(checked);
+      if (!checked) {
+        setOtherAssistanceNeed("");
+      }
+      return;
+    }
+    
     setFormData(prev => {
       const currentValues = prev[field as keyof InterviewFormData] as string[] || [];
       if (checked) {
@@ -199,7 +241,6 @@ export default function InterviewEditPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      // ตรวจสอบว่ามีไฟล์ซ้ำหรือไม่
       const currentFileNames = homeVisitFiles.map(f => f.name);
       const existingFileNames = existingHomeVisitFiles.map(m => m.name);
       const allFileNames = [...currentFileNames, ...existingFileNames];
@@ -208,7 +249,6 @@ export default function InterviewEditPage() {
       
       if (uniqueFiles.length > 0) {
         setHomeVisitFiles(prev => [...prev, ...uniqueFiles]);
-        console.log(`✅ Added ${uniqueFiles.length} new files:`, uniqueFiles.map(f => f.name));
       }
     }
   };
@@ -226,12 +266,27 @@ export default function InterviewEditPage() {
     setSaving(true);
     
     try {
-      // สร้าง FormData สำหรับส่งไฟล์และข้อมูล
       const submitFormData = new FormData();
+      
+      // เตรียมข้อมูล risk_behaviors รวม "อื่นๆ"
+      let finalRiskBehaviors = [...formData.risk_behaviors];
+      if (showOtherRisk && otherRiskBehavior.trim()) {
+        finalRiskBehaviors.push(`อื่นๆ:${otherRiskBehavior.trim()}`);
+      }
+      
+      // เตรียมข้อมูล assistance_needs รวม "อื่นๆ"
+      let finalAssistanceNeeds = [...formData.assistance_needs];
+      if (showOtherAssistance && otherAssistanceNeed.trim()) {
+        finalAssistanceNeeds.push(`อื่นๆ:${otherAssistanceNeed.trim()}`);
+      }
       
       // เพิ่มข้อมูลฟอร์มทั้งหมด
       Object.entries(formData).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
+        if (key === "risk_behaviors") {
+          submitFormData.append(key, JSON.stringify(finalRiskBehaviors));
+        } else if (key === "assistance_needs") {
+          submitFormData.append(key, JSON.stringify(finalAssistanceNeeds));
+        } else if (Array.isArray(value)) {
           submitFormData.append(key, JSON.stringify(value));
         } else {
           submitFormData.append(key, String(value));
@@ -248,14 +303,9 @@ export default function InterviewEditPage() {
         submitFormData.append(`existingHomeVisitFiles[${index}]`, JSON.stringify(file));
       });
       
-      // ถ้าไม่มีไฟล์เดิมและไม่มีไฟล์ใหม่ ให้ส่งค่าว่างเพื่อล้างข้อมูลเดิม
       if (existingHomeVisitFiles.length === 0 && homeVisitFiles.length === 0) {
         submitFormData.append('home_visit_files_clear', 'true');
       }
-      
-      console.log("📤 Submitting FormData with files:");
-      console.log("  New files count:", homeVisitFiles.length);
-      console.log("  Existing files count:", existingHomeVisitFiles.length);
       
       const response = await fetch(`/api/student/${studentDocId}`, {
         method: 'PUT',
@@ -278,7 +328,7 @@ export default function InterviewEditPage() {
   };
 
   const getStatusColor = () => {
-    if (formData.risk_behaviors.length > 0 || formData.student_group === "มีปัญหา") return "danger";
+    if (formData.risk_behaviors.length > 0 || (showOtherRisk && otherRiskBehavior) || formData.student_group === "มีปัญหา") return "danger";
     if (formData.student_group === "เสี่ยง" || formData.family_status.includes("หย่าร้าง")) return "warning";
     return "success";
   };
@@ -308,7 +358,6 @@ export default function InterviewEditPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      
       <div className="container-fluid py-4">
         {/* Page Header */}
         <div className="row mb-4">
@@ -322,7 +371,7 @@ export default function InterviewEditPage() {
                 <span 
                   className={`badge bg-${getStatusColor()} rounded-0 text-uppercase fw-semibold p-2 me-2`}
                 >
-                  สรุปสถานะ: {formData.student_group}
+                 
                 </span>
                 <Link
                   href={`/student/student_detail/${studentDocId}/interview`}
@@ -363,7 +412,7 @@ export default function InterviewEditPage() {
                           <span className="ms-2">{student.level}</span>
                         </div>
                         <div className="col-md-6 mb-2">
-                          <span className="text-uppercase fw-semibold small">สาขาวิชา:</span>
+                          <span className="text-uppercase fw-semibold small">สาขา:</span>
                           <span className="ms-2">{student.class_group || "-"}</span>
                         </div>
                       </div>
@@ -459,7 +508,7 @@ export default function InterviewEditPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-house-heart me-2 text-warning"></i>
-                    2. สถานภาพครอบครัวและการเป็นอยู่
+                    2. สถานภาพครอบครัว
                   </h5>
                 </div>
                 <div className="p-3">
@@ -533,36 +582,40 @@ export default function InterviewEditPage() {
                           <label className="form-check-label">บิดา-มารดา</label>
                         </div>
                       </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="radio" 
-                            name="living_with"
-                            className="form-check-input rounded-0" 
-                            value="บุคคลอื่น"
-                            checked={formData.living_with === "บุคคลอื่น"}
-                            onChange={handleInputChange}
-                          />
-                          <label className="form-check-label">บุคคลอื่น</label>
+                      <div className="col-md-9">
+                        <div className="row align-items-center">
+                          <div className="col-auto">
+                            <div className="form-check">
+                              <input 
+                                type="radio" 
+                                name="living_with"
+                                className="form-check-input rounded-0" 
+                                value="บุคคลอื่น"
+                                checked={formData.living_with === "บุคคลอื่น"}
+                                onChange={handleInputChange}
+                              />
+                              <label className="form-check-label">บุคคลอื่น</label>
+                            </div>
+                          </div>
+                          <div className="col">
+                            <input 
+                              type="text" 
+                              className="form-control rounded-0" 
+                              placeholder="ระบุ"
+                              value={formData.living_with_other}
+                              onChange={(e) => setFormData(prev => ({ ...prev, living_with_other: e.target.value }))}
+                              disabled={formData.living_with !== "บุคคลอื่น"}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-md-6">
-                        <input 
-                          type="text" 
-                          className="form-control rounded-0" 
-                          placeholder="ระบุ"
-                          value={formData.living_with_other}
-                          onChange={(e) => setFormData(prev => ({ ...prev, living_with_other: e.target.value }))}
-                          disabled={formData.living_with !== "บุคคลอื่น"}
-                        />
                       </div>
                     </div>
                   </div>
 
                   <div className="mb-3">
                     <label className="form-label text-uppercase fw-semibold small">ลักษณะที่อยู่อาศัย</label>
-                    <div className="row">
-                      <div className="col-md-3">
+                    <div className="row g-3 mb-2">
+                      <div className="col-6 col-md-4">
                         <div className="form-check">
                           <input 
                             type="radio" 
@@ -575,7 +628,7 @@ export default function InterviewEditPage() {
                           <label className="form-check-label">บ้านตนเอง</label>
                         </div>
                       </div>
-                      <div className="col-md-3">
+                      <div className="col-6 col-md-4">
                         <div className="form-check">
                           <input 
                             type="radio" 
@@ -588,7 +641,7 @@ export default function InterviewEditPage() {
                           <label className="form-check-label">บ้านเช่า</label>
                         </div>
                       </div>
-                      <div className="col-md-3">
+                      <div className="col-6 col-md-4">
                         <div className="form-check">
                           <input 
                             type="radio" 
@@ -601,7 +654,10 @@ export default function InterviewEditPage() {
                           <label className="form-check-label">หอพัก</label>
                         </div>
                       </div>
-                      <div className="col-md-3">
+                    </div>
+                    
+                    <div className="row g-3 align-items-center">
+                      <div className="col-6 col-md-3">
                         <div className="form-check">
                           <input 
                             type="radio" 
@@ -614,7 +670,7 @@ export default function InterviewEditPage() {
                           <label className="form-check-label">อื่นๆ</label>
                         </div>
                       </div>
-                      <div className="col-md-6 mt-2">
+                      <div className="col-6 col-md-9">
                         <input 
                           type="text" 
                           className="form-control rounded-0" 
@@ -663,21 +719,10 @@ export default function InterviewEditPage() {
                             checked={formData.transportation.includes("รถเมล์/รถสาธารณะ")}
                             onChange={(e) => handleCheckboxChange(e, "transportation")}
                           />
-                          <label className="form-check-label">รถเมล์/รถสาธารณะ</label>
+                          <label className="form-check-label">การขนส่งสาธารณะ</label>
                         </div>
                       </div>
-                      <div className="col-md-3">
-                        <div className="form-check">
-                          <input 
-                            type="checkbox" 
-                            className="form-check-input rounded-0" 
-                            value="เดิน"
-                            checked={formData.transportation.includes("เดิน")}
-                            onChange={(e) => handleCheckboxChange(e, "transportation")}
-                          />
-                          <label className="form-check-label">เดิน</label>
-                        </div>
-                      </div>
+                      
                     </div>
                   </div>
                 </div>
@@ -815,7 +860,33 @@ export default function InterviewEditPage() {
                           <label className="form-check-label">ไม่มี</label>
                         </div>
                       </div>
+                      <div className="col-md-3">
+                        <div className="form-check">
+                          <input 
+                            type="checkbox" 
+                            className="form-check-input rounded-0" 
+                            value="อื่นๆ"
+                            checked={showOtherRisk}
+                            onChange={(e) => handleCheckboxChange(e, "risk_behaviors")}
+                          />
+                          <label className="form-check-label">อื่นๆ</label>
+                        </div>
+                      </div>
                     </div>
+                    
+                    {showOtherRisk && (
+                      <div className="row mt-2">
+                        <div className="col-md-6">
+                          <input 
+                            type="text" 
+                            className="form-control rounded-0" 
+                            placeholder="ระบุพฤติกรรมเสี่ยงอื่นๆ"
+                            value={otherRiskBehavior}
+                            onChange={(e) => setOtherRiskBehavior(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mb-3">
@@ -912,13 +983,27 @@ export default function InterviewEditPage() {
                             type="checkbox" 
                             className="form-check-input rounded-0" 
                             value="อื่นๆ"
-                            checked={formData.assistance_needs.includes("อื่นๆ")}
+                            checked={showOtherAssistance}
                             onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
                           />
                           <label className="form-check-label">อื่นๆ</label>
                         </div>
                       </div>
                     </div>
+                    
+                    {showOtherAssistance && (
+                      <div className="row mt-2">
+                        <div className="col-md-6">
+                          <input 
+                            type="text" 
+                            className="form-control rounded-0" 
+                            placeholder="ระบุความต้องการอื่นๆ"
+                            value={otherAssistanceNeed}
+                            onChange={(e) => setOtherAssistanceNeed(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -936,31 +1021,18 @@ export default function InterviewEditPage() {
                   </h5>
                 </div>
                 <div className="p-3">
-                  <div className="row g-3 mb-3">
-                    <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชานักเรียน <span className="text-danger">*</span></label>
-                      <select 
-                        name="student_group"
-                        className="form-select rounded-0"
-                        value={formData.student_group}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="ปกติ">สาขาวิชาปกติ</option>
-                        <option value="เสี่ยง">สาขาวิชาเสี่ยง</option>
-                        <option value="มีปัญหา">สาขาวิชามีปัญหา</option>
-                      </select>
-                    </div>
-                    <div className="col-md-9">
-                      <label className="form-label text-uppercase fw-semibold small">แนวทางการช่วยเหลือ/ส่งต่อ</label>
-                      <textarea 
-                        name="help_guidelines"
-                        className="form-control rounded-0" 
-                        rows={3}
-                        value={formData.help_guidelines}
-                        onChange={handleInputChange}
-                      ></textarea>
-                    </div>
+                  
+
+                  <div className="mb-3">
+                    <label className="form-label text-uppercase fw-semibold small">แนวทางช่วยเหลือ/ส่งต่อ</label>
+                    <textarea 
+                      name="help_guidelines"
+                      className="form-control rounded-0" 
+                      rows={3}
+                      value={formData.help_guidelines}
+                      onChange={handleInputChange}
+                      placeholder="เช่น ให้คำปรึกษา, ส่งต่อพบจิตแพทย์, ติดตามเยี่ยมบ้าน, ประสานงานกองทุนฯ"
+                    ></textarea>
                   </div>
 
                   <div className="mb-3">
@@ -1020,25 +1092,6 @@ export default function InterviewEditPage() {
                       </div>
                     )}
                   </div>
-
-                  <div className="mt-3 p-3 border rounded-0" style={{ backgroundColor: getStatusColor() === 'success' ? '#d4edda' : getStatusColor() === 'warning' ? '#fff3cd' : '#f8d7da' }}>
-                    <div className="d-flex align-items-center">
-                      <i className={`bi bi-${getStatusColor() === 'success' ? 'check-circle' : getStatusColor() === 'warning' ? 'exclamation-triangle' : 'exclamation-octagon'} fs-1 me-3`}></i>
-                      <div>
-                        <h5 className="fw-bold mb-1">
-                          ระบบสรุปผล: 
-                          <span className={`ms-2 badge bg-${getStatusColor()} rounded-0 p-2`}>
-                            {formData.student_group}
-                          </span>
-                        </h5>
-                        <p className="mb-0">
-                          {getStatusColor() === 'success' && 'นักเรียนอยู่ในเกณฑ์ปกติ เหมาะสมกับการดูแลทั่วไป'}
-                          {getStatusColor() === 'warning' && 'นักเรียนอยู่ในสาขาวิชาเสี่ยง ควรได้รับการดูแลและติดตามอย่างใกล้ชิด'}
-                          {getStatusColor() === 'danger' && 'นักเรียนอยู่ในสาขาวิชามีปัญหา จำเป็นต้องได้รับการช่วยเหลือและส่งต่อทันที'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1073,8 +1126,6 @@ export default function InterviewEditPage() {
           </div>
         </form>
       </div>
-
-     
     </div>
   );
 }

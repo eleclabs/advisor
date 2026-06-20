@@ -194,9 +194,7 @@ function StudentAddBasicPage() {
                   <i className="bi bi-plus-circle-fill me-2 text-warning"></i>
                   เพิ่มผู้เรียนใหม่
                 </h2>
-                <div className="mt-2">
-                  <span className="badge bg-primary rounded-0 p-2">เพิ่มข้อมูลนักเรียนใหม่</span>
-                </div>
+                
               </div>
               <Link href="/student" className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold">
                 <i className="bi bi-arrow-left me-2"></i>กลับ
@@ -210,17 +208,17 @@ function StudentAddBasicPage() {
           <div className="row mb-4">
             <div className="col-12">
               <div className="border bg-white">
-                <div className="p-3 border-bottom bg-dark">
+                <div className="p-3 border-bottom bg-primary">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-info-circle me-2 text-warning"></i>
-                    ข้อมูลพื้นฐาน <span className="text-warning small ms-2">(กรอกข้อมูลที่จำเป็น)</span>
+                    ข้อมูลพื้นฐาน (กรอกข้อมูลที่จำเป็น)
                   </h5>
                 </div>
                 <div className="p-4">
                   <div className="row g-3">
                     {/* รูปโปรไฟล์ */}
                     <div className="col-md-12">
-                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์นักเรียน</label>
+                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์ผู้เรียน</label>
                       <div className="d-flex align-items-start gap-4">
                         <div className="text-center">
                           {imagePreview ? (
@@ -253,7 +251,7 @@ function StudentAddBasicPage() {
 
                     {/* รหัสนักศึกษา */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">รหัสนักศึกษา <span className="text-danger">*</span></label>
+                      <label className="form-label text-uppercase fw-semibold small">รหัส <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
                         name="id"
@@ -366,14 +364,14 @@ function StudentAddBasicPage() {
 
                     {/* สาขาวิชา */}
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชา</label>
+                      <label className="form-label text-uppercase fw-semibold small">สาขา</label>
                       <select 
                         name="class_group"
                         className="form-select rounded-0"
                         value={formData.class_group}
                         onChange={handleInputChange}
                       >
-                        <option value="">เลือกสาขาวิชา</option>
+                        <option value="">เลือกสาขา</option>
                         {majors.map((major) => (
                           <option key={major._id} value={major.major_name}>
                             {major.major_id} - {major.major_name}
@@ -543,23 +541,8 @@ function StudentAddBasicPage() {
                   </>
                 )}
               </button>
-              <button 
-                type="button"
-                className="btn btn-warning rounded-0 text-uppercase fw-semibold px-5"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                    กำลังบันทึก...
-                  </>
-                ) : (
-                  <>
-                    บันทึกและถัดไป <i className="bi bi-arrow-right ms-2"></i>
-                  </>
-                )}
-              </button>
+             
+           
             </div>
           </div>
         </form>

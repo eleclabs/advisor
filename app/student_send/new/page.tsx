@@ -79,19 +79,7 @@ const loadStudents = async () => {
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <div className="navbar-nav ms-auto">
-            <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student">รายชื่อผู้เรียน</a>
-            <a className="nav-link text-white text-uppercase fw-semibold px-3" href="/student_problem">ป้องกันและแก้ไข</a>
-            <a className="nav-link text-white text-uppercase fw-semibold px-3 active" href="/student_send">ส่งต่อ</a>
-          </div>
-        </div>
-      </nav>
+      
 
       <div className="flex-grow-1">
         <div className="container-fluid py-4">
@@ -119,11 +107,11 @@ const loadStudents = async () => {
                   <form onSubmit={handleSubmit}>
                     <div className="row">
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ค้นหาและเลือกนักเรียน</label>
+                        <label className="form-label text-uppercase fw-semibold small">ค้นหาและเลือกผู้เรียน</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0 mb-2"
-                          placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..."
+                          placeholder="พิมพ์ชื่อหรือรหัส..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -159,13 +147,13 @@ const loadStudents = async () => {
                             s.id.toLowerCase().includes(searchTerm.toLowerCase())
                           ).length === 0 && (
                             <div className="p-3 text-center text-muted">
-                              <i className="bi bi-search"></i> ไม่พบนักเรียนที่ค้นหา
+                              <i className="bi bi-search"></i> ไม่พบผู้เรียนที่ค้นหา
                             </div>
                           )}
                         </div>
                       </div>
                       <div className="col-md-4 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ระดับ</label>
+                        <label className="form-label text-uppercase fw-semibold small">ระดับชั้น</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0"
@@ -175,7 +163,7 @@ const loadStudents = async () => {
                         />
                       </div>
                       <div className="col-md-4 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ชั้น</label>
+                        <label className="form-label text-uppercase fw-semibold small">สาขา</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0"
@@ -242,7 +230,7 @@ const loadStudents = async () => {
                           >
                             <option value="">เลือกหน่วยงานภายนอก</option>
                             <option value="โรงพยาบาล">โรงพยาบาล</option>
-                            <option value="สถานีตำรวจ">สถานีตำรวจ</option>
+
                             <option value="พัฒนาสังคมฯ">พัฒนาสังคมและความมั่นคงของมนุษย์</option>
                           </select>
                         )}
@@ -259,19 +247,20 @@ const loadStudents = async () => {
                           <option value="ด้านการเรียน/สติปัญญา">ด้านการเรียน/สติปัญญา</option>
                           <option value="ด้านพฤติกรรม/ระเบียบวินัย">ด้านพฤติกรรม/ระเบียบวินัย</option>
                           <option value="ด้านอารมณ์/จิตใจ">ด้านอารมณ์/จิตใจ</option>
-                          <option value="ด้านครอบครัว/เศรษฐกิจ/ความรุนแรง">ด้านครอบครัว/เศรษฐกิจ/ความรุนแรง</option>
+                          <option value="ด้านครอบครัว/เศรษฐกิจ">ด้านครอบครัว/เศรษฐกิจ</option>
+                          <option value="อื่นๆ">อื่นๆ</option>
                         </select>
                         <textarea 
                           className="form-control rounded-0" 
                           rows={3}
-                          placeholder="สรุปปัญหา/พฤติกรรมที่พบ"
+                          placeholder="ปัญหาที่พบ"
                           value={form.reason_detail}
                           onChange={(e) => setForm({...form, reason_detail: e.target.value})}
                           required
                         ></textarea>
                       </div>
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">สิ่งที่ครูที่ปรึกษาได้ดำเนินการไปแล้ว</label>
+                        <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษาได้ดำเนินการไปแล้ว</label>
                         <textarea 
                           className="form-control rounded-0" 
                           rows={4}
@@ -304,19 +293,7 @@ const loadStudents = async () => {
         </div>
       </div>
 
-      <footer className="bg-dark text-white py-3 border-top border-warning">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-md-6 text-uppercase small">
-              <i className="bi bi-c-circle me-1"></i> 2568 ระบบดูแลผู้เรียนรายบุคคล
-            </div>
-            <div className="col-md-6 text-end text-uppercase small">
-              <span className="me-3">เวอร์ชัน 2.0.0</span>
-              <span>ระบบส่งต่อผู้เรียน</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+    
     </div>
   );
 }

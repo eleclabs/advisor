@@ -94,7 +94,7 @@ function StudentListPage() {
     try {
       setLoading(true);
       
-      // ✅ ADMIN: เห็นนักเรียนทั้งหมด
+      // ✅ ADMIN: เห็นผูํเรียนทั้งหมด
       if (userRole === "ADMIN") {
         const response = await fetch("/api/student");
         const result = await response.json();
@@ -303,7 +303,7 @@ function StudentListPage() {
           }
         }
         setDeleteId(null);
-        alert("ลบข้อมูลนักเรียนเรียบร้อยแล้ว");
+        alert("ลบข้อมูลผู้เรียนเรียบร้อยแล้ว");
       } else {
         alert("ไม่สามารถลบข้อมูลได้");
       }
@@ -378,7 +378,7 @@ function StudentListPage() {
           const newMapping = { ...columnMapping };
           
           const columnKeywords = {
-            studentId: ['รหัส', 'id', 'รหัสนักศึกษา', 'studentid', 'student_id', 'รหัสประจำตัว'],
+            studentId: ['รหัส', 'id', 'รหัส', 'studentid', 'student_id', 'รหัสประจำตัว'],
             firstName: ['ชื่อ', 'firstname', 'first_name', 'ชื่อจริง', 'ชื่อเล่น'],
             lastName: ['นามสกุล', 'lastname', 'last_name', 'สกุล'],
             nickname: ['เล่น', 'nickname', 'nick', 'ชื่อเล่น'],
@@ -386,7 +386,7 @@ function StudentListPage() {
             gender: ['เพศ', 'gender', 'sex'],
             birthDate: ['เกิด', 'birth', 'birthdate', 'วันเกิด', 'เกิดวันที่'],
             level: ['ระดับ', 'level', 'ชั้น', 'ระดับชั้น'],
-            major: ['สาขา', 'major', 'สาขาวิชา', 'department'],
+            major: ['สาขา', 'major', 'สาขา', 'department'],
             classRoom: ['ห้อง', 'class', 'classroom', 'ห้องเรียน', 'หมู่เรียน'],
             phone: ['โทร', 'phone', 'tel', 'โทรศัพท์', 'เบอร์โทร', 'เบอร์มือถือ'],
             address: ['ที่อยู่', 'address', 'บ้านเลขที่'],
@@ -439,7 +439,7 @@ function StudentListPage() {
 
     // Check required fields
     if (!columnMapping.studentId) {
-      alert('กรุณาเลือกคอลัมน์สำหรับ "รหัสนักศึกษา"');
+      alert('กรุณาเลือกคอลัมน์สำหรับ "รหัส"');
       return;
     }
     
@@ -470,7 +470,7 @@ function StudentListPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        let message = `นำเข้าข้อมูลนักเรียนสำเร็จ ${result.insertedCount || result.data?.length || 0} รายการ`;
+        let message = `นำเข้าข้อมูลผู้เรียนสำเร็จ ${result.insertedCount || result.data?.length || 0} รายการ`;
         if (result.errors && result.errors.length > 0) {
           message += `\nข้อผิดพลาด: ${result.errors.length} รายการ`;
         }
@@ -575,7 +575,7 @@ function StudentListPage() {
             value={selectedClassGroup}
             onChange={(e) => setSelectedClassGroup(e.target.value)}
           >
-            <option value="">สาขาวิชา</option>
+            <option value="">สาขา</option>
             {majors.map((major) => (
               <option key={major._id} value={major.major_name}>
                 {major.major_name}
@@ -590,10 +590,13 @@ function StudentListPage() {
             value={selectedClassNumber}
             onChange={(e) => setSelectedClassNumber(e.target.value)}
           >
-            <option value="">ห้อง(ถ้ามี)</option>
+            <option value="">เลือกห้อง</option>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
+            <option value="1">4</option>
+            <option value="2">5</option>
+     
           </select>
 
          {/*       
@@ -613,7 +616,7 @@ function StudentListPage() {
               href="/student/student_filter"
               className="btn btn-warning rounded-0 w-100 text-uppercase fw-semibold"
             >
-              <i className="bi bi-funnel me-2"></i>เลือกนักเรียน
+              <i className="bi bi-funnel me-2"></i>เลือกผู้เรียน
             </Link>
           )}
         </div>
@@ -644,8 +647,7 @@ function StudentListPage() {
               <>
                 <button 
                   className="btn btn-outline-dark rounded-0 text-uppercase fw-semibold me-2" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#importModal"
+                  onClick={() => setShowImportModal(true)}
                 >
                   <i className="bi bi-upload me-2"></i>นำเข้าข้อมูล
                 </button>
@@ -653,7 +655,7 @@ function StudentListPage() {
                   href="/student/student_filter"
                   className="btn btn-primary rounded-0 text-uppercase fw-semibold me-2"
                 >
-                  <i className="bi bi-funnel me-2"></i>เลือกนักเรียน
+                  <i className="bi bi-funnel me-2"></i>เลือกผู้เรียน
                 </Link>
                 <Link
                   href="/student/student_add"
@@ -680,11 +682,11 @@ function StudentListPage() {
             <div className="text-center py-5">
               <div className="alert alert-info rounded-0">
                 <i className="bi bi-info-circle me-2"></i>
-                ยังไม่มีนักเรียน กรุณา{" "}
+                ยังไม่มีผู้เรียน กรุณา{" "}
                 <Link href="/student/student_filter" className="alert-link">
                   คลิกที่นี่
                 </Link>{" "}
-                เพื่อเลือกนักเรียน
+                เพื่อเลือกผู้เรียน
               </div>
             </div>
           ) : (
@@ -693,10 +695,10 @@ function StudentListPage() {
                 <thead className="bg-dark text-white">
                   <tr>
                     <th className="text-center" style={{width: "50px"}}>ลำดับ</th>
-                    <th className="text-uppercase fw-semibold">รหัสนักศึกษา</th>
+                    <th className="text-uppercase fw-semibold">รหัส</th>
                     <th className="text-uppercase fw-semibold">ชื่อ-นามสกุล</th>
                     <th className="text-uppercase fw-semibold">ระดับชั้น</th>
-                    <th className="text-uppercase fw-semibold">สาขาวิชา</th>
+                    <th className="text-uppercase fw-semibold">สาขา</th>
                     <th className="text-uppercase fw-semibold">ห้อง</th>
                     <th className="text-uppercase fw-semibold">ครูที่ปรึกษา</th>
                     <th className="text-uppercase fw-semibold text-center">จัดการ</th>
@@ -847,15 +849,16 @@ function StudentListPage() {
       </div>
 
       {/* Import Modal - Improved */}
-      <div className="modal fade" id="importModal" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-lg">
-          <div className="modal-content rounded-0">
-            <div className="modal-header bg-dark text-white">
-              <h5 className="modal-title text-uppercase fw-semibold">
-                <i className="bi bi-upload text-warning me-2"></i>นำเข้าข้อมูล Excel
-              </h5>
-              <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+      {showImportModal && (
+        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content rounded-0">
+              <div className="modal-header bg-dark text-white">
+                <h5 className="modal-title text-uppercase fw-semibold">
+                  <i className="bi bi-upload text-warning me-2"></i>นำเข้าข้อมูล Excel
+                </h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowImportModal(false)} aria-label="Close"></button>
+              </div>
             <div className="modal-body">
               {/* File Upload */}
               <div className="mb-4">
@@ -893,7 +896,7 @@ function StudentListPage() {
                   <h6 className="fw-semibold mb-3">กำหนดคอลัมน์ข้อมูล</h6>
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-semibold small text-danger">รหัสนักศึกษา *</label>
+                      <label className="form-label fw-semibold small text-danger">รหัส *</label>
                       <select 
                         className="form-select rounded-0 form-select-sm"
                         value={columnMapping.studentId}
@@ -1088,7 +1091,7 @@ function StudentListPage() {
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-semibold small">สาขาวิชา</label>
+                      <label className="form-label fw-semibold small">สาขา</label>
                       <select 
                         className="form-select rounded-0 form-select-sm"
                         value={columnMapping.major}
@@ -1130,7 +1133,7 @@ function StudentListPage() {
               )}
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary rounded-0 text-uppercase fw-semibold" data-bs-dismiss="modal">ยกเลิก</button>
+              <button type="button" className="btn btn-secondary rounded-0 text-uppercase fw-semibold" onClick={() => setShowImportModal(false)}>ยกเลิก</button>
               <button 
                 type="button" 
                 className="btn btn-warning rounded-0 text-uppercase fw-semibold"
@@ -1153,6 +1156,7 @@ function StudentListPage() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

@@ -1102,7 +1102,7 @@ function AssessmentPageContent() {
                 number="1" 
                 title="แบบประเมิน SDQ (Strengths and Difficulties Questionnaire)"
                 subtitle="คำชี้แจง: โปรดทำเครื่องหมาย ✓ ในช่องที่ตรงกับพฤติกรรมของนักเรียนมากที่สุด"
-                description="⏱️ คำถาม 25 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-2 (ไม่ตรง=0, ค่อนข้างตรง=1, ตรงมาก=2)"
+                description="⏱️ คำถาม 25 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-2 (ไม่จริง=0, ค่อนข้างจริง=1, จริงมาก=2)"
               />
 
               <div style={{
@@ -1130,7 +1130,7 @@ function AssessmentPageContent() {
                   value={sdqAnswers[q.id] || ''}
                   onChange={handleSdqChange}
                   scaleType="3"
-                  scaleLabels={['ไม่ตรง', 'ค่อนข้างตรง', 'ตรงมาก']}
+                  scaleLabels={['ไม่จริง', 'ค่อนข้างจริง', 'จริงมาก']}
                 />
               ))}
             </>

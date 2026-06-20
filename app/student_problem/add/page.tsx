@@ -1,4 +1,3 @@
-// D:\advisor-main\app\student_problem\add\page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -27,12 +26,19 @@ interface Student {
   status: string;
 }
 
+// ✅ ตัวเลือกวิธีการแก้ไขเริ่มต้น
+const DEFAULT_METHODS = [
+  "การให้คำปรึกษาเบื้องต้น",
+  "กิจกรรมปรับเปลี่ยนพฤติกรรม",
+  "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง",
+  "การส่งต่อ"
+];
+
 export default function AddProblemPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
-  // State สำหรับค้นหานักเรียน
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Student[]>([]);
   const [searching, setSearching] = useState(false);
@@ -41,50 +47,41 @@ export default function AddProblemPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   const [activitySearchTerm, setActivitySearchTerm] = useState("");
+  
+  // ✅ State สำหรับวิธีการแก้ไข
+  const [methods, setMethods] = useState<string[]>(DEFAULT_METHODS);
+  const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+  const [newMethod, setNewMethod] = useState("");
+  
   const [formData, setFormData] = useState({
     problem: "",
     goal: "",
-    counseling: false,
-    behavioral_contract: false,
-    home_visit: false,
-    referral: false,
     duration: "",
     responsible: ""
   });
 
-  // โหลดกิจกรรมทั้งหมด
   useEffect(() => {
     fetchActivities();
   }, []);
 
-  // ค้นหานักเรียนแบบ Real-time
   useEffect(() => {
     const searchStudents = async () => {
       if (searchQuery.length < 1) {
         setSearchResults([]);
         return;
       }
-
       setSearching(true);
-      
       try {
         const res = await fetch(`/api/problem/add?q=${searchQuery}`);
         const data = await res.json();
-        
-        if (data.success) {
-          setSearchResults(data.data || []);
-        }
+        if (data.success) setSearchResults(data.data || []);
       } catch (error) {
         console.error("Error searching students:", error);
       } finally {
         setSearching(false);
       }
     };
-
-    const debounce = setTimeout(() => {
-      searchStudents();
-    }, 300);
-
+    const debounce = setTimeout(() => searchStudents(), 300);
     return () => clearTimeout(debounce);
   }, [searchQuery]);
 
@@ -117,7 +114,8 @@ export default function AddProblemPage() {
         body: JSON.stringify({
           student_id: student.id,
           ...formData,
-          activity_ids: selectedActivities // ส่งเฉพาะ id ของกิจกรรมที่เลือก
+          methods: selectedMethods, // ✅ ส่งวิธีการแก้ไขที่เลือก
+          activity_ids: selectedActivities
         })
       });
       
@@ -144,6 +142,31 @@ export default function AddProblemPage() {
     );
   };
 
+  // ✅ Toggle วิธีการแก้ไข
+  const toggleMethod = (method: string) => {
+    setSelectedMethods(prev => 
+      prev.includes(method)
+        ? prev.filter(m => m !== method)
+        : [...prev, method]
+    );
+  };
+
+  // ✅ เพิ่มวิธีการแก้ไขใหม่
+  const addNewMethod = () => {
+    const trimmed = newMethod.trim();
+    if (trimmed && !methods.includes(trimmed)) {
+      setMethods(prev => [...prev, trimmed]);
+      setSelectedMethods(prev => [...prev, trimmed]); // เลือกอัตโนมัติ
+      setNewMethod("");
+    }
+  };
+
+  // ✅ ลบวิธีการแก้ไข
+  const removeMethod = (method: string) => {
+    setMethods(prev => prev.filter(m => m !== method));
+    setSelectedMethods(prev => prev.filter(m => m !== method));
+  };
+
   const filteredActivities = activities.filter(act => 
     act.name.toLowerCase().includes(activitySearchTerm.toLowerCase())
   );
@@ -165,7 +188,7 @@ export default function AddProblemPage() {
             <div className="card-header bg-dark text-white">
               <h4 className="mb-0">
                 <i className="bi bi-plus-circle me-2"></i>
-                เพิ่มแผนการช่วยเหลือนักเรียน
+                เพิ่มแผนการช่วยเหลือผู้เรียน (การป้องกันและแก้ไขปัญหา)
               </h4>
             </div>
             <div className="card-body">
@@ -174,13 +197,12 @@ export default function AddProblemPage() {
                 <div>
                   <div className="text-center mb-4">
                     <div className="badge bg-warning text-dark p-2">ขั้นตอนที่ 1</div>
-                    <h5 className="mt-2">ค้นหาและเลือกนักเรียน</h5>
-                    <p className="text-muted">พิมพ์ชื่อหรือรหัสนักเรียนเพื่อค้นหา</p>
+                    <h5 className="mt-2">ค้นหาและเลือกผู้เรียน</h5>
+                    <p className="text-muted">พิมพ์ชื่อหรือรหัสผู้เรียนเพื่อค้นหา</p>
                   </div>
                   
-                  {/* ช่องค้นหา */}
                   <div className="mb-4">
-                    <label className="form-label fw-bold">ค้นหานักเรียน</label>
+                    <label className="form-label fw-bold">ค้นหาผู้เรียน</label>
                     <div className="input-group">
                       <span className="input-group-text bg-dark text-white">
                         <i className="bi bi-search"></i>
@@ -188,7 +210,7 @@ export default function AddProblemPage() {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..."
+                        placeholder="พิมพ์ชื่อหรือรหัสผู้เรียน..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         autoFocus
@@ -208,7 +230,6 @@ export default function AddProblemPage() {
                     </div>
                   </div>
 
-                  {/* แสดงสถานะกำลังค้นหา */}
                   {searching && (
                     <div className="text-center py-4">
                       <div className="spinner-border text-warning" role="status">
@@ -218,13 +239,12 @@ export default function AddProblemPage() {
                     </div>
                   )}
 
-                  {/* แสดงผลการค้นหาในตาราง */}
                   {!searching && searchResults.length > 0 && (
                     <div className="table-responsive">
                       <table className="table table-bordered table-hover">
                         <thead className="table-light">
                           <tr>
-                            <th>รหัสนักศึกษา</th>
+                            <th>รหัส</th>
                             <th>คำนำหน้า</th>
                             <th>ชื่อ</th>
                             <th>นามสกุล</th>
@@ -265,20 +285,18 @@ export default function AddProblemPage() {
                     </div>
                   )}
 
-                  {/* แสดงเมื่อไม่พบข้อมูล */}
                   {!searching && searchQuery.length >= 1 && searchResults.length === 0 && (
                     <div className="text-center py-5">
                       <i className="bi bi-emoji-frown fs-1 text-muted d-block mb-3"></i>
-                      <p className="text-muted mb-1">ไม่พบนักเรียน "{searchQuery}"</p>
-                      <small className="text-muted">ลองค้นหาด้วยชื่อหรือรหัสนักเรียนอื่น</small>
+                      <p className="text-muted mb-1">ไม่พบผู้เรียน "{searchQuery}"</p>
+                      <small className="text-muted">ลองค้นหาด้วยชื่อหรือรหัสอื่น</small>
                     </div>
                   )}
 
-                  {/* แสดงตารางว่างเมื่อยังไม่ได้ค้นหา */}
                   {!searching && searchQuery.length === 0 && (
                     <div className="text-center py-5">
                       <i className="bi bi-search fs-1 text-muted d-block mb-3"></i>
-                      <p className="text-muted">พิมพ์ชื่อหรือรหัสนักเรียนเพื่อค้นหา</p>
+                      <p className="text-muted">พิมพ์ชื่อหรือรหัสเพื่อค้นหา</p>
                     </div>
                   )}
                   
@@ -295,7 +313,7 @@ export default function AddProblemPage() {
                 <div>
                   <div className="text-center mb-4">
                     <div className="badge bg-warning text-dark p-2">ขั้นตอนที่ 2</div>
-                    <h5 className="mt-2">กรอกแผนการช่วยเหลือและเลือกกิจกรรม</h5>
+                    <h5 className="mt-2">แผนการช่วยเหลือและเลือกกิจกรรม</h5>
                   </div>
 
                   {/* ข้อมูลนักเรียนที่เลือก */}
@@ -326,7 +344,7 @@ export default function AddProblemPage() {
                           setStudent(null);
                         }}
                       >
-                        <i className="bi bi-arrow-left me-1"></i>เปลี่ยนนักเรียน
+                        <i className="bi bi-arrow-left me-1"></i>เปลี่ยนผู้เรียน
                       </button>
                     </div>
                   </div>
@@ -335,14 +353,14 @@ export default function AddProblemPage() {
                     <div className="row">
                       {/* ฟอร์มแผน ISP */}
                       <div className="col-md-6">
-                        <h5 className="border-bottom pb-2 mb-3">📋 แผน ISP</h5>
+                        <h5 className="border-bottom pb-2 mb-3">📋 แผน</h5>
                         
                         <div className="mb-3">
                           <label className="form-label fw-bold">ปัญหาที่พบ</label>
                           <textarea
                             className="form-control"
                             rows={2}
-                            placeholder="เช่น ขาดเรียนบ่อย, ซึมเศร้า, ติดเกม, ก้าวร้าว"
+                            placeholder="เช่น ขาดเรียนบ่อย, ซึมเศร้า, ติดเกม, อื่นๆ"
                             value={formData.problem}
                             onChange={(e) => setFormData({...formData, problem: e.target.value})}
                             required
@@ -361,58 +379,80 @@ export default function AddProblemPage() {
                           />
                         </div>
 
+                        {/* ✅ วิธีการแก้ไข - แบบ checkbox + เพิ่ม/ลบเองได้ */}
                         <div className="mb-3">
                           <label className="form-label fw-bold">วิธีการแก้ไข</label>
-                          <div className="border p-3">
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="counseling"
-                                checked={formData.counseling}
-                                onChange={(e) => setFormData({...formData, counseling: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="counseling">
-                                การให้คำปรึกษาเบื้องต้น
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="behavioral"
-                                checked={formData.behavioral_contract}
-                                onChange={(e) => setFormData({...formData, behavioral_contract: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="behavioral">
-                                กิจกรรมปรับเปลี่ยนพฤติกรรม
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="homevisit"
-                                checked={formData.home_visit}
-                                onChange={(e) => setFormData({...formData, home_visit: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="homevisit">
-                                การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="referral"
-                                checked={formData.referral}
-                                onChange={(e) => setFormData({...formData, referral: e.target.checked})}
-                              />
-                              <label className="form-check-label" htmlFor="referral">
-                                การส่งต่อ
-                              </label>
-                            </div>
+                          
+                          {/* Checkbox รายการที่มี */}
+                          <div className="border p-3 mb-2">
+                            {methods.map((method) => (
+                              <div key={method} className="form-check d-flex align-items-center gap-2 mb-1">
+                                <input
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  id={`method-${method}`}
+                                  checked={selectedMethods.includes(method)}
+                                  onChange={() => toggleMethod(method)}
+                                />
+                                <label className="form-check-label flex-grow-1" htmlFor={`method-${method}`}>
+                                  {method}
+                                </label>
+                                {/* ปุ่มลบรายการ (ยกเว้น 4 รายการเริ่มต้น) */}
+                                {!DEFAULT_METHODS.includes(method) && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-outline-danger rounded-0"
+                                    onClick={() => removeMethod(method)}
+                                    title="ลบรายการนี้"
+                                  >
+                                    <i className="bi bi-trash"></i>
+                                  </button>
+                                )}
+                              </div>
+                            ))}
                           </div>
+
+                          {/* ✅ ช่องเพิ่มวิธีการแก้ไขใหม่ */}
+                          <div className="input-group">
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="พิมพ์วิธีการแก้ไขเพิ่มเติม..."
+                              value={newMethod}
+                              onChange={(e) => setNewMethod(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  addNewMethod();
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-warning rounded-0"
+                              onClick={addNewMethod}
+                              disabled={!newMethod.trim()}
+                            >
+                              <i className="bi bi-plus-lg me-1"></i>เพิ่ม
+                            </button>
+                          </div>
+                          
+                          {/* แสดงจำนวนที่เลือก */}
+                          {selectedMethods.length > 0 && (
+                            <div className="mt-2">
+                              <span className="badge bg-success rounded-0">
+                                <i className="bi bi-check-circle me-1"></i>
+                                เลือก {selectedMethods.length} วิธี
+                              </span>
+                              <div className="mt-1">
+                                {selectedMethods.map(m => (
+                                  <span key={m} className="badge bg-light text-dark me-1 mb-1 border">
+                                    {m}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="row">
@@ -421,7 +461,7 @@ export default function AddProblemPage() {
                             <input
                               type="text"
                               className="form-control"
-                              placeholder="เช่น 3 เดือน"
+                              placeholder=""
                               value={formData.duration}
                               onChange={(e) => setFormData({...formData, duration: e.target.value})}
                             />

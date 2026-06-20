@@ -78,20 +78,29 @@ export default function DASS21ResultsPage() {
   };
 
   const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'ปกติ': return '#28a745';
-      case 'เบา': return '#ffc107';
-      case 'ปานกลาง': return '#fd7e14';
-      case 'รุนแรง': return '#dc3545';
-      case 'รุนแรงมาก': return '#6f42c1';
-      default: return '#6c757d';
-    }
+    if (level.includes('ปกติ') || level.includes('Normal')) return '#28a745';
+    if (level.includes('ต่ำ / น้อย') || level.includes('Mild')) return '#ffc107';
+    if (level.includes('ปานกลาง') || level.includes('Moderate')) return '#fd7e14';
+    if (level.includes('รุนแรง') && !level.includes('ที่สุด') || level.includes('Severe') && !level.includes('Extremely')) return '#6f42c1';
+    if (level.includes('รุนแรงที่สุด') || level.includes('Extremely Severe')) return '#dc3545';
+    return '#6c757d';
+  };
+
+  const getLevelBadgeStyle = (level: string, score: number) => {
+    return {
+      backgroundColor: getLevelColor(level),
+      color: 'white',
+      padding: '4px 12px',
+      borderRadius: '16px',
+      fontSize: '12px',
+      fontWeight: 500,
+      display: 'inline-block'
+    };
   };
 
   const calculateStatistics = () => {
     if (responses.length === 0) return null;
 
-    // Filter out responses that don't have dass21Score
     const validResponses = responses.filter(r => r.dass21Score);
     
     if (validResponses.length === 0) return null;
@@ -288,12 +297,11 @@ export default function DASS21ResultsPage() {
             lineHeight: 1.6,
             margin: 0
           }}>
-            แบบประเมินภาวะซึมเศร้า วิตกกังวล และความเครียด
+            แบบประเมินภาวะซึมเศร้า วิตกกังวล และความเครียด (คะแนนดิบ 0-42)
           </p>
         </div>
 
         {stats && (
-          /* Statistics Cards */
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
             <div style={{
               backgroundColor: 'white',
@@ -353,41 +361,6 @@ export default function DASS21ResultsPage() {
               <div style={{ fontSize: '14px', color: '#6c757d' }}>
                 คะแนนความเครียดเฉลี่ย
               </div>
-            </div>
-          </div>
-        )}
-
-        {stats && (
-          /* Level Distribution */
-          <div style={{
-            backgroundColor: 'white',
-            border: '1px solid #dee2e6',
-            borderRadius: '8px',
-            padding: '24px',
-            marginBottom: '32px'
-          }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#212529', marginBottom: '20px' }}>
-              การกระจายของระดับความเครียด
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-              {Object.entries(stats.depressionLevels).map(([level, count]) => (
-                <div key={level} style={{
-                  backgroundColor: '#f8f9fa',
-                  padding: '16px',
-                  borderRadius: '6px',
-                  border: '1px solid #e9ecef'
-                }}>
-                  <div style={{ fontSize: '24px', fontWeight: 700, color: getLevelColor(level), marginBottom: '8px' }}>
-                    {count}
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#495057', fontWeight: 500 }}>
-                    ภาวะซึมเศร้า: {level}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#6c757d', marginTop: '4px' }}>
-                    {((count / stats.totalResponses) * 100).toFixed(1)}%
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         )}
@@ -535,56 +508,47 @@ export default function DASS21ResultsPage() {
                       <td style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        color: '#212529',
                         textAlign: 'center',
                         borderBottom: '1px solid #e9ecef'
                       }}>
-                        <span style={{
-                          backgroundColor: getLevelColor(response.dass21Score?.depressionLevel || 'unknown'),
-                          color: 'white',
-                          padding: '4px 12px',
-                          borderRadius: '16px',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}>
-                          {response.dass21Score?.depression || 0}
-                        </span>
+                        <div>
+                          <div style={{ fontSize: '16px', fontWeight: 600, color: '#212529' }}>
+                            {response.dass21Score?.depression || 0}
+                          </div>
+                          <div style={getLevelBadgeStyle(response.dass21Score?.depressionLevel || 'unknown', response.dass21Score?.depression || 0)}>
+                            {response.dass21Score?.depressionLevel || 'unknown'}
+                          </div>
+                        </div>
                       </td>
                       <td style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        color: '#212529',
                         textAlign: 'center',
                         borderBottom: '1px solid #e9ecef'
                       }}>
-                        <span style={{
-                          backgroundColor: getLevelColor(response.dass21Score?.anxietyLevel || 'unknown'),
-                          color: 'white',
-                          padding: '4px 12px',
-                          borderRadius: '16px',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}>
-                          {response.dass21Score?.anxiety || 0}
-                        </span>
+                        <div>
+                          <div style={{ fontSize: '16px', fontWeight: 600, color: '#212529' }}>
+                            {response.dass21Score?.anxiety || 0}
+                          </div>
+                          <div style={getLevelBadgeStyle(response.dass21Score?.anxietyLevel || 'unknown', response.dass21Score?.anxiety || 0)}>
+                            {response.dass21Score?.anxietyLevel || 'unknown'}
+                          </div>
+                        </div>
                       </td>
                       <td style={{
                         padding: '12px 16px',
                         fontSize: '14px',
-                        color: '#212529',
                         textAlign: 'center',
                         borderBottom: '1px solid #e9ecef'
                       }}>
-                        <span style={{
-                          backgroundColor: getLevelColor(response.dass21Score?.stressLevel || 'unknown'),
-                          color: 'white',
-                          padding: '4px 12px',
-                          borderRadius: '16px',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}>
-                          {response.dass21Score?.stress || 0}
-                        </span>
+                        <div>
+                          <div style={{ fontSize: '16px', fontWeight: 600, color: '#212529' }}>
+                            {response.dass21Score?.stress || 0}
+                          </div>
+                          <div style={getLevelBadgeStyle(response.dass21Score?.stressLevel || 'unknown', response.dass21Score?.stress || 0)}>
+                            {response.dass21Score?.stressLevel || 'unknown'}
+                          </div>
+                        </div>
                       </td>
                       <td style={{
                         padding: '12px 16px',
@@ -683,7 +647,7 @@ export default function DASS21ResultsPage() {
                 <div>
                   <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ภาวะซึมเศร้า</div>
                   <div style={{ fontSize: '16px', color: '#212529', fontWeight: 600 }}>
-                    {selectedResponse.dass21Score?.depression || 0}
+                    {selectedResponse.dass21Score?.depression || 0} คะแนน
                     <span style={{
                       marginLeft: '8px',
                       padding: '4px 12px',
@@ -700,7 +664,7 @@ export default function DASS21ResultsPage() {
                 <div>
                   <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>วิตกกังวล</div>
                   <div style={{ fontSize: '16px', color: '#212529', fontWeight: 600 }}>
-                    {selectedResponse.dass21Score?.anxiety || 0}
+                    {selectedResponse.dass21Score?.anxiety || 0} คะแนน
                     <span style={{
                       marginLeft: '8px',
                       padding: '4px 12px',
@@ -717,7 +681,7 @@ export default function DASS21ResultsPage() {
                 <div>
                   <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ความเครียด</div>
                   <div style={{ fontSize: '16px', color: '#212529', fontWeight: 600 }}>
-                    {selectedResponse.dass21Score?.stress || 0}
+                    {selectedResponse.dass21Score?.stress || 0} คะแนน
                     <span style={{
                       marginLeft: '8px',
                       padding: '4px 12px',
@@ -735,7 +699,7 @@ export default function DASS21ResultsPage() {
               <div style={{ marginTop: '12px' }}>
                 <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>วันที่ประเมิน</div>
                 <div style={{ fontSize: '14px', color: '#212529' }}>
-                  {formatDate(selectedResponse.assessmentDate)}
+                  {formatDate(selectedResponse.submittedAt || selectedResponse.assessmentDate)}
                 </div>
               </div>
             </div>

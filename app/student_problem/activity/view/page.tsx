@@ -187,7 +187,7 @@ export default function ViewActivityPage() {
   };
 
   const handleRemoveParticipant = async (studentId: string) => {
-    if (!confirm('คุณต้องการลบนักเรียนคนนี้ออกจากกิจกรรมใช่หรือไม่?')) return;
+    if (!confirm('คุณต้องการลบผู้เรียนคนนี้ออกจากกิจกรรมใช่หรือไม่?')) return;
     
     if (!activity) return;
     
@@ -202,11 +202,11 @@ export default function ViewActivityPage() {
         // Refresh activity data
         window.location.reload();
       } else {
-        alert('ลบนักเรียนไม่สำเร็จ');
+        alert('ลบผู้เรียนไม่สำเร็จ');
       }
     } catch (error) {
       console.error('Error removing participant:', error);
-      alert('เกิดข้อผิดพลาดในการลบนักเรียน');
+      alert('เกิดข้อผิดพลาดในการลบผู้เรียน');
     }
   };
 
@@ -431,7 +431,7 @@ export default function ViewActivityPage() {
             <div className="card-header bg-info text-white">
               <h6 className="mb-0">
                 <i className="bi bi-emoji-smile me-2"></i>
-                ละลายพฤติกรรม
+                สรุปผลกิจกรรม
               </h6>
             </div>
             <div className="card-body">
@@ -449,7 +449,7 @@ export default function ViewActivityPage() {
             <div className="card-header bg-primary text-white">
               <h6 className="mb-0">
                 <i className="bi bi-people me-2"></i>
-                โจทย์กลุ่ม
+                สาขาวิชา
               </h6>
             </div>
             <div className="card-body">
@@ -462,40 +462,21 @@ export default function ViewActivityPage() {
           </div>
         </div>
 
-        <div className="col-md-4">
-          <div className="card h-100">
-            <div className="card-header bg-warning">
-              <h6 className="mb-0 fw-bold text-dark">
-                <i className="bi bi-chat-quote me-2"></i>
-                ถอดบทเรียน (AAR)
-              </h6>
-            </div>
-            <div className="card-body">
-              {activity.debrief ? (
-                <div>
-                  <p className="mb-2 fw-bold text-muted small">สิ่งที่ได้เรียนรู้จากการทำงานร่วมกับเพื่อน:</p>
-                  <p className="mb-0">{activity.debrief}</p>
-                </div>
-              ) : (
-                <p className="text-muted fst-italic mb-0">- ไม่มี -</p>
-              )}
-            </div>
-          </div>
-        </div>
+        
       </div>
 
       <div className="card mb-4">
         <div className="card-header bg-dark text-white">
           <h6 className="mb-0">
             <i className="bi bi-people-fill me-2 text-warning"></i>
-            รายชื่อนักเรียนที่เข้าร่วม ({activity.participants?.length || 0} คน)
+            รายชื่อผู้เรียนที่เข้าร่วม ({activity.participants?.length || 0} คน)
           </h6>
         </div>
         <div className="card-body">
           {!activity.participants || activity.participants.length === 0 ? (
             <div className="text-center py-4">
               <i className="bi bi-people fs-1 text-muted d-block mb-3"></i>
-              <p className="text-muted mb-0">ไม่มีนักเรียนในกิจกรรมนี้</p>
+              <p className="text-muted mb-0">ไม่มีผู้เรียนในกิจกรรมนี้</p>
             </div>
           ) : (
             <div className="table-responsive">
@@ -503,7 +484,7 @@ export default function ViewActivityPage() {
                 <thead className="table-light">
                   <tr>
                     <th>#</th>
-                    <th>รหัสนักเรียน</th>
+                    <th>รหัส</th>
                     <th>ชื่อ-นามสกุล</th>
                     <th>วันที่เข้าร่วม</th>
                     <th>วันที่เสร็จสิ้น</th>
@@ -569,7 +550,7 @@ export default function ViewActivityPage() {
                             <button 
                               className="btn btn-sm btn-outline-danger"
                               onClick={() => handleRemoveParticipant(p.student_id)}
-                              title="ลบนักเรียนออกจากกิจกรรม"
+                              title="ลบผู้เรียนออกจากกิจกรรม"
                             >
                               <i className="bi bi-person-x"></i>
                             </button>

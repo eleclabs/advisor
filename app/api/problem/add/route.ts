@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
 
     // กรองนักเรียนที่ยังไม่มีแผน
     const studentsWithPlan = await Problem.find().distinct('student_id');
-    const availableStudents = students.filter((s: any) => !studentsWithPlan.includes((s as any).id));
+    const availableStudents = students.filter(s => !studentsWithPlan.includes(s.id));
 
     console.log(`✅ Found ${availableStudents.length} available students`);
 
@@ -128,6 +128,7 @@ export async function POST(request: NextRequest) {
       referral, 
       duration, 
       responsible,
+      methods,
       activity_ids // รับ activity_ids ที่เลือก
     } = body;
     
@@ -135,6 +136,7 @@ export async function POST(request: NextRequest) {
       student_id, 
       problem, 
       goal, 
+      methods,
       activityCount: activity_ids?.length 
     });
     
@@ -163,34 +165,53 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
+    const studentName = `${student.prefix || ''} ${student.first_name || ''} ${student.last_name || ''}`.trim();
+    
+    // ✅ สร้าง methods object จาก methods array ที่ส่งมา
+    const methodsData = {
+      counseling: methods?.includes("การให้คำปรึกษาเบื้องต้น") || counseling || false,
+      behavioral_contract: methods?.includes("กิจกรรมปรับเปลี่ยนพฤติกรรม") || behavioral_contract || false,
+      home_visit: methods?.includes("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง") || home_visit || false,
+      referral: methods?.includes("การส่งต่อ") || referral || false,
+      custom_methods: methods?.filter((m: string) => 
+        !["การให้คำปรึกษาเบื้องต้น", "กิจกรรมปรับเปลี่ยนพฤติกรรม", "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง", "การส่งต่อ"].includes(m)
+      ) || []
+    };
+    
     const problemData = {
       student_id,
-      student_name: `${student.prefix || ''} ${student.first_name || ''} ${student.last_name || ''}`.trim(),
+      student_name: studentName,
       problem,
       goal,
-      counseling: counseling || false,
-      behavioral_contract: behavioral_contract || false,
-      home_visit: home_visit || false,
-      referral: referral || false,
+      counseling: methodsData.counseling,
+      behavioral_contract: methodsData.behavioral_contract,
+      home_visit: methodsData.home_visit,
+      referral: methodsData.referral,
+      custom_methods: methodsData.custom_methods,
       duration,
       responsible,
       isp_status: "กำลังดำเนินการ",
       progress: 0,
-      evaluations: []
+      evaluations: [],
+      activities: [], // จะเพิ่มทีละกิจกรรม
+      activities_status: new Map(),
+      activity_join_dates: new Map(),
+      activity_completed_dates: new Map()
     };
     
     const newProblem = await Problem.create(problemData);
     
-    // ถ้ามีการเลือกกิจกรรม ให้เพิ่มนักเรียนเข้าไปใน participants ของกิจกรรม
+    // ✅ ถ้ามีการเลือกกิจกรรม ให้เพิ่มนักเรียนเข้าไปใน participants ของกิจกรรม AND เชื่อมโยงกับ Problem
     if (activity_ids && activity_ids.length > 0) {
       for (const activityId of activity_ids) {
+        // 1. เพิ่มนักเรียนเข้าไปใน Activity participants
         await Activity.findByIdAndUpdate(
           activityId,
           {
             $push: {
               participants: {
                 student_id: student_id,
-                student_name: `${student.prefix || ''} ${student.first_name || ''} ${student.last_name || ''}`.trim(),
+                student_name: studentName,
                 joined: true,
                 joined_at: new Date()
               }
@@ -201,6 +222,28 @@ export async function POST(request: NextRequest) {
             }
           }
         );
+        
+        // 2. ✅ เชื่อมโยงกิจกรรมเข้ากับ Problem (สำคัญมาก!)
+        await Problem.findByIdAndUpdate(
+          newProblem._id,
+          {
+            $push: {
+              activities: {
+                activity_id: activityId,
+                status: "เข้าร่วมแล้ว",
+                joined_at: new Date(),
+                completed_at: null,
+                notes: ""
+              }
+            },
+            $set: {
+              [`activities_status.${activityId}`]: "เข้าร่วมแล้ว",
+              [`activity_join_dates.${activityId}`]: new Date()
+            }
+          }
+        );
+        
+        console.log(`✅ Linked activity ${activityId} to problem ${newProblem._id}`);
       }
     }
     

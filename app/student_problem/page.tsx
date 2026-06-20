@@ -1,10 +1,9 @@
-// app/student_problem/page.tsx (เพิ่ม useSession และส่ง userRole ไป)
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react"; // ✅ เพิ่ม
+import { useSession } from "next-auth/react";
 
 interface Problem {
   _id: string;
@@ -34,10 +33,11 @@ interface Activity {
   }>;
   total_participants: number;
   joined_count: number;
+  created_by?: string;
 }
 
 export default function StudentProblemPage() {
-  const { data: session } = useSession(); // ✅ เพิ่ม
+  const { data: session } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("students");
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -49,17 +49,26 @@ export default function StudentProblemPage() {
   const userId = session?.user?.id;
 
   useEffect(() => {
+    const bootstrapLink = document.createElement("link");
+    bootstrapLink.href = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
+    bootstrapLink.rel = "stylesheet";
+    document.head.appendChild(bootstrapLink);
 
+    const iconLink = document.createElement("link");
+    iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
+    iconLink.rel = "stylesheet";
+    document.head.appendChild(iconLink);
+
+    fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/problem"); // API นี้จะกรองตามสิทธิ์ให้เอง
+      const res = await fetch("/api/problem");
       const data = await res.json();
       setProblems(data.data || []);
-      
-      // ดึงกิจกรรมทั้งหมด
+
       const activitiesRes = await fetch("/api/problem/activity");
       const activitiesData = await activitiesRes.json();
       setActivities(activitiesData.data || []);
@@ -72,7 +81,7 @@ export default function StudentProblemPage() {
 
   const getLatestEvaluation = (evaluations: any[]) => {
     if (!evaluations?.length) return "-";
-    const latest = evaluations.sort((a, b) => 
+    const latest = evaluations.sort((a, b) =>
       new Date(b.evaluation_date).getTime() - new Date(a.evaluation_date).getTime()
     )[0];
     return latest.improvement_level;
@@ -80,16 +89,16 @@ export default function StudentProblemPage() {
 
   const handleDeleteActivity = async (id: string) => {
     if (!id) return;
-    
+
     if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?")) {
       try {
         const res = await fetch(`/api/problem/activity?id=${id}`, {
           method: "DELETE"
         });
-        
+
         if (res.ok) {
           alert("ลบกิจกรรมเรียบร้อย");
-          fetchData(); // โหลดข้อมูลใหม่
+          fetchData();
         } else {
           alert("เกิดข้อผิดพลาดในการลบ");
         }
@@ -102,16 +111,16 @@ export default function StudentProblemPage() {
 
   const handleDeleteProblem = async (id: string) => {
     if (!id) return;
-    
-    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลปัญหานักเรียนคนนี้?")) {
+
+    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลปัญหาผู้เรียนคนนี้?")) {
       try {
         const res = await fetch(`/api/problem/${id}`, {
           method: "DELETE"
         });
-        
+
         if (res.ok) {
           alert("ลบข้อมูลปัญหาเรียบร้อย");
-          fetchData(); // โหลดข้อมูลใหม่
+          fetchData();
         } else {
           alert("เกิดข้อผิดพลาดในการลบ");
         }
@@ -138,12 +147,22 @@ export default function StudentProblemPage() {
     totalActivities: activities.length
   };
 
-
+  if (loading) {
+    return (
+      <div className="d-flex flex-column min-vh-100 bg-light">
+        <div className="container-fluid py-4">
+          <div className="text-center py-5">
+            <div className="spinner-border text-warning" role="status">
+              <span className="visually-hidden">กำลังโหลด...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      
-      {/* Main Content */}
       <div className="container-fluid py-4">
         {/* Header */}
         <div className="row mb-4">
@@ -154,17 +173,10 @@ export default function StudentProblemPage() {
                   <i className="bi bi-shield-check text-warning me-2"></i>
                   ป้องกันและแก้ไขปัญหาผู้เรียน
                 </h2>
+                <div className="text-muted small">ครูที่ปรึกษา: {teacher_name} ({userRole})</div>
               </div>
               <div>
-                <span className="badge bg-warning text-dark rounded-0 p-2 me-2">
-                  ดำเนินการ: {stats.active}
-                </span>
-                <span className="badge bg-success rounded-0 p-2 me-2">
-                  สำเร็จ: {stats.completed}
-                </span>
-                <span className="badge bg-info text-dark rounded-0 p-2">
-                  กิจกรรม: {stats.totalActivities}
-                </span>
+                
               </div>
             </div>
           </div>
@@ -179,7 +191,7 @@ export default function StudentProblemPage() {
                   className={`nav-link rounded-0 ${activeTab === 'students' ? 'active bg-dark text-white' : 'bg-light'}`}
                   onClick={() => setActiveTab('students')}
                 >
-                  <i className="bi bi-people me-2"></i>นักเรียน
+                  <i className="bi bi-people me-2"></i>ผู้เรียน
                 </button>
               </li>
               <li className="nav-item">
@@ -199,13 +211,14 @@ export default function StudentProblemPage() {
           <div className="row">
             <div className="col-12">
               <div className="card rounded-0 border-0 shadow-sm">
-                <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center rounded-0">
-                  <h5 className="mb-0">
+                {/* ✅ เปลี่ยนจาก bg-dark เป็นไม่มีพื้นหลัง (bg-white หรือ bg-light) */}
+                <div className="card-header border-bottom d-flex justify-content-between align-items-center rounded-0">
+                  <h5 className="mb-0 fw-bold">
                     <i className="bi bi-list-check me-2 text-warning"></i>
-                    รายการนักเรียนที่ต้องแก้ไขปัญหา
+                    รายการผู้เรียน
                   </h5>
                   <Link href="/student_problem/add" className="btn btn-warning btn-sm rounded-0">
-                    <i className="bi bi-plus-circle me-2"></i>เพิ่มนักเรียน
+                    <i className="bi bi-plus-circle me-2"></i>เพิ่มผู้เรียน
                   </Link>
                 </div>
                 <div className="card-body p-0">
@@ -213,11 +226,11 @@ export default function StudentProblemPage() {
                     <table className="table table-bordered table-hover mb-0">
                       <thead className="table-light">
                         <tr>
-                          <th>รหัสนักศึกษา</th>
+                          <th>รหัส</th>
                           <th>ชื่อ-นามสกุล</th>
                           <th>ปัญหา</th>
-                          <th>แผน ISP</th>
-                          <th>ความคืบหน้า</th>
+                          <th>แผน</th>
+                         
                           <th>สถานะ</th>
                           <th>การประเมินล่าสุด</th>
                           <th>จัดการ</th>
@@ -235,47 +248,38 @@ export default function StudentProblemPage() {
                               </td>
                               <td className="align-middle">{p.problem || '-'}</td>
                               <td className="align-middle">{p.goal || '-'}</td>
-                              <td className="align-middle" style={{ width: '150px' }}>
-                                <div className="d-flex align-items-center">
-                                  <div className="progress rounded-0 flex-grow-1" style={{ height: '8px' }}>
-                                    <div className="progress-bar bg-warning" style={{ width: `${p.progress || 0}%` }}></div>
-                                  </div>
-                                  <span className="ms-2 small fw-bold">{p.progress || 0}%</span>
-                                </div>
-                              </td>
+                              
                               <td className="align-middle">
-                                <span className={`badge rounded-0 px-3 py-2 ${
-                                  p.isp_status === 'กำลังดำเนินการ' ? 'bg-warning text-dark' :
-                                  p.isp_status === 'สำเร็จ' ? 'bg-success' : 'bg-secondary'
-                                }`}>
+                                <span className={`badge rounded-0 px-3 py-2 ${p.isp_status === 'กำลังดำเนินการ' ? 'bg-warning text-dark' :
+                                    p.isp_status === 'สำเร็จ' ? 'bg-success' : 'bg-secondary'
+                                  }`}>
                                   {p.isp_status || 'รอดำเนินการ'}
                                 </span>
                               </td>
                               <td className="align-middle">
-                                <span className={`badge rounded-0 px-3 py-2 ${
-                                  getLatestEvaluation(p.evaluations || []) === 'ดีขึ้นชัดเจน' ? 'bg-success' :
-                                  getLatestEvaluation(p.evaluations || []) === 'เริ่มเห็นการเปลี่ยนแปลง' ? 'bg-warning text-dark' :
-                                  getLatestEvaluation(p.evaluations || []) === 'คงเดิม/ไม่เปลี่ยนแปลง' ? 'bg-danger' : 'bg-secondary bg-opacity-25 text-dark'
-                                }`}>
+                                <span className={`badge rounded-0 px-3 py-2 ${getLatestEvaluation(p.evaluations || []) === 'ดีขึ้นชัดเจน' ? 'bg-success' :
+                                    getLatestEvaluation(p.evaluations || []) === 'เริ่มเห็นการเปลี่ยนแปลง' ? 'bg-warning text-dark' :
+                                      getLatestEvaluation(p.evaluations || []) === 'คงเดิม/ไม่เปลี่ยนแปลง' ? 'bg-danger' : 'bg-secondary bg-opacity-25 text-dark'
+                                  }`}>
                                   {getLatestEvaluation(p.evaluations || [])}
                                 </span>
                               </td>
                               <td className="align-middle">
                                 <div className="btn-group btn-group-sm">
-                                  <Link href={`/student_problem/${p._id}`} 
+                                  <Link href={`/student_problem/${p._id}`}
                                     className="btn btn-outline-primary" title="ดูรายละเอียด">
                                     <i className="bi bi-eye"></i>
                                   </Link>
-                                  <Link href={`/student_problem/${p._id}/edit`} 
+                                  <Link href={`/student_problem/${p._id}/edit`}
                                     className="btn btn-outline-success" title="แก้ไขแผน">
                                     <i className="bi bi-pencil"></i>
                                   </Link>
-                                  <Link href={`/student_problem/${p._id}/result`} 
+                                  <Link href={`/student_problem/${p._id}/result`}
                                     className="btn btn-outline-warning" title="บันทึกผล">
                                     <i className="bi bi-bar-chart"></i>
                                   </Link>
-                                  <button 
-                                    className="btn btn-outline-danger" 
+                                  <button
+                                    className="btn btn-outline-danger"
                                     title="ลบ"
                                     onClick={() => handleDeleteProblem(p._id)}
                                   >
@@ -291,17 +295,17 @@ export default function StudentProblemPage() {
                               {userRole === 'TEACHER' ? (
                                 <>
                                   <i className="bi bi-info-circle me-2"></i>
-                                  คุณยังไม่มีนักเรียนในความดูแล กรุณาเลือกนักเรียนจาก{" "}
+                                  คุณยังไม่มีผู้เรียนในความดูแล กรุณาเลือกผู้เรียนจาก{" "}
                                   <Link href="/student/student_filter" className="text-warning">
-                                    หน้ากำหนดนักเรียนในความดูแล
+                                    หน้ากำหนดผู้เรียนในความดูแล
                                   </Link> หรือ <Link href="/student_problem/add" className="text-warning">
-                                    เพิ่มนักเรียนใหม่
+                                    เพิ่มผู้เรียนใหม่
                                   </Link>
                                 </>
                               ) : (
                                 <>
                                   <i className="bi bi-emoji-frown me-2"></i>
-                                  ไม่มีข้อมูลนักเรียนที่ต้องแก้ไขปัญหา
+                                  ไม่มีข้อมูลผู้เรียนที่ต้องแก้ไขปัญหา
                                 </>
                               )}
                             </td>
@@ -315,118 +319,115 @@ export default function StudentProblemPage() {
             </div>
           </div>
         )}
-
-        {/* Tab: Activities (เหมือนเดิม) */}
-        
-{activeTab === 'activities' && (
-  <div className="row">
-    <div className="col-12">
-      <div className="card rounded-0 border-0 shadow-sm">
-        <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center rounded-0">
-          <h5 className="mb-0">
-            <i className="bi bi-activity me-2 text-warning"></i>
-            จัดการกิจกรรมสาขาวิชา
-          </h5>
-          <Link href="/student_problem/activity/add" className="btn btn-warning btn-sm rounded-0">
-            <i className="bi bi-plus-circle me-2"></i>เพิ่มกิจกรรม
-          </Link>
-        </div>
-        <div className="card-body">
-          {activities.length === 0 ? (
-            <div className="text-center py-5">
-              <i className="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
-              <p className="text-muted mb-0">
-                {userRole === 'TEACHER' 
-                  ? 'ไม่มีกิจกรรมของนักเรียนในความดูแลของคุณ' 
-                  : 'ยังไม่มีกิจกรรม'}
-              </p>
-              {userRole === 'TEACHER' && (
-                <p className="text-muted small mt-2">
-                  คุณจะเห็นเฉพาะกิจกรรมที่มีนักเรียนในความดูแลของคุณเข้าร่วมเท่านั้น
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="row">
-              {activities.map((act) => (
-                <div key={act._id} className="col-md-6 col-lg-4 mb-4">
-                  <div className="card h-100 border-0 shadow-sm">
-                    <div className="card-header bg-light d-flex justify-content-between align-items-center">
-                      <h6 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '180px' }} title={act.name}>
-                        {act.name}
-                      </h6>
-                      <span className="badge bg-info rounded-0">
-                        {act.joined_count || 0}/{act.total_participants || 0}
-                      </span>
-                    </div>
-                    <div className="card-body">
-                      <div className="mb-3">
-                        <p className="small mb-2">
-                          <i className="bi bi-clock me-2 text-warning"></i>
-                          <strong>เวลา:</strong> {act.duration} นาที
+        {/* Tab: Activities */}
+        {activeTab === 'activities' && (
+          <div className="row">
+            <div className="col-12">
+              <div className="card rounded-0 border-0 shadow-sm">
+                <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center rounded-0">
+                  <h5 className="mb-0">
+                    <i className="bi bi-activity me-2 text-warning"></i>
+                    จัดการกิจกรรม
+                  </h5>
+                  <Link href="/student_problem/activity/add" className="btn btn-warning btn-sm rounded-0">
+                    <i className="bi bi-plus-circle me-2"></i>เพิ่มกิจกรรม
+                  </Link>
+                </div>
+                <div className="card-body">
+                  {activities.length === 0 ? (
+                    <div className="text-center py-5">
+                      <i className="bi bi-calendar-x fs-1 text-muted d-block mb-3"></i>
+                      <p className="text-muted mb-0">
+                        {userRole === 'TEACHER'
+                          ? 'ไม่มีกิจกรรมของผู้เรียนในความดูแลของคุณ'
+                          : 'ยังไม่มีกิจกรรม'}
+                      </p>
+                      {userRole === 'TEACHER' && (
+                        <p className="text-muted small mt-2">
+                          คุณจะเห็นเฉพาะกิจกรรมที่มีผู้เรียนในความดูแลของคุณเข้าร่วมเท่านั้น
                         </p>
-                        <p className="small mb-2">
-                          <i className="bi bi-calendar me-2 text-warning"></i>
-                          <strong>วันที่:</strong> {formatDate(act.activity_date)}
-                        </p>
-                        {act.materials && (
-                          <p className="small mb-2">
-                            <i className="bi bi-tools me-2 text-warning"></i>
-                            <strong>อุปกรณ์:</strong> {act.materials}
-                          </p>
-                        )}
-                      </div>
-                      <div className="small text-muted bg-light p-2 rounded">
-                        <i className="bi bi-chat-quote me-1"></i>
-                        {act.debrief ? (act.debrief.length > 50 ? act.debrief.substring(0, 50) + '...' : act.debrief) : 'ไม่มีบทเรียน'}
-                      </div>
-                      {(act as any).created_by && (
-                        <div className="small text-muted mt-2">
-                          <i className="bi bi-person me-1"></i>
-                          สร้างโดย: {(act as any).created_by}
-                        </div>
                       )}
                     </div>
-                    <div className="card-footer bg-transparent p-2">
-                      <div className="btn-group w-100">
-                        <Link 
-                          href={`/student_problem/activity/view?id=${act._id}`} 
-                          className="btn btn-sm btn-outline-primary"
-                          title="ดูรายละเอียด"
-                        >
-                          <i className="bi bi-eye"></i>
-                        </Link>
-                        {/* แสดงปุ่มแก้ไข/ลบเฉพาะเจ้าของหรือ Admin */}
-                        {(userRole === 'ADMIN' || (act as any).created_by === teacher_name) && (
-                          <>
-                            <Link 
-                              href={`/student_problem/activity/edit?id=${act._id}`} 
-                              className="btn btn-sm btn-outline-warning"
-                              title="แก้ไข"
-                            >
-                              <i className="bi bi-pencil"></i>
-                            </Link>
-                            <button 
-                              className="btn btn-sm btn-outline-danger"
-                              title="ลบ"
-                              onClick={() => handleDeleteActivity(act._id)}
-                            >
-                              <i className="bi bi-trash"></i>
-                            </button>
-                          </>
-                        )}
-                      </div>
+                  ) : (
+                    <div className="row">
+                      {activities.map((act) => (
+                        <div key={act._id} className="col-md-6 col-lg-4 mb-4">
+                          <div className="card h-100 border-0 shadow-sm">
+                            <div className="card-header bg-light d-flex justify-content-between align-items-center">
+                              <h6 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '180px' }} title={act.name}>
+                                {act.name}
+                              </h6>
+                              <span className="badge bg-info rounded-0">
+                                {act.joined_count || 0}/{act.total_participants || 0}
+                              </span>
+                            </div>
+                            <div className="card-body">
+                              <div className="mb-3">
+                                <p className="small mb-2">
+                                  <i className="bi bi-clock me-2 text-warning"></i>
+                                  <strong>เวลา:</strong> {act.duration} นาที
+                                </p>
+                                <p className="small mb-2">
+                                  <i className="bi bi-calendar me-2 text-warning"></i>
+                                  <strong>วันที่:</strong> {formatDate(act.activity_date)}
+                                </p>
+                                {act.materials && (
+                                  <p className="small mb-2">
+                                    <i className="bi bi-tools me-2 text-warning"></i>
+                                    <strong>อุปกรณ์:</strong> {act.materials}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="small text-muted bg-light p-2 rounded">
+                                <i className="bi bi-chat-quote me-1"></i>
+                                {act.debrief ? (act.debrief.length > 50 ? act.debrief.substring(0, 50) + '...' : act.debrief) : 'ไม่มีบทเรียน'}
+                              </div>
+                              {act.created_by && (
+                                <div className="small text-muted mt-2">
+                                  <i className="bi bi-person me-1"></i>
+                                  สร้างโดย: {act.created_by}
+                                </div>
+                              )}
+                            </div>
+                            <div className="card-footer bg-transparent p-2">
+                              <div className="btn-group w-100">
+                                <Link
+                                  href={`/student_problem/activity/view?id=${act._id}`}
+                                  className="btn btn-sm btn-outline-primary"
+                                  title="ดูรายละเอียด"
+                                >
+                                  <i className="bi bi-eye"></i>
+                                </Link>
+                                {(userRole === 'ADMIN' || act.created_by === teacher_name) && (
+                                  <>
+                                    <Link
+                                      href={`/student_problem/activity/edit?id=${act._id}`}
+                                      className="btn btn-sm btn-outline-warning"
+                                      title="แก้ไข"
+                                    >
+                                      <i className="bi bi-pencil"></i>
+                                    </Link>
+                                    <button
+                                      className="btn btn-sm btn-outline-danger"
+                                      title="ลบ"
+                                      onClick={() => handleDeleteActivity(act._id)}
+                                    >
+                                      <i className="bi bi-trash"></i>
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+          </div>
+        )}
       </div>
     </div>
   );

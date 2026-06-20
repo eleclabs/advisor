@@ -271,7 +271,7 @@ export default function ViewReferralPage() {
                   </div>
 
                   <div>
-                    <h6 className="text-uppercase fw-semibold small mb-2">สิ่งที่ครูที่ปรึกษาได้ดำเนินการไปแล้ว</h6>
+                    <h6 className="text-uppercase fw-semibold small mb-2">ครูที่ปรึกษาได้ดำเนินการไปแล้ว</h6>
                     <div className="border rounded p-3 bg-light">
                       <p className="mb-0">{referral.actions_taken}</p>
                     </div>

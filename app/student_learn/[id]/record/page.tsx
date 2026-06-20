@@ -205,18 +205,18 @@ export default function RecordActivityPage() {
                   <textarea className="form-control rounded-0" rows={3} name="problems" value={formData.problems} onChange={handleInputChange} placeholder="ปัญหาที่เกิดขึ้นระหว่างการจัดกิจกรรม" />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fw-semibold small">นักเรียนที่ต้องติดตามเป็นพิเศษ</label>
+                  <label className="form-label fw-semibold small">ผุ้เรียนที่ต้องติดตามเป็นพิเศษ</label>
                   <textarea 
                     className="form-control rounded-0" 
                     rows={2} 
                     name="special_track" 
                     value={formData.special_track} 
                     onChange={handleInputChange} 
-                    placeholder="รายชื่อนักเรียนที่ต้องติดตาม" 
+                    placeholder="รายชื่อผู้เรียนที่ต้องติดตาม" 
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fw-semibold small">บันทึกการจัดกิจกรรม (รายครั้ง)</label>
+                  <label className="form-label fw-semibold small">บันทึกการจัดกิจกรรม</label>
                   <textarea className="form-control rounded-0" rows={2} name="sessionNote" value={formData.sessionNote} onChange={handleInputChange} placeholder="บันทึกเพิ่มเติม" />
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function RecordActivityPage() {
               </h5>
             </div>
             <div className="card-body">
-              <textarea className="form-control rounded-0" rows={4} name="individualFollowup" value={formData.individualFollowup} onChange={handleInputChange} placeholder="รายชื่อนักเรียนที่ต้องติดตามเป็นพิเศษ และแนวทางการติดตาม..." />
+              <textarea className="form-control rounded-0" rows={4} name="individualFollowup" value={formData.individualFollowup} onChange={handleInputChange} placeholder="รายชื่อผู้เรียนที่ต้องติดตามเป็นพิเศษ และแนวทางการติดตาม..." />
             </div>
           </div>
 
@@ -249,17 +249,14 @@ export default function RecordActivityPage() {
                   <input type="date" className="form-control rounded-0" name="activity_date" value={formData.activity_date} onChange={handleInputChange} required />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fw-semibold small">จำนวนนักเรียนที่เข้าร่วม</label>
+                  <label className="form-label fw-semibold small">จำนวนผู้เรียนที่เข้าร่วม</label>
                   <input type="number" className="form-control rounded-0" name="students_attended" value={formData.students_attended} onChange={handleInputChange} required />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label fw-semibold small">จำนวนนักเรียนทั้งหมด</label>
+                  <label className="form-label fw-semibold small">จำนวนผู้เรียนทั้งหมด</label>
                   <input type="number" className="form-control rounded-0" name="total_students" value={formData.total_students} onChange={handleInputChange} required />
                 </div>
-                <div className="col-md-4">
-                  <label className="form-label fw-semibold small">ผู้บันทึกผล</label>
-                  <input type="text" className="form-control rounded-0" name="evaluator" value={formData.evaluator} onChange={handleInputChange} readOnly />
-                </div>
+                
               </div>
             </div>
           </div>

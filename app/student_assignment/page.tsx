@@ -166,19 +166,24 @@ export default function StudentAssignmentPage() {
     try {
       setSaving(true);
       
+      const payload = {
+        teacherIds: Array.from(selectedTeachers),
+        studentIds: Array.from(selectedStudents)
+      };
+      
+      console.log('📤 Sending batch assignment request:', payload);
+      
       // Use the new batch assignment API
       const response = await fetch('/api/admin/batch-assign', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          teacherIds: Array.from(selectedTeachers),
-          studentIds: Array.from(selectedStudents)
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
+      console.log('📥 Batch assignment response:', data);
 
       if (response.ok && data.success) {
         setAssignmentResults(data.data.results);
@@ -215,11 +220,16 @@ export default function StudentAssignmentPage() {
         // Refresh teacher data to show updated assignment counts
         fetchData();
       } else {
-        throw new Error(data.message || 'เกิดข้อผิดพลาดในการมอบหมายนักเรียน');
+        console.error('❌ API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
+        throw new Error(data.message || `เกิดข้อผิดพลาด (HTTP ${response.status})`);
       }
       
     } catch (error: any) {
-      console.error('Error saving assignments:', error);
+      console.error('❌ Error saving assignments:', error);
       alert(error.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่');
     } finally {
       setSaving(false);
@@ -412,7 +422,7 @@ export default function StudentAssignmentPage() {
                     >
                       <option value="none">ไม่จัดกลุ่ม</option>
                       <option value="level">จัดกลุ่มตามระดับชั้น</option>
-                      <option value="major">จัดกลุ่มตามสาขาวิชา</option>
+                      <option value="major">จัดกลุ่มตามสาขา</option>
                       <option value="class">จัดกลุ่มตามชั้น/สาขา/ห้อง</option>
                     </select>
                   </div>

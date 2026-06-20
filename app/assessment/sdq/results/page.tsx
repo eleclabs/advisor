@@ -12,7 +12,7 @@ interface SDQResponse {
   gender?: string;
   age?: string;
   assessmentType: 'sdq';
-  totalScore: number; // Direct totalScore like student filter
+  totalScore: number;
   sdqScore: {
     totalScore: number;
     interpretation: string;
@@ -20,6 +20,32 @@ interface SDQResponse {
   answers: Record<string, string>;
   assessmentDate?: string;
   submittedAt?: string;
+}
+
+// ========== ฟังก์ชันคำนวณคะแนน SDQ แยกตามด้าน ==========
+function calculateEmotionalScore(answers: any): number {
+  const emotionalQuestions = ['sdq3', 'sdq8', 'sdq13', 'sdq16', 'sdq24'];
+  return emotionalQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
+}
+
+function calculateConductScore(answers: any): number {
+  const conductQuestions = ['sdq5', 'sdq7', 'sdq12', 'sdq18', 'sdq22'];
+  return conductQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
+}
+
+function calculateHyperactivityScore(answers: any): number {
+  const hyperactivityQuestions = ['sdq2', 'sdq10', 'sdq15', 'sdq21', 'sdq25'];
+  return hyperactivityQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
+}
+
+function calculatePeerScore(answers: any): number {
+  const peerQuestions = ['sdq6', 'sdq11', 'sdq14', 'sdq19', 'sdq23'];
+  return peerQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
+}
+
+function calculateProsocialScore(answers: any): number {
+  const prosocialQuestions = ['sdq1', 'sdq4', 'sdq9', 'sdq17', 'sdq20'];
+  return prosocialQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
 }
 
 export default function SDQResultsPage() {
@@ -54,11 +80,11 @@ export default function SDQResultsPage() {
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'ไม่ระบุ';
-    
+
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Invalid Date';
-      
+
       return date.toLocaleDateString('th-TH', {
         year: 'numeric',
         month: 'short',
@@ -84,9 +110,8 @@ export default function SDQResultsPage() {
   const calculateStatistics = () => {
     if (responses.length === 0) return null;
 
-    // Filter out responses that don't have sdqScore
     const validResponses = responses.filter(r => r.sdqScore);
-    
+
     if (validResponses.length === 0) return null;
 
     const totalScore = validResponses.reduce((sum, r) => sum + (r.sdqScore?.totalScore || 0), 0);
@@ -240,7 +265,7 @@ export default function SDQResultsPage() {
               สรุปทั้งหมด
             </Link>
           </div>
-          
+
           <div style={{
             fontSize: '12px',
             fontWeight: 500,
@@ -271,7 +296,6 @@ export default function SDQResultsPage() {
         </div>
 
         {stats && (
-          /* Statistics Cards */
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
             <div style={{
               backgroundColor: 'white',
@@ -287,7 +311,7 @@ export default function SDQResultsPage() {
                 ผลการประเมินทั้งหมด
               </div>
             </div>
-            
+
             <div style={{
               backgroundColor: 'white',
               border: '1px solid #dee2e6',
@@ -302,7 +326,7 @@ export default function SDQResultsPage() {
                 คะแนนเฉลี่ย
               </div>
             </div>
-            
+
             <div style={{
               backgroundColor: 'white',
               border: '1px solid #dee2e6',
@@ -317,7 +341,7 @@ export default function SDQResultsPage() {
                 คะแนนสูงสุด
               </div>
             </div>
-            
+
             <div style={{
               backgroundColor: 'white',
               border: '1px solid #dee2e6',
@@ -336,7 +360,6 @@ export default function SDQResultsPage() {
         )}
 
         {stats && (
-          /* Interpretation Distribution */
           <div style={{
             backgroundColor: 'white',
             border: '1px solid #dee2e6',
@@ -380,7 +403,7 @@ export default function SDQResultsPage() {
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#212529', marginBottom: '20px' }}>
             รายการผลการประเมิน ({responses.length} รายการ)
           </h2>
-          
+
           {responses.length === 0 ? (
             <div style={{
               textAlign: 'center',
@@ -395,165 +418,39 @@ export default function SDQResultsPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f8f9fa' }}>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'left',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#495057',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      borderBottom: '1px solid #dee2e6'
-                    }}>
-                      ชื่อนักเรียน
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'left',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#495057',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      borderBottom: '1px solid #dee2e6'
-                    }}>
-                      ระดับชั้น
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#495057',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      borderBottom: '1px solid #dee2e6'
-                    }}>
-                      คะแนนรวม
-                    </th>
-                    
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'left',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#495057',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      borderBottom: '1px solid #dee2e6'
-                    }}>
-                      วันที่ประเมิน
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#495057',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      borderBottom: '1px solid #dee2e6'
-                    }}>
-                      ผลการประเมิน
-                    </th>
-                    <th style={{
-                      padding: '12px 16px',
-                      textAlign: 'center',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#495057',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      borderBottom: '1px solid #dee2e6'
-                    }}>
-                      จัดการ
-                    </th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>ชื่อนักเรียน</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>ระดับชั้น</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>คะแนนรวม</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>วันที่ประเมิน</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>ผลการประเมิน</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {responses.map((response, index) => (
-                    <tr key={response._id} style={{
-                      backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
-                    }}>
-                      <td style={{
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#212529',
-                        borderBottom: '1px solid #e9ecef'
-                      }}>
+                    <tr key={response._id} style={{ backgroundColor: index % 2 === 0 ? 'white' : '#fafafa' }}>
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#212529', borderBottom: '1px solid #e9ecef' }}>
                         <div>
                           <div style={{ fontWeight: 500 }}>{response.studentName}</div>
-                          {response.studentId && (
-                            <div style={{ fontSize: '12px', color: '#6c757d' }}>
-                              รหัส: {response.studentId}
-                            </div>
-                          )}
+                          {response.studentId && <div style={{ fontSize: '12px', color: '#6c757d' }}>รหัส: {response.studentId}</div>}
                         </div>
                       </td>
-                      <td style={{
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#212529',
-                        borderBottom: '1px solid #e9cef'
-                      }}>
-                        {response.grade}
-                        {response.classroom && ` / ${response.classroom}`}
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#212529', borderBottom: '1px solid #e9ecef' }}>
+                        {response.grade}{response.classroom && ` / ${response.classroom}`}
                       </td>
-                      <td style={{
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#212529',
-                        borderBottom: '1px solid #e9ecef',
-                        textAlign: 'center',
-                        fontWeight: 600
-                      }}>
-                        {response.totalScore || 0}
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#212529', borderBottom: '1px solid #e9ecef', textAlign: 'center', fontWeight: 600 }}>
+                        {response.sdqScore?.totalScore || 0}
                       </td>
-                      <td style={{
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#212529',
-                        borderBottom: '1px solid #e9ecef'
-                      }}>
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#212529', borderBottom: '1px solid #e9ecef' }}>
                         {formatDate(response.submittedAt || response.assessmentDate)}
                       </td>
-                      <td style={{
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#212529',
-                        borderBottom: '1px solid #e9ecef',
-                        textAlign: 'center'
-                      }}>
-                        <span style={{
-                          backgroundColor: getInterpretationColor(response.sdqScore?.interpretation || 'unknown'),
-                          color: 'white',
-                          padding: '4px 12px',
-                          borderRadius: '16px',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}>
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#212529', borderBottom: '1px solid #e9ecef', textAlign: 'center' }}>
+                        <span style={{ backgroundColor: getInterpretationColor(response.sdqScore?.interpretation || 'unknown'), color: 'white', padding: '4px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: 500 }}>
                           {response.sdqScore?.interpretation || 'unknown'}
                         </span>
                       </td>
-                      <td style={{
-                        padding: '12px 16px',
-                        fontSize: '14px',
-                        color: '#212529',
-                        borderBottom: '1px solid #e9ecef',
-                        textAlign: 'center'
-                      }}>
-                        <button
-                          onClick={() => setSelectedResponse(response)}
-                          style={{
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            cursor: 'pointer'
-                          }}
-                        >
+                      <td style={{ padding: '12px 16px', fontSize: '14px', color: '#212529', borderBottom: '1px solid #e9ecef', textAlign: 'center' }}>
+                        <button onClick={() => setSelectedResponse(response)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}>
                           ดูรายละเอียด
                         </button>
                       </td>
@@ -566,7 +463,7 @@ export default function SDQResultsPage() {
         </div>
       </div>
 
-      {/* Response Detail Modal */}
+      {/* Response Detail Modal - เวอร์ชันปรับปรุงใหม่ */}
       {selectedResponse && (
         <div style={{
           position: 'fixed',
@@ -583,13 +480,26 @@ export default function SDQResultsPage() {
           <div style={{
             backgroundColor: 'white',
             borderRadius: '8px',
-            padding: '24px',
-            maxWidth: '600px',
-            maxHeight: '80vh',
-            overflow: 'auto',
-            width: '90%'
+            width: '90%',
+            maxWidth: '700px',
+            maxHeight: '85vh',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            {/* Header - Fixed ที่ด้านบน */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '20px 24px',
+              borderBottom: '1px solid #e9ecef',
+              backgroundColor: 'white',
+              borderRadius: '8px 8px 0 0',
+              position: 'sticky',
+              top: 0,
+              zIndex: 10
+            }}>
               <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#212529', margin: 0 }}>
                 รายละเอียดผลการประเมิน SDQ
               </h3>
@@ -600,70 +510,188 @@ export default function SDQResultsPage() {
                   border: 'none',
                   fontSize: '24px',
                   cursor: 'pointer',
-                  color: '#6c757d'
+                  color: '#6c757d',
+                  padding: '0',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 ×
               </button>
             </div>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ชื่อนักเรียน</div>
-                  <div style={{ fontSize: '14px', color: '#212529', fontWeight: 500 }}>
-                    {selectedResponse.studentName}
+
+            {/* Content - Scrollable */}
+            <div style={{
+              padding: '20px 24px',
+              overflowY: 'auto',
+              flex: 1
+            }}>
+              {/* ข้อมูลนักเรียน */}
+              <div style={{ marginBottom: '24px', backgroundColor: '#f8f9fa', padding: '16px', borderRadius: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ชื่อนักเรียน</div>
+                    <div style={{ fontSize: '14px', color: '#212529', fontWeight: 500 }}>{selectedResponse.studentName}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ระดับชั้น</div>
+                    <div style={{ fontSize: '14px', color: '#212529', fontWeight: 500 }}>{selectedResponse.grade} {selectedResponse.classroom && `/ ${selectedResponse.classroom}`}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>คะแนนรวม (4 ด้าน)</div>
+                    <div style={{ fontSize: '16px', color: '#212529', fontWeight: 600 }}>
+                      {(() => {
+                        const emotional = calculateEmotionalScore(selectedResponse.answers);
+                        const conduct = calculateConductScore(selectedResponse.answers);
+                        const hyperactivity = calculateHyperactivityScore(selectedResponse.answers);
+                        const peer = calculatePeerScore(selectedResponse.answers);
+                        return emotional + conduct + hyperactivity + peer;
+                      })()}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ผลการประเมิน</div>
+                    <span style={{
+                      backgroundColor: getInterpretationColor(selectedResponse.sdqScore?.interpretation || 'unknown'),
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '16px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      display: 'inline-block'
+                    }}>
+                      {selectedResponse.sdqScore?.interpretation || 'unknown'}
+                    </span>
                   </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ระดับชั้น</div>
-                  <div style={{ fontSize: '14px', color: '#212529', fontWeight: 500 }}>
-                    {selectedResponse.grade} {selectedResponse.classroom && `/ ${selectedResponse.classroom}`}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>คะแนนรวม</div>
-                  <div style={{ fontSize: '16px', color: '#212529', fontWeight: 600 }}>
-                    {selectedResponse.totalScore || 0}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ผลการประเมิน</div>
-                  <span style={{
-                    backgroundColor: getInterpretationColor(selectedResponse.sdqScore?.interpretation || 'unknown'),
-                    color: 'white',
-                    padding: '4px 12px',
-                    borderRadius: '16px',
-                    fontSize: '12px',
-                    fontWeight: 500
-                  }}>
-                    {selectedResponse.sdqScore?.interpretation || 'unknown'}
-                  </span>
+                <div style={{ marginTop: '12px' }}>
+                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>วันที่ประเมิน</div>
+                  <div style={{ fontSize: '14px', color: '#212529' }}>{formatDate(selectedResponse.assessmentDate)}</div>
                 </div>
               </div>
-              <div style={{ marginTop: '12px' }}>
-                <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>วันที่ประเมิน</div>
-                <div style={{ fontSize: '14px', color: '#212529' }}>
-                  {formatDate(selectedResponse.assessmentDate)}
+
+              {/* คะแนนแยกตามด้าน */}
+              <div style={{ marginBottom: '24px' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#212529', marginBottom: '16px', borderBottom: '2px solid #e9ecef', paddingBottom: '8px' }}>
+                  คะแนนแยกตามด้าน
+                </h4>
+
+                {/* Emotional Score */}
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div>
+                      <strong style={{ fontSize: '14px', color: '#212529' }}>พฤติกรรมด้านอารมณ์</strong>
+                      <div style={{ fontSize: '11px', color: '#6c757d' }}>ข้อ: sdq3, sdq8, sdq13, sdq16, sdq24</div>
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#007bff' }}>
+                      {calculateEmotionalScore(selectedResponse.answers)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', marginTop: '8px' }}>
+                    {calculateEmotionalScore(selectedResponse.answers) <= 5 && <span style={{ color: '#28a745' }}>✅ ปกติ (0-5 คะแนน)</span>}
+                    {calculateEmotionalScore(selectedResponse.answers) === 6 && <span style={{ color: '#ffc107' }}>⚠️ เสี่ยง (6 คะแนน)</span>}
+                    {calculateEmotionalScore(selectedResponse.answers) >= 7 && <span style={{ color: '#dc3545' }}>🔴 มีปัญหา (7-10 คะแนน)</span>}
+                  </div>
+                </div>
+
+                {/* Conduct Score */}
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div>
+                      <strong style={{ fontSize: '14px', color: '#212529' }}>พฤติกรรมอยู่ไม่นิ่ง / สมาธิสั้น</strong>
+                      <div style={{ fontSize: '11px', color: '#6c757d' }}>ข้อ: sdq5, sdq7, sdq12, sdq18, sdq22</div>
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#28a745' }}>
+                      {calculateConductScore(selectedResponse.answers)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', marginTop: '8px' }}>
+                    {calculateConductScore(selectedResponse.answers) <= 4 && <span style={{ color: '#28a745' }}>✅ ปกติ (0-4 คะแนน)</span>}
+                    {calculateConductScore(selectedResponse.answers) === 5 && <span style={{ color: '#ffc107' }}>⚠️ เสี่ยง (5 คะแนน)</span>}
+                    {calculateConductScore(selectedResponse.answers) >= 6 && <span style={{ color: '#dc3545' }}>🔴 มีปัญหา (6-10 คะแนน)</span>}
+                  </div>
+                </div>
+
+                {/* Hyperactivity Score */}
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div>
+                      <strong style={{ fontSize: '14px', color: '#212529' }}>พฤติกรรมเกเร / ความประพฤติ</strong>
+                      <div style={{ fontSize: '11px', color: '#6c757d' }}>ข้อ: sdq2, sdq10, sdq15, sdq21, sdq25</div>
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#fd7e14' }}>
+                      {calculateHyperactivityScore(selectedResponse.answers)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', marginTop: '8px' }}>
+                    {calculateHyperactivityScore(selectedResponse.answers) <= 5 && <span style={{ color: '#28a745' }}>✅ ปกติ (0-5 คะแนน)</span>}
+                    {calculateHyperactivityScore(selectedResponse.answers) === 6 && <span style={{ color: '#ffc107' }}>⚠️ เสี่ยง (6 คะแนน)</span>}
+                    {calculateHyperactivityScore(selectedResponse.answers) >= 7 && <span style={{ color: '#dc3545' }}>🔴 มีปัญหา (7-10 คะแนน)</span>}
+                  </div>
+                </div>
+
+                {/* Peer Score */}
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div>
+                      <strong style={{ fontSize: '14px', color: '#212529' }}>พฤติกรรมด้านความสัมพันธ์กับเพื่อน</strong>
+                      <div style={{ fontSize: '11px', color: '#6c757d' }}>ข้อ: sdq6, sdq11, sdq14, sdq19, sdq23</div>
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#6f42c1' }}>
+                      {calculatePeerScore(selectedResponse.answers)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', marginTop: '8px' }}>
+                    {calculatePeerScore(selectedResponse.answers) <= 3 && <span style={{ color: '#28a745' }}>✅ ปกติ (0-3 คะแนน)</span>}
+                    {calculatePeerScore(selectedResponse.answers) === 4 && <span style={{ color: '#ffc107' }}>⚠️ เสี่ยง (4 คะแนน)</span>}
+                    {calculatePeerScore(selectedResponse.answers) >= 5 && <span style={{ color: '#dc3545' }}>🔴 มีปัญหา (5-10 คะแนน)</span>}
+                  </div>
+                </div>
+
+                {/* Prosocial Score */}
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div>
+                      <strong style={{ fontSize: '14px', color: '#212529' }}>พฤติกรรมด้านสัมพันธภาพทางสังคม</strong>
+                      <div style={{ fontSize: '11px', color: '#6c757d' }}>ข้อ: sdq1, sdq4, sdq9, sdq17, sdq20</div>
+                    </div>
+                    <div style={{ fontSize: '20px', fontWeight: 700, color: '#20c997' }}>
+                      {calculateProsocialScore(selectedResponse.answers)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', marginTop: '8px' }}>
+                    {calculateProsocialScore(selectedResponse.answers) >= 4 && <span style={{ color: '#28a745' }}>✅ มีจุดแข็ง (4-10 คะแนน)</span>}
+                    {calculateProsocialScore(selectedResponse.answers) <= 3 && <span style={{ color: '#dc3545' }}>⚠️ ต่ำกว่าเกณฑ์ ไม่มีจุดแข็ง (0-3 คะแนน)</span>}
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '20px' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#212529', marginBottom: '16px' }}>
-                คำตอบแบบประเมิน
-              </h4>
-              <div style={{ fontSize: '14px', color: '#495057', lineHeight: 1.6 }}>
-                {Object.entries(selectedResponse.answers).map(([questionId, answer]) => (
-                  <div key={questionId} style={{ marginBottom: '8px' }}>
-                    <strong>{questionId}:</strong> {answer}
-                  </div>
-                ))}
+
+              {/* คำตอบแบบประเมิน */}
+              <div>
+                <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#212529', marginBottom: '16px' }}>
+                  คำตอบแบบประเมินรายข้อ
+                </h4>
+                {Object.entries(selectedResponse.answers).map(([questionId, answer]) => {
+                  const answerText = answer === '0' ? 'ไม่จริง' : answer === '1' ? 'ค่อนข้างจริง' : answer === '2' ? 'จริงมาก' : answer;
+                  return (
+                    <div key={questionId} style={{ marginBottom: '12px', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
+                      <strong style={{ fontSize: '14px', color: '#495057' }}>{questionId.toUpperCase()}:</strong>{' '}
+                      <span style={{ fontSize: '14px', color: '#212529' }}>{answerText}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

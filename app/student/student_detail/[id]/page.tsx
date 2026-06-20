@@ -122,7 +122,7 @@ function StudentBasicPage() {
   useEffect(() => {
     const fetchStudentData = async () => {
       if (!studentDocId) {
-        setError("ไม่พบรหัสนักศึกษา");
+        setError("ไม่พบรหัส");
         setLoading(false);
         return;
       }
@@ -295,7 +295,7 @@ function StudentBasicPage() {
                       </div>
                       <div className="flex-grow-1">
                         <h4 className="fw-bold mb-1">{student.name}</h4>
-                        <p className="text-muted mb-2">รหัสนักศึกษา: {student.id}</p>
+                        <p className="text-muted mb-2">รหัส: {student.id}</p>
                       </div>
                     </div>
                   </div>
@@ -321,7 +321,7 @@ function StudentBasicPage() {
                     <p>{student.level}</p>
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">สาขาวิชา</label>
+                    <label className="form-label text-uppercase fw-semibold small text-muted">สาขา</label>
                     <p>{student.class_group || "-"}</p>
                   </div>
                   <div className="col-md-3">

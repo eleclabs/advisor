@@ -514,14 +514,14 @@ export default function EditStudentPage() {
                     </div>
 
                     <div className="col-md-3">
-                      <label className="form-label text-uppercase fw-semibold small">สาขาวิชา</label>
+                      <label className="form-label text-uppercase fw-semibold small">สาขา</label>
                       <select 
                         name="class_group"
                         className="form-select rounded-0"
                         value={studentData.class_group}
                         onChange={handleInputChange}
                       >
-                        <option value="">เลือกสาขาวิชา</option>
+                        <option value="">เลือกสาขา</option>
                         {majors.map((major) => (
                           <option key={major._id} value={major.major_name}>
                             {major.major_id} - {major.major_name}

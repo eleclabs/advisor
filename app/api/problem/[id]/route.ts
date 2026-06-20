@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
 import Student from "@/models/Student";
+import Activity from "@/models/Activity";
 import mongoose from "mongoose";
 
 // GET: ดึงข้อมูลนักเรียน
@@ -23,7 +24,7 @@ export async function GET(
     if (mongoose.Types.ObjectId.isValid(id)) {
       // ✅ ค้นหาด้วย _id และ populate ข้อมูล activities
       problem = await Problem.findById(id)
-        .populate('activities.activity_id'); // สำคัญมาก!
+        .populate('activities.activity_id');
       console.log("📋 Found by _id:", problem ? "Yes" : "No");
     }
     
@@ -31,16 +32,13 @@ export async function GET(
     if (!problem) {
       // ✅ ค้นหาด้วย student_id และ populate ข้อมูล activities
       problem = await Problem.findOne({ student_id: id })
-        .populate('activities.activity_id'); // สำคัญมาก!
+        .populate('activities.activity_id');
       console.log("📋 Found by student_id:", problem ? "Yes" : "No");
     }
     
     if (problem) {
       // ✅ แปลงข้อมูลให้แน่ใจว่า activities อยู่ในรูปแบบที่ถูกต้อง
       const problemData = problem.toObject();
-      
-      // ✅ ใช้ activities จาก problem โดยตรง (ไม่ต้องไปหาใหม่)
-      // activities ถูก populate แล้วจาก .populate('activities.activity_id')
       
       // แปลง Map ให้เป็น plain object
       if (problemData.activities_status && problemData.activities_status instanceof Map) {
@@ -58,12 +56,11 @@ export async function GET(
         problemData.activities = [];
       }
       
-      console.log("✅ Sending problem data with activities:", JSON.stringify(problemData.activities, null, 2));
-      console.log("✅ Activities count:", problemData.activities.length);
+      console.log("✅ Sending problem data with activities count:", problemData.activities.length);
       
       return NextResponse.json({ 
         success: true, 
-        data: problemData // ส่ง problemData โดยตรง
+        data: problemData
       });
     }
     
@@ -83,7 +80,7 @@ export async function GET(
           student_name: `${student.prefix || ''} ${student.first_name || ''} ${student.last_name || ''}`.trim(),
           student_data: student,
           isNew: true,
-          activities: [], // ✅ เพิ่ม activities ว่าง
+          activities: [],
           activities_status: {},
           activity_join_dates: {},
           activity_completed_dates: {}
@@ -143,15 +140,16 @@ export async function POST(
       behavioral_contract: body.behavioral_contract || false,
       home_visit: body.home_visit || false,
       referral: body.referral || false,
+      custom_methods: body.custom_methods || [],
       duration: body.duration,
       responsible: body.responsible,
       isp_status: "กำลังดำเนินการ",
       progress: 0,
       evaluations: [],
-      activities: [], // ✅ เพิ่ม activities ว่าง
-      activities_status: {},
-      activity_join_dates: {},
-      activity_completed_dates: {}
+      activities: [],
+      activities_status: new Map(),
+      activity_join_dates: new Map(),
+      activity_completed_dates: new Map()
     };
     
     const problem = await Problem.create(problemData);
@@ -195,7 +193,7 @@ export async function PUT(
       }, { status: 404 });
     }
     
-    // ถ้ามี evaluation หมายถึงเป็นการเพิ่มผลประเมิน
+    // ✅ ถ้ามี evaluation หมายถึงเป็นการเพิ่มผลประเมิน
     if (body.addEvaluation) {
       const maxNumber = problem.evaluations?.length > 0 
         ? Math.max(...problem.evaluations.map((e: any) => e.evaluation_number || 0)) 
@@ -229,25 +227,99 @@ export async function PUT(
       return NextResponse.json({ success: true, data: problem });
     }
     
-    // อัปเดตแผนปกติ
-    const updateData = {
+    // ✅ อัปเดตแผนปกติ (รวมถึงกิจกรรม)
+    const updateData: any = {
       problem: body.problem,
       goal: body.goal,
-      counseling: body.counseling,
-      behavioral_contract: body.behavioral_contract,
-      home_visit: body.home_visit,
-      referral: body.referral,
       duration: body.duration,
       responsible: body.responsible,
       progress: body.progress,
       isp_status: body.isp_status
     };
     
-    const updated = await Problem.findOneAndUpdate(
-      { _id: problem._id },
+    // อัปเดต methods
+    if (body.methods) {
+      updateData.counseling = body.methods.includes("การให้คำปรึกษาเบื้องต้น");
+      updateData.behavioral_contract = body.methods.includes("กิจกรรมปรับเปลี่ยนพฤติกรรม");
+      updateData.home_visit = body.methods.includes("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง");
+      updateData.referral = body.methods.includes("การส่งต่อ");
+      updateData.custom_methods = body.methods.filter((m: string) => 
+        !["การให้คำปรึกษาเบื้องต้น", "กิจกรรมปรับเปลี่ยนพฤติกรรม", "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง", "การส่งต่อ"].includes(m)
+      );
+    }
+    
+    // ✅ อัปเดตกิจกรรมที่เลือก
+    if (body.activities && Array.isArray(body.activities)) {
+      const currentActivityIds = problem.activities.map((a: any) => 
+        a.activity_id?.toString() || a.activity_id?.toString()
+      );
+      const newActivityIds = body.activities.map((a: any) => a.activity_id?.toString());
+      
+      // กิจกรรมที่เพิ่มใหม่
+      const addedIds = newActivityIds.filter((id: string) => !currentActivityIds.includes(id));
+      
+      // กิจกรรมที่ถูกลบ
+      const removedIds = currentActivityIds.filter((id: string) => !newActivityIds.includes(id));
+      
+      // ✅ จัดการกิจกรรมที่เพิ่มใหม่
+      for (const activityId of addedIds) {
+        // เพิ่มนักเรียนใน Activity participants
+        await Activity.findByIdAndUpdate(
+          activityId,
+          {
+            $push: {
+              participants: {
+                student_id: problem.student_id,
+                student_name: problem.student_name,
+                joined: true,
+                joined_at: new Date()
+              }
+            },
+            $inc: { total_participants: 1, joined_count: 1 }
+          }
+        );
+        
+        // เพิ่มใน Problem activities
+        problem.activities.push({
+          activity_id: new mongoose.Types.ObjectId(activityId),
+          status: "เข้าร่วมแล้ว",
+          joined_at: new Date(),
+          completed_at: null,
+          notes: ""
+        });
+        problem.activities_status.set(activityId, "เข้าร่วมแล้ว");
+        problem.activity_join_dates.set(activityId, new Date());
+      }
+      
+      // ✅ จัดการกิจกรรมที่ถูกลบ
+      for (const activityId of removedIds) {
+        // ลบนักเรียนจาก Activity participants
+        await Activity.findByIdAndUpdate(
+          activityId,
+          {
+            $pull: { participants: { student_id: problem.student_id } },
+            $inc: { total_participants: -1, joined_count: -1 }
+          }
+        );
+        
+        // ลบจาก Problem activities
+        problem.activities = problem.activities.filter((a: any) => 
+          (a.activity_id?.toString() || a.activity_id?.toString()) !== activityId
+        );
+        problem.activities_status.delete(activityId);
+        problem.activity_join_dates.delete(activityId);
+        problem.activity_completed_dates.delete(activityId);
+      }
+    }
+    
+    const updated = await Problem.findByIdAndUpdate(
+      problem._id,
       updateData,
       { returnDocument: 'after' }
     );
+    
+    // บันทึกการเปลี่ยนแปลง activities
+    await problem.save();
     
     return NextResponse.json({ success: true, data: updated });
     

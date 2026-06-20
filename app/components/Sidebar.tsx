@@ -29,16 +29,16 @@ export default function Sidebar() {
   ];
 
   // เมนู Student - แก้ให้ href ไม่ซ้ำกัน
+  // เมนู Student - แก้ให้ href ไม่ซ้ำกัน
   const studentLinks = [
-    { id: "dashboard", name: "Dashboard ภาพรวม", href: "/dashboard", icon: "bi-speedometer2" },
-    { id: "profile", name: "การรู้จักผู้เรียนเป็นรายบุคคล", href: "/student", icon: "bi-person-badge" },
-    { id: "filter", name: "การคัดกรองผู้เรียน", href: "/student_filter", icon: "bi-funnel" },
-    { id: "learn", name: "การส่งเสริมและพัฒนาผู้เรียน", href: "/student_learn", icon: "bi-book" },
-    { id: "problem", name: "การป้องกันและแก้ปัญหา", href: "/student_problem", icon: "bi-shield" },
-    { id: "send", name: "การส่งต่อผู้เรียน", href: "/student_send", icon: "bi-send" },
-    { id: "report", name: "การรายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
-    { id: "forms", name: "แบบฟอร์ม/เครื่องมือ", href: "/forms", icon: "bi-file-earmark-text" },
-  /*   { id: "evaluation", name: "⭐ แบบประเมินความพึงพอใจ", href: "/evaluation", icon: "bi-star" }, */
+    { id: "dashboard", name: "📊 Dashboard ภาพรวม", href: "/dashboard", icon: "bi-speedometer2" },
+    { id: "profile", name: "👤 การรู้จักผู้เรียนเป็นรายบุคคล", href: "/student", icon: "bi-person-badge" },
+    { id: "filter", name: "🔍 การคัดกรองผู้เรียน", href: "/student_filter", icon: "bi-funnel" },
+    { id: "learn", name: "📚 การส่งเสริมและพัฒนาผู้เรียน", href: "/student_learn", icon: "bi-book" },
+    { id: "problem", name: "🛡️ การป้องกันและแก้ปัญหา", href: "/student_problem", icon: "bi-shield" },
+    { id: "send", name: "📤 การส่งต่อผู้เรียน", href: "/student_send", icon: "bi-send" },
+    { id: "report", name: "📈 การรายงานและสถิติ", href: "/student/report", icon: "bi-graph-up" },
+    { id: "forms", name: "📋 แบบฟอร์ม/เครื่องมือ", href: "/forms", icon: "bi-file-earmark-text" },
   ];
 
   // กรองเมนูตาม role

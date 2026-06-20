@@ -1,4 +1,3 @@
-// D:\advisor-main\app\student_learn\[id]\edit\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -33,7 +32,7 @@ export default function EditHomeroomPlanPage() {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   const [formData, setFormData] = useState({
     level: "",
     semester: "1",
@@ -41,39 +40,22 @@ export default function EditHomeroomPlanPage() {
     week: "",
     time: "20-30",
     topic: "",
-    objectives: ["", ""],
-    
-    // สาขาวิชาเป้าหมาย
+    objectives: [""] as string[], // ✅ เริ่มต้นด้วย 1 element
+
     target_class_group: "",
     target_class_numbers: [] as string[],
-    
-    // ช่วงที่ 1: การจัดการระเบียบและวินัย
-    checkAttendance: "",
-    checkUniform: "",
-    announceNews: "",
-    
-    // ช่วงที่ 2: กิจกรรมพัฒนาผู้เรียน
-    warmup: "",
+
     mainActivity: "",
-    summary: "",
-    
-    // ช่วงที่ 3: การดูแลรายบุคคล (เฉพาะที่วางแผนไว้)
-    trackProblems: "",
-    individualCounsel: "",
-    
-    // การประเมินผล
+
     evalObservation: false,
     evalWorksheet: false,
     evalParticipation: false,
-    
-    // สื่อ/เอกสาร
+
     materials: [] as { name: string; url: string }[],
     materialsNote: "",
-    
-    // ข้อเสนอแนะ
+
     suggestions: "",
-    
-    // สถานะ
+
     status: "draft"
   });
 
@@ -82,9 +64,11 @@ export default function EditHomeroomPlanPage() {
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [showStudentList, setShowStudentList] = useState(false);
   const [selectAllNumbers, setSelectAllNumbers] = useState(false);
-  
+
   const [existingMaterials, setExistingMaterials] = useState<{ name: string; url: string }[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
+
+  const [isCustomTopic, setIsCustomTopic] = useState(false);
 
   const teacher_name = session?.user?.name || "ไม่พบชื่อผู้ใช้";
   const userRole = session?.user?.role || "";
@@ -94,22 +78,20 @@ export default function EditHomeroomPlanPage() {
   useEffect(() => {
     const fetchPlanData = async () => {
       if (!params.id) return;
-      
+
       try {
         setFetchLoading(true);
         const response = await fetch(`/api/learn/${params.id}`);
         const result = await response.json();
-        
+
         if (result.success) {
           const data = result.data;
-          console.log("📥 โหลดข้อมูลแผน:", data);
-          
-          // ตรวจสอบสิทธิ์
+
           if (userRole !== 'ADMIN' && data.created_by !== teacher_name) {
             setError("ไม่มีสิทธิ์แก้ไขแผนนี้");
             return;
           }
-          
+
           setFormData({
             level: data.level || "",
             semester: data.semester || "1",
@@ -117,17 +99,10 @@ export default function EditHomeroomPlanPage() {
             week: data.week || "",
             time: data.time || "20-30",
             topic: data.topic || "",
-            objectives: data.objectives || ["", ""],
+            objectives: data.objectives?.length ? data.objectives : [""], // ✅ รองรับข้อมูลจาก API
             target_class_group: data.target_class_group || "",
             target_class_numbers: data.target_class_numbers || [],
-            checkAttendance: data.checkAttendance || "",
-            checkUniform: data.checkUniform || "",
-            announceNews: data.announceNews || "",
-            warmup: data.warmup || "",
             mainActivity: data.mainActivity || "",
-            summary: data.summary || "",
-            trackProblems: data.trackProblems || "",
-            individualCounsel: data.individualCounsel || "",
             evalObservation: data.evalObservation || false,
             evalWorksheet: data.evalWorksheet || false,
             evalParticipation: data.evalParticipation || false,
@@ -136,9 +111,9 @@ export default function EditHomeroomPlanPage() {
             suggestions: data.suggestions || "",
             status: data.status || "draft"
           });
-          
+
           setExistingMaterials(data.materials || []);
-          
+
         } else {
           setError(result.message || "ไม่พบข้อมูลแผน");
         }
@@ -204,15 +179,15 @@ export default function EditHomeroomPlanPage() {
     }
 
     let filtered = assignedStudents.filter(s => s.level === formData.level);
-    
+
     if (formData.target_class_group) {
       filtered = filtered.filter(s => s.class_group === formData.target_class_group);
     }
-    
+
     if (formData.target_class_numbers.length > 0) {
       filtered = filtered.filter(s => formData.target_class_numbers.includes(s.class_number));
     }
-    
+
     setFilteredStudents(filtered);
   }, [formData.level, formData.target_class_group, formData.target_class_numbers, assignedStudents]);
 
@@ -223,7 +198,7 @@ export default function EditHomeroomPlanPage() {
         s => s.level === formData.level && s.class_group === formData.target_class_group
       );
       const availableNumbers = studentsInClass.map(s => s.class_number).filter(Boolean);
-      
+
       if (selectAllNumbers) {
         setFormData(prev => ({ ...prev, target_class_numbers: availableNumbers }));
       }
@@ -244,6 +219,19 @@ export default function EditHomeroomPlanPage() {
     const newObjectives = [...formData.objectives];
     newObjectives[index] = value;
     setFormData(prev => ({ ...prev, objectives: newObjectives }));
+  };
+
+  // ✅ เพิ่มฟังก์ชันเพิ่ม/ลบวัตถุประสงค์
+  const addObjective = () => {
+    setFormData(prev => ({ ...prev, objectives: [...prev.objectives, ""] }));
+  };
+
+  const removeObjective = (index: number) => {
+    if (formData.objectives.length <= 1) return;
+    setFormData(prev => ({ 
+      ...prev, 
+      objectives: prev.objectives.filter((_, i) => i !== index) 
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -271,6 +259,30 @@ export default function EditHomeroomPlanPage() {
     setSelectAllNumbers(false);
   };
 
+  const handleTopicInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData({ ...formData, topic: value });
+    if (value && value.trim() !== "") {
+      setIsCustomTopic(true);
+    } else if (!value || value.trim() === "") {
+      setIsCustomTopic(false);
+    }
+  };
+
+  const handleTopicSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === "อื่นๆ") {
+      setIsCustomTopic(true);
+      setFormData({ ...formData, topic: "" });
+    } else if (value === "") {
+      setIsCustomTopic(false);
+      setFormData({ ...formData, topic: "" });
+    } else {
+      setIsCustomTopic(false);
+      setFormData({ ...formData, topic: value });
+    }
+  };
+
   const handleClassGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData(prev => ({
       ...prev,
@@ -282,7 +294,6 @@ export default function EditHomeroomPlanPage() {
 
   const getAvailableNumbers = () => {
     if (!formData.level || !formData.target_class_group) return [];
-    
     return assignedStudents
       .filter(s => s.level === formData.level && s.class_group === formData.target_class_group)
       .map(s => s.class_number)
@@ -293,84 +304,61 @@ export default function EditHomeroomPlanPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       if (!formData.level) {
-        alert("กรุณาเลือกระดับชั้น");
+        alert("เลือกระดับชั้น");
         setLoading(false);
         return;
       }
 
       const submitFormData = new FormData();
-      
-      // ฟิลด์ทั่วไป
+
       submitFormData.append('level', formData.level);
       submitFormData.append('semester', formData.semester);
       submitFormData.append('academicYear', formData.academicYear);
       submitFormData.append('week', formData.week);
       submitFormData.append('time', formData.time);
       submitFormData.append('topic', formData.topic);
-      
-      // สาขาวิชาเป้าหมาย
       submitFormData.append('target_class_group', formData.target_class_group);
       submitFormData.append('target_class_numbers', JSON.stringify(formData.target_class_numbers));
-      
-      // วัตถุประสงค์
-      formData.objectives.forEach((obj, index) => {
+
+      // ✅ ส่งเฉพาะวัตถุประสงค์ที่ไม่ว่าง
+      const validObjectives = formData.objectives.filter(obj => obj.trim());
+      validObjectives.forEach((obj, index) => {
         if (obj.trim()) {
           submitFormData.append(`objectives[${index}]`, obj);
         }
       });
-      
-      // ฟิลด์กิจกรรม
-      submitFormData.append('checkAttendance', formData.checkAttendance);
-      submitFormData.append('checkUniform', formData.checkUniform);
-      submitFormData.append('announceNews', formData.announceNews);
-      submitFormData.append('warmup', formData.warmup);
+
       submitFormData.append('mainActivity', formData.mainActivity);
-      submitFormData.append('summary', formData.summary);
-      submitFormData.append('trackProblems', formData.trackProblems);
-      submitFormData.append('individualCounsel', formData.individualCounsel);
-      
-      // การประเมิน
       submitFormData.append('evalObservation', formData.evalObservation ? 'on' : 'off');
       submitFormData.append('evalWorksheet', formData.evalWorksheet ? 'on' : 'off');
       submitFormData.append('evalParticipation', formData.evalParticipation ? 'on' : 'off');
-      
-      // หมายเหตุสื่อ
       submitFormData.append('materialsNote', formData.materialsNote);
-      
-      // ข้อเสนอแนะ
       submitFormData.append('suggestions', formData.suggestions);
-      
-      // สถานะ
       submitFormData.append('status', formData.status);
       submitFormData.append('created_by', teacher_name);
-      
-      // ไฟล์ใหม่
+
       newFiles.forEach((file, index) => {
         submitFormData.append(`materials[${index}]`, file);
       });
-      
-      // ไฟล์เดิมที่คงไว้
+
       existingMaterials.forEach((material, index) => {
         submitFormData.append(`existingMaterials[${index}]`, JSON.stringify(material));
       });
-      
-      // ถ้าไม่มีไฟล์เลย
+
       if (existingMaterials.length === 0 && newFiles.length === 0) {
         submitFormData.append('materials_clear', 'true');
       }
-      
-      console.log("📤 ส่งข้อมูลแก้ไข...");
-      
+
       const response = await fetch(`/api/learn/${params.id}`, {
         method: 'PUT',
         body: submitFormData,
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok && result.success) {
         router.push(`/student_learn/${params.id}`);
       } else {
@@ -388,8 +376,7 @@ export default function EditHomeroomPlanPage() {
     "การจัดการความเครียด",
     "มารยาทในที่ทำงาน",
     "การวางแผนการเงิน",
-    "การเตรียมตัวสอบ",
-    "อื่นๆ"
+    "การเตรียมตัวสอบ"
   ];
 
   const availableNumbers = getAvailableNumbers();
@@ -429,7 +416,7 @@ export default function EditHomeroomPlanPage() {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-pencil-square me-2 text-warning"></i>
-                แก้ไขแผนกิจกรรมโฮมรูม
+                แก้ไขแผนกิจกรรมโฮมรูม (การส่งเสริมและพัฒนาผู้เรียน)
               </h2>
               <div>
                 <span className="badge bg-dark text-white rounded-0">2568</span>
@@ -445,25 +432,26 @@ export default function EditHomeroomPlanPage() {
               <label className="form-label fw-semibold">
                 1. ระดับชั้น <span className="text-danger">*</span>
               </label>
-              <select 
-                className="form-select rounded-0" 
-                name="level" 
-                value={formData.level} 
+              <select
+                className="form-select rounded-0"
+                name="level"
+                value={formData.level}
                 onChange={handleInputChange}
                 required
               >
                 <option value="">-- กรุณาเลือกระดับชั้น --</option>
-                <option value="ปวช.1">🚹 ปวช.1</option>
-                <option value="ปวช.2">🚹 ปวช.2</option>
-                <option value="ปวช.3">🚹 ปวช.3</option>
-                <option value="ปวส.1">🚺 ปวส.1</option>
-                <option value="ปวส.2">🚺 ปวส.2</option>
+                <option value="ปวช.1">ปวช.1</option>
+                <option value="ปวช.2">ปวช.2</option>
+                <option value="ปวช.3">ปวช.3</option>
+                <option value="ปวส.1">ปวส.1</option>
+                <option value="ปวส.2">ปวส.2</option>
+                <option value="ป.ตรี">ป.ตรี</option>
               </select>
             </div>
-            
+
             <div className="col-md-3">
               <label className="form-label fw-semibold">
-                2. สาขาวิชาเรียน
+                2. สาขา
               </label>
               <select
                 className="form-select rounded-0"
@@ -475,62 +463,38 @@ export default function EditHomeroomPlanPage() {
                 <option value="">-- กรุณาเลือกสาขาวิชาเรียน --</option>
                 {majors.map(major => (
                   <option key={major._id} value={major.major_name}>
-                    📚 {major.major_name}
+                    {major.major_name}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <div className="col-md-3">
               <label className="form-label fw-semibold">
-                3. ห้อง (เลือกได้หลายหมายเลข)
+                3. ห้อง <span className="text-danger">*</span>
               </label>
-              <div 
-                className="form-control rounded-0 overflow-auto" 
-                style={{ 
-                  maxHeight: '120px',
-                  backgroundColor: formData.level && formData.target_class_group ? '#fff' : '#e9ecef'
+              <select
+                className="form-select rounded-0"
+                value={formData.target_class_numbers[0] || ""}
+                onChange={(e) => {
+                  const selectedNumber = e.target.value;
+                  setFormData(prev => ({
+                    ...prev,
+                    target_class_numbers: selectedNumber ? [selectedNumber] : []
+                  }));
                 }}
+                disabled={!formData.level || !formData.target_class_group}
+                required
               >
-                {formData.level && formData.target_class_group ? (
-                  availableNumbers.length > 0 ? (
-                    <div className="d-flex flex-wrap gap-2 py-1">
-                      <div className="form-check form-check-inline me-2">
-                        <input
-                          type="checkbox"
-                          className="form-check-input rounded-0"
-                          id="selectAll"
-                          checked={selectAllNumbers}
-                          onChange={(e) => setSelectAllNumbers(e.target.checked)}
-                        />
-                        <label className="form-check-label small" htmlFor="selectAll">
-                          เลือกทั้งหมด
-                        </label>
-                      </div>
-                      {availableNumbers.map(number => (
-                        <div className="form-check form-check-inline" key={number}>
-                          <input
-                            type="checkbox"
-                            className="form-check-input rounded-0"
-                            id={`num-${number}`}
-                            checked={formData.target_class_numbers.includes(number)}
-                            onChange={() => handleNumberToggle(number)}
-                          />
-                          <label className="form-check-label small" htmlFor={`num-${number}`}>
-                            {number}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-muted small py-1">ไม่มีนักเรียนในสาขาวิชานี้</div>
-                  )
-                ) : (
-                  <div className="text-muted small py-1">กรุณาเลือกระดับชั้นและสาขาวิชาเรียนก่อน</div>
-                )}
-              </div>
+                <option value="">-- เลือกห้อง --</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
             </div>
-            
+
             <div className="col-md-3">
               <label className="form-label fw-semibold">
                 &nbsp;
@@ -559,13 +523,19 @@ export default function EditHomeroomPlanPage() {
             <div className="col-md-3">
               <label className="form-label fw-semibold">ปีการศึกษา</label>
               <select className="form-select rounded-0" name="academicYear" value={formData.academicYear} onChange={handleInputChange}>
+                <option value="2574">2574</option>
+                <option value="2573">2573</option>
+                <option value="2572">2572</option>
+                <option value="2571">2571</option>
+                <option value="2570">2570</option>
+                <option value="2569">2569</option>
                 <option value="2568">2568</option>
                 <option value="2567">2567</option>
                 <option value="2566">2566</option>
               </select>
             </div>
             <div className="col-md-3">
-              <label className="form-label fw-semibold">สัปดาห์ที่ <span className="text-danger">*</span></label>
+              <label className="form-label fw-semibold">สัปดาห์ <span className="text-danger">*</span></label>
               <input type="number" className="form-control rounded-0" name="week" value={formData.week} onChange={handleInputChange} required />
             </div>
             <div className="col-md-3">
@@ -583,11 +553,11 @@ export default function EditHomeroomPlanPage() {
                     <span className="fw-bold">
                       <i className="bi bi-people-fill me-2 text-info"></i>
                       รายชื่อนักเรียน
-                      {formData.target_class_group && <span className="badge bg-dark ms-2">สาขาวิชา {formData.target_class_group}</span>}
+                      {formData.target_class_group && <span className="badge bg-dark ms-2">สาขา {formData.target_class_group}</span>}
                       {formData.target_class_numbers.length > 0 && (
                         <span className="badge bg-dark ms-2">
-                          ห้อง {formData.target_class_numbers.length > 5 
-                            ? `${formData.target_class_numbers[0]} - ${formData.target_class_numbers[formData.target_class_numbers.length-1]}`
+                          ห้อง {formData.target_class_numbers.length > 5
+                            ? `${formData.target_class_numbers[0]} - ${formData.target_class_numbers[formData.target_class_numbers.length - 1]}`
                             : formData.target_class_numbers.join(', ')}
                         </span>
                       )}
@@ -601,11 +571,11 @@ export default function EditHomeroomPlanPage() {
                       <table className="table table-sm table-bordered mb-0">
                         <thead className="table-secondary sticky-top">
                           <tr>
-                            <th className="text-center" style={{width: '50px'}}>#</th>
+                            <th className="text-center" style={{ width: '50px' }}>#</th>
                             <th>รหัสนักเรียน</th>
                             <th>ชื่อ-นามสกุล</th>
                             <th>ระดับชั้น</th>
-                            <th>สาขาวิชาเรียน</th>
+                            <th>สาขา</th>
                             <th>ห้อง</th>
                           </tr>
                         </thead>
@@ -618,14 +588,14 @@ export default function EditHomeroomPlanPage() {
                                 <td>
                                   <div className="d-flex align-items-center">
                                     {student.image ? (
-                                      <img 
-                                        src={student.image} 
+                                      <img
+                                        src={student.image}
                                         alt={student.name}
                                         className="rounded-circle me-2"
-                                        style={{width: '25px', height: '25px', objectFit: 'cover'}}
+                                        style={{ width: '25px', height: '25px', objectFit: 'cover' }}
                                       />
                                     ) : (
-                                      <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{width: '25px', height: '25px'}}>
+                                      <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{ width: '25px', height: '25px' }}>
                                         <i className="bi bi-person-fill small"></i>
                                       </div>
                                     )}
@@ -654,34 +624,85 @@ export default function EditHomeroomPlanPage() {
             </div>
           )}
 
-          
-
-          {/* 1. หัวข้อหลักประจำสัปดาห์ */}
+          {/* Topic */}
           <div className="card rounded-0 border-0 shadow-sm mb-4">
             <div className="card-header bg-dark text-white">
               <h5 className="m-0"><i className="bi bi-chat-text me-2 text-warning"></i>1. หัวข้อหลักประจำสัปดาห์</h5>
             </div>
             <div className="card-body">
-              <select className="form-select rounded-0 mb-3" value={formData.topic} onChange={(e)=>setFormData({...formData, topic: e.target.value})}>
-                <option value="">เลือกหัวข้อ</option>
-                {topicOptions.map(t=><option key={t} value={t}>{t}</option>)}
+              <select
+                className="form-select rounded-0 mb-3"
+                value={isCustomTopic ? "อื่นๆ" : formData.topic}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "อื่นๆ") {
+                    setIsCustomTopic(true);
+                    setFormData({ ...formData, topic: "" });
+                  } else {
+                    setIsCustomTopic(false);
+                    setFormData({ ...formData, topic: value });
+                  }
+                }}
+              >
+                <option value="">-- เลือกหัวข้อ --</option>
+                {topicOptions.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+                <option value="อื่นๆ">อื่นๆ</option>
               </select>
-              <input type="text" className="form-control rounded-0" placeholder="หรือระบุหัวข้ออื่นๆ" value={formData.topic} onChange={(e)=>setFormData({...formData, topic: e.target.value})} />
+
+              <input
+                type="text"
+                className="form-control rounded-0"
+                placeholder={isCustomTopic ? "พิมพ์หัวข้อ..." : "เลือกจาก dropdown หรือพิมพ์ที่นี่"}
+                value={formData.topic}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, topic: value });
+                  if (value && !topicOptions.includes(value)) {
+                    setIsCustomTopic(true);
+                  }
+                }}
+              />
             </div>
           </div>
 
-          {/* 2. วัตถุประสงค์ */}
+          {/* 2. วัตถุประสงค์ - แบบไดนามิก */}
           <div className="card rounded-0 border-0 shadow-sm mb-4">
             <div className="card-header bg-dark text-white">
               <h5 className="m-0"><i className="bi bi-bullseye me-2 text-warning"></i>2. วัตถุประสงค์</h5>
             </div>
             <div className="card-body">
               <div className="mb-3">
-                <label className="form-label">เพื่อให้ผู้เรียน</label>
-                <input type="text" className="form-control rounded-0 mb-2" placeholder="วัตถุประสงค์ข้อที่ 1" 
-                  value={formData.objectives[0]} onChange={(e)=>handleObjectiveChange(0, e.target.value)} required />
-                <input type="text" className="form-control rounded-0" placeholder="วัตถุประสงค์ข้อที่ 2" 
-                  value={formData.objectives[1]} onChange={(e)=>handleObjectiveChange(1, e.target.value)} required />
+              
+                {formData.objectives.map((objective, index) => (
+                  <div key={index} className="input-group mb-2">
+                    <span className="input-group-text bg-light">{index + 1}.</span>
+                    <input 
+                      type="text" 
+                      className="form-control rounded-0" 
+                      placeholder={`วัตถุประสงค์ข้อที่ ${index + 1}`}
+                      value={objective} 
+                      onChange={(e) => handleObjectiveChange(index, e.target.value)} 
+                      required 
+                    />
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-danger rounded-0" 
+                      onClick={() => removeObjective(index)}
+                      disabled={formData.objectives.length <= 1}
+                    >
+                      <i className="bi bi-dash-lg"></i>
+                    </button>
+                  </div>
+                ))}
+                <button 
+                  type="button" 
+                  className="btn btn-outline-success btn-sm rounded-0 mt-2"
+                  onClick={addObjective}
+                >
+                  <i className="bi bi-plus-lg me-1"></i>เพิ่มวัตถุประสงค์
+                </button>
               </div>
             </div>
           </div>
@@ -692,40 +713,24 @@ export default function EditHomeroomPlanPage() {
               <h5 className="m-0"><i className="bi bi-list-check me-2 text-warning"></i>3. ขั้นตอนการดำเนินกิจกรรม</h5>
             </div>
             <div className="card-body">
-              <h6 className="fw-bold bg-warning text-dark p-2">ช่วงที่ 1: การจัดการระเบียบและวินัย (5-10 นาที)</h6>
               <div className="mb-3">
-                <label className="form-label">เช็คชื่อ:</label>
-                <input type="text" className="form-control rounded-0 mb-2" name="checkAttendance" value={formData.checkAttendance} onChange={handleInputChange} placeholder="ตรวจสอบสถิติการมาเรียน การลา ความทันเวลา" />
-                <label className="form-label">ตรวจระเบียบ:</label>
-                <input type="text" className="form-control rounded-0 mb-2" name="checkUniform" value={formData.checkUniform} onChange={handleInputChange} placeholder="ความเรียบร้อยของเครื่องแต่งกายและอุปกรณ์" />
-                <label className="form-label">แจ้งข่าวสาร:</label>
-                <input type="text" className="form-control rounded-0" name="announceNews" value={formData.announceNews} onChange={handleInputChange} placeholder="ประชาสัมพันธ์กิจกรรมหรือประกาศสำคัญ" />
-              </div>
-
-              <h6 className="fw-bold bg-warning text-dark p-2">ช่วงที่ 2: กิจกรรมพัฒนาผู้เรียน (15 นาที)</h6>
-              <div className="mb-3">
-                <label className="form-label">กิจกรรมนำ:</label>
-                <input type="text" className="form-control rounded-0 mb-2" name="warmup" value={formData.warmup} onChange={handleInputChange} />
-                <label className="form-label">กิจกรรมหลัก:</label>
-                <textarea className="form-control rounded-0 mb-2" rows={3} name="mainActivity" value={formData.mainActivity} onChange={handleInputChange} />
-                <label className="form-label">การสรุป:</label>
-                <input type="text" className="form-control rounded-0" name="summary" value={formData.summary} onChange={handleInputChange} />
-              </div>
-
-              <h6 className="fw-bold bg-warning text-dark p-2">ช่วงที่ 3: การดูแลรายบุคคล (5 นาที)</h6>
-              <div>
-                <label className="form-label">ติดตามนักเรียนที่มีปัญหา:</label>
-                <input type="text" className="form-control rounded-0 mb-2" name="trackProblems" value={formData.trackProblems} onChange={handleInputChange} placeholder="ขาดเรียนบ่อย ผลการเรียนลดลง" />
-                <label className="form-label">เปิดโอกาสให้นักเรียนปรึกษา:</label>
-                <input type="text" className="form-control rounded-0" name="individualCounsel" value={formData.individualCounsel} onChange={handleInputChange} />
+                <label className="form-label fw-semibold">กิจกรรมหลัก</label>
+                <textarea
+                  className="form-control rounded-0"
+                  rows={6}
+                  name="mainActivity"
+                  value={formData.mainActivity}
+                  onChange={handleInputChange}
+                  placeholder="รายละเอียดกิจกรรมที่จัดในคาบโฮมรูม..."
+                />
               </div>
             </div>
           </div>
 
-          {/* 5. การประเมินผล */}
+          {/* 4. การประเมินผล */}
           <div className="card rounded-0 border-0 shadow-sm mb-4">
             <div className="card-header bg-dark text-white">
-              <h5 className="m-0"><i className="bi bi-clipboard-check me-2 text-warning"></i>5. การประเมินผล</h5>
+              <h5 className="m-0"><i className="bi bi-clipboard-check me-2 text-warning"></i>4. การประเมินผล</h5>
             </div>
             <div className="card-body">
               <div className="form-check mb-2">
@@ -751,44 +756,42 @@ export default function EditHomeroomPlanPage() {
             <div className="card-body">
               <div className="mb-3">
                 <label className="form-label">แนบไฟล์เพิ่มเติม:</label>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   name="materials"
-                  className="form-control rounded-0" 
-                  onChange={handleFileChange} 
-                  multiple 
+                  className="form-control rounded-0"
+                  onChange={handleFileChange}
+                  multiple
                   accept="*"
                 />
                 <small className="text-muted">ใบงาน, สื่อวิดีโอ, รูปภาพ, หรือไฟล์เอกสารอื่นๆ</small>
-                {/* ส่วนของไฟล์เดิม */}
-{existingMaterials.length > 0 && (
-  <div className="row mt-4">
-    <div className="col-12">
-      <div className="mb-2">
-        <span>
-        
-        ไฟล์ที่มีอยู่แล้ว:
-        </span>
-      </div>
-      <div className="row g-3">
-        {existingMaterials.map((material, index) => (
-          <div key={index} className="col-md-4">
-            <div className="d-flex justify-content-between align-items-center border p-2 bg-light">
-              <span className="text-truncate small">{material.name}</span>
-              <button
-                type="button"
-                className="btn btn-sm btn-danger rounded-0"
-                onClick={() => handleRemoveExistingFile(index)}
-              >
-                <i className="bi bi-trash"></i>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+
+                {existingMaterials.length > 0 && (
+                  <div className="row mt-4">
+                    <div className="col-12">
+                      <div className="mb-2">
+                        <span>ไฟล์ที่มีอยู่แล้ว:</span>
+                      </div>
+                      <div className="row g-3">
+                        {existingMaterials.map((material, index) => (
+                          <div key={index} className="col-md-4">
+                            <div className="d-flex justify-content-between align-items-center border p-2 bg-light">
+                              <span className="text-truncate small">{material.name}</span>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-danger rounded-0"
+                                onClick={() => handleRemoveExistingFile(index)}
+                              >
+                                <i className="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {newFiles.length > 0 && (
                   <div className="mt-3">
                     <label className="form-label">ไฟล์ใหม่ที่เลือก:</label>
@@ -838,16 +841,16 @@ export default function EditHomeroomPlanPage() {
                 <option value="published">เผยแพร่</option>
               </select>
               <small className="text-muted d-block mt-1">
-                {formData.status === 'draft' 
-                  ? '🔒 เฉพาะคุณเท่านั้นที่เห็นแผนนี้' 
+                {formData.status === 'draft'
+                  ? '🔒 เฉพาะคุณเท่านั้นที่เห็นแผนนี้'
                   : '🌐 ครูทุกคนเห็นแผนนี้'}
               </small>
             </div>
             <div className="col-md-8 d-flex align-items-end justify-content-end gap-2">
               <Link href={`/student_learn/${params.id}`} className="btn btn-secondary rounded-0 px-5">ยกเลิก</Link>
-              <button 
-                type="submit" 
-                className="btn btn-warning rounded-0 px-5 fw-bold" 
+              <button
+                type="submit"
+                className="btn btn-warning rounded-0 px-5 fw-bold"
                 disabled={loading || !formData.level}
               >
                 {loading ? (
@@ -867,4 +870,5 @@ export default function EditHomeroomPlanPage() {
         </form>
       </div>
     </div>
-  );}
+  );
+}

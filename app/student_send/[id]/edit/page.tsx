@@ -168,24 +168,24 @@ export default function EditReferralPage() {
                             )
                             .slice(0, 10)
                             .map((s: any) => (
-                            <div 
-                              key={s.id} 
-                              className="p-2 border-bottom cursor-pointer hover-bg-light"
-                              style={{cursor: 'pointer'}}
-                              onClick={() => handleStudentSelect(s)}
-                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            >
-                              <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                  <strong>{s.first_name} {s.last_name}</strong>
-                                  <br />
-                                  <small className="text-muted">รหัส: {s.id} | {s.level}/{s.class_group} ห้อง {s.class_number}</small>
+                              <div
+                                key={s.id}
+                                className="p-2 border-bottom cursor-pointer hover-bg-light"
+                                style={{cursor: 'pointer'}}
+                                onClick={() => handleStudentSelect(s)}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                              >
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <strong>{s.first_name} {s.last_name}</strong>
+                                    <br />
+                                    <small className="text-muted">รหัส: {s.id} | {s.level}/{s.class_group} ห้อง {s.class_number}</small>
+                                  </div>
+                                  <i className="bi bi-person-plus text-warning"></i>
                                 </div>
-                                <i className="bi bi-person-plus text-warning"></i>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                           {searchTerm && students.filter((s: any) => 
                             `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             s.id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -197,7 +197,7 @@ export default function EditReferralPage() {
                         </div>
                       </div>
                       <div className="col-md-4 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ระดับ</label>
+                        <label className="form-label text-uppercase fw-semibold small">ระดับชั้น</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0"
@@ -207,7 +207,7 @@ export default function EditReferralPage() {
                         />
                       </div>
                       <div className="col-md-4 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ชั้น</label>
+                        <label className="form-label text-uppercase fw-semibold small">สาขา</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0"
@@ -274,7 +274,7 @@ export default function EditReferralPage() {
                           >
                             <option value="">เลือกหน่วยงานภายนอก</option>
                             <option value="โรงพยาบาล">โรงพยาบาล</option>
-                            <option value="สถานีตำรวจ">สถานีตำรวจ</option>
+                          
                             <option value="พัฒนาสังคมฯ">พัฒนาสังคมและความมั่นคงของมนุษย์</option>
                           </select>
                         )}
@@ -302,7 +302,7 @@ export default function EditReferralPage() {
                           <option value="ด้านการเรียน/สติปัญญา">ด้านการเรียน/สติปัญญา</option>
                           <option value="ด้านพฤติกรรม/ระเบียบวินัย">ด้านพฤติกรรม/ระเบียบวินัย</option>
                           <option value="ด้านอารมณ์/จิตใจ">ด้านอารมณ์/จิตใจ</option>
-                          <option value="ด้านครอบครัว/เศรษฐกิจ/ความรุนแรง">ด้านครอบครัว/เศรษฐกิจ/ความรุนแรง</option>
+                          <option value="ด้านครอบครัว/เศรษฐกิจ">ด้านครอบครัว/เศรษฐกิจ</option>
                         </select>
                         <textarea 
                           className="form-control rounded-0" 
@@ -314,7 +314,7 @@ export default function EditReferralPage() {
                         ></textarea>
                       </div>
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">สิ่งที่ครูที่ปรึกษาได้ดำเนินการไปแล้ว</label>
+                        <label className="form-label text-uppercase fw-semibold small">ครูที่ปรึกษาได้ดำเนินการไปแล้ว</label>
                         <textarea 
                           className="form-control rounded-0" 
                           rows={4}

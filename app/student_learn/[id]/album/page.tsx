@@ -278,7 +278,7 @@ export default function PhotoAlbumPage() {
               <ol className="breadcrumb">
                 <li className="breadcrumb-item">
                   <Link href="/student_learn" className="text-decoration-none">
-                    <i className="bi bi-house me-1"></i>แผนกิจกรรมโฮมรูม
+                    <i className="bi bi-house me-1"></i>แผนกิจกรรมโฮมรูม (การส่งเสริมและพัฒนาผู้เรียน)
                   </Link>
                 </li>
                 <li className="breadcrumb-item">

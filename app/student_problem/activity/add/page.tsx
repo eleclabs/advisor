@@ -113,7 +113,7 @@ export default function AddActivityPage() {
           <div className="spinner-border text-warning" role="status">
             <span className="visually-hidden">กำลังโหลด...</span>
           </div>
-          <p className="mt-2 text-muted">กำลังโหลดข้อมูลนักเรียน...</p>
+          <p className="mt-2 text-muted">กำลังโหลดข้อมูลผู้เรียน...</p>
         </div>
       </div>
     );
@@ -127,7 +127,7 @@ export default function AddActivityPage() {
             <div className="card-header bg-dark text-white">
               <h4 className="mb-0">
                 <i className="bi bi-plus-circle me-2"></i>
-                เพิ่มกิจกรรมสาขาวิชา
+                เพิ่มกิจกรรม
               </h4>
             </div>
             <div className="card-body">
@@ -145,7 +145,7 @@ export default function AddActivityPage() {
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                         required
-                        placeholder="เช่น ละลายพฤติกรรม สร้างทีม"
+                        placeholder=""
                       />
                     </div>
 
@@ -216,43 +216,25 @@ export default function AddActivityPage() {
                     </div>
 
                     <div className="mb-3">
-                      <label className="form-label fw-bold">ละลายพฤติกรรม</label>
+                      <label className="form-label fw-bold">สรุปผลกิจกรรม</label>
                       <input
                         type="text"
                         className="form-control"
                         value={formData.ice_breaking}
                         onChange={(e) => setFormData({...formData, ice_breaking: e.target.value})}
-                        placeholder="เกมหรือกิจกรรมละลายพฤติกรรม"
+                        placeholder="สรุปผลกิจกรรม"
                       />
                     </div>
 
-                    <div className="mb-3">
-                      <label className="form-label fw-bold">โจทย์สาขาวิชา</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={formData.group_task}
-                        onChange={(e) => setFormData({...formData, group_task: e.target.value})}
-                        placeholder="โจทย์ที่ให้สาขาวิชาทำ"
-                      />
-                    </div>
+                   
 
-                    <div className="mb-3">
-                      <label className="form-label fw-bold">ถอดบทเรียน (AAR)</label>
-                      <textarea
-                        className="form-control"
-                        rows={3}
-                        placeholder="สิ่งที่ได้เรียนรู้จากการทำงานร่วมกับเพื่อน"
-                        value={formData.debrief}
-                        onChange={(e) => setFormData({...formData, debrief: e.target.value})}
-                      />
-                    </div>
+                  
                   </div>
 
                   {/* ส่วนเลือกนักเรียน */}
                   <div className="col-md-5">
                     <h5 className="border-bottom pb-2 mb-3">
-                      👥 เลือกนักเรียนที่เข้าร่วม 
+                      👥 เลือกผู้เรียนที่เข้าร่วม 
                       <small className="text-muted ms-2">(ไม่บังคับ)</small>
                     </h5>
                     
@@ -264,7 +246,7 @@ export default function AddActivityPage() {
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="ค้นหาชื่อหรือรหัสนักเรียน..."
+                          placeholder="ค้นหาชื่อหรือรหัส..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -280,7 +262,7 @@ export default function AddActivityPage() {
                           </div>
                         ) : filteredStudents.length === 0 ? (
                           <div className="text-center py-4">
-                            <p className="text-muted mb-0">ไม่พบนักเรียน</p>
+                            <p className="text-muted mb-0">ไม่พบผู้เรียน</p>
                           </div>
                         ) : (
                           filteredStudents.map((student) => (
@@ -308,7 +290,7 @@ export default function AddActivityPage() {
                       ) : (
                         <div className="mt-2 text-muted small">
                           <i className="bi bi-info-circle me-1"></i>
-                          ไม่เลือกนักเรียนก็ได้
+                          ไม่เลือกผู้เรียนได้
                         </div>
                       )}
                     </div>

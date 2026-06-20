@@ -1,4 +1,3 @@
-// D:\advisor-main\app\student_learn\[id]\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -29,16 +28,8 @@ interface HomeroomPlan {
   topic: string;
   objectives: string[];
   
-  checkAttendance: string;
-  checkUniform: string;
-  announceNews: string;
-  
-  warmup: string;
+  // กิจกรรมหลัก
   mainActivity: string;
-  summary: string;
-  
-  trackProblems: string;
-  individualCounsel: string;
   
   evalObservation: boolean;
   evalWorksheet: boolean;
@@ -53,11 +44,9 @@ interface HomeroomPlan {
   created_at: string;
   created_by: string;
   
-  // ===== ข้อมูลเป้าหมายที่เลือกตอนสร้างแผน =====
   target_class_group?: string;
   target_class_numbers?: string[];
   
-  // ===== ข้อมูลจาก Record =====
   teacherNote?: string;
   problems?: string;
   special_track?: string;
@@ -99,14 +88,11 @@ export default function HomeroomPlanDetailPage() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
   const photosPerPage = 12;
 
-
-  // ดึงข้อมูลแผนและนักเรียน
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // 1. ดึงข้อมูลแผน
         const planResponse = await fetch(`/api/learn/${params.id}`);
         const planResult = await planResponse.json();
         
@@ -117,7 +103,6 @@ export default function HomeroomPlanDetailPage() {
 
         const planData = planResult.data;
         
-        // Normalize materials
         let normalizedMaterials: { name: string; url: string }[] = [];
         if (Array.isArray(planData.materials)) {
           normalizedMaterials = planData.materials.map((m: any) => {
@@ -134,10 +119,8 @@ export default function HomeroomPlanDetailPage() {
           materials: normalizedMaterials
         });
 
-        // 2. ดึงข้อมูลนักเรียนตามเงื่อนไขของแผน
         await fetchStudentsByPlan(planData);
 
-        // 3. ดึงข้อมูลรูปภาพ
         const photosResponse = await fetch(`/api/learn/photos?planId=${params.id}`);
         const photosResult = await photosResponse.json();
         if (photosResult.success) setPhotos(photosResult.data);
@@ -153,36 +136,30 @@ export default function HomeroomPlanDetailPage() {
     if (params.id) fetchData();
   }, [params.id]);
 
-  // ฟังก์ชันดึงนักเรียนตามเงื่อนไขของแผน
   const fetchStudentsByPlan = async (planData: any) => {
     setStudentLoading(true);
     try {
-      // สร้าง query parameters
       const params = new URLSearchParams();
       if (planData.level) params.append('level', planData.level);
       
-      // ดึงข้อมูลนักเรียนทั้งหมดตามระดับชั้น
       const response = await fetch(`/api/student?${params.toString()}`);
       const result = await response.json();
       
       if (result.success) {
         let filteredStudents = result.data;
         
-        // กรองตามสาขาวิชาเรียน ถ้ามี
         if (planData.target_class_group) {
           filteredStudents = filteredStudents.filter((s: any) => 
             s.class_group === planData.target_class_group
           );
         }
         
-        // กรองตามห้อง ถ้ามี
         if (planData.target_class_numbers && planData.target_class_numbers.length > 0) {
           filteredStudents = filteredStudents.filter((s: any) => 
             planData.target_class_numbers.includes(s.class_number)
           );
         }
         
-        // จัดรูปแบบข้อมูล
         const formattedStudents = filteredStudents.map((s: any) => ({
           _id: s._id,
           id: s.id || "",
@@ -227,7 +204,6 @@ export default function HomeroomPlanDetailPage() {
     }
   };
 
-  // Photo gallery functions
   const openGallery = (index: number) => {
     setCurrentPhotoIndex(index);
     setShowGallery(true);
@@ -307,7 +283,6 @@ export default function HomeroomPlanDetailPage() {
     }
   };
 
-  // Sorting & pagination for photos
   const getSortedPhotos = () => {
     return [...photos].sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
@@ -360,7 +335,7 @@ export default function HomeroomPlanDetailPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <style jsx>{`
+      <style>{`
         .masonry-grid {
           column-count: 2;
           column-gap: 1rem;
@@ -386,13 +361,12 @@ export default function HomeroomPlanDetailPage() {
       `}</style>
       
       <div className="container-fluid py-4">
-        {/* Header */}
         <div className="row mb-4">
           <div className="col-12">
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="fw-bold m-0">
                 <i className="bi bi-file-text me-2 text-warning"></i>
-                รายละเอียดแผนกิจกรรมโฮมรูม
+                รายละเอียดแผนกิจกรรมโฮมรูม (การส่งเสริมและพัฒนาผู้เรียน)
               </h2>
               <div className="d-flex align-items-center gap-3">
                 <span className="text-muted">ครูที่ปรึกษา: {plan.created_by}</span>
@@ -405,7 +379,6 @@ export default function HomeroomPlanDetailPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="row mb-4">
           <div className="col-12 d-flex justify-content-between">
             <button className="btn btn-outline-dark rounded-0" onClick={() => router.back()}>
@@ -426,37 +399,32 @@ export default function HomeroomPlanDetailPage() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="bg-white p-4 border">
-     {/* ข้อมูลแผนกิจกรรม */}
-<div className="mb-4">
-  <h4 className="text-primary mb-3">📋 ข้อมูลแผนกิจกรรม</h4>
-  
-  <div className="row mb-4">
-    <div className="col-md-8">
-      <h3 className="fw-bold mb-3">{plan.topic || '-'}</h3>
-      <div className="d-flex flex-wrap gap-2 mb-2">
-        <span className="badge bg-dark rounded-0 p-2">ระดับชั้น: {plan.level || '-'}</span>
-        
-        {/* ✅ สาขาวิชาเรียนและห้อง ใช้สีดำเหมือนกัน */}
-        {plan.target_class_group && (
-          <span className="badge bg-dark rounded-0 p-2">สาขาวิชา: {plan.target_class_group}</span>
-        )}
-        {plan.target_class_numbers && plan.target_class_numbers.length > 0 && (
-          <span className="badge bg-dark rounded-0 p-2">
-            ห้อง: {plan.target_class_numbers.length > 5 
-              ? `${plan.target_class_numbers[0]} - ${plan.target_class_numbers[plan.target_class_numbers.length-1]}`
-              : plan.target_class_numbers.join(', ')}
-          </span>
-        )}
-        
-        <span className="badge bg-dark rounded-0 p-2">สัปดาห์ที่ {plan.week || '-'}</span>
-        <span className="badge bg-dark rounded-0 p-2">ภาคเรียนที่ {plan.semester || '-'}/{plan.academicYear || '-'}</span>
-        <span className="badge bg-dark rounded-0 p-2">เวลา: {plan.time || '-'} นาที</span>
-      </div>
-    </div>
-  </div>
-            {/* Objectives */}
+          <div className="mb-4">
+            <h4 className="text-primary mb-3">📋 ข้อมูลแผนกิจกรรม</h4>
+            
+            <div className="row mb-4">
+              <div className="col-md-8">
+                <h3 className="fw-bold mb-3">{plan.topic || '-'}</h3>
+                <div className="d-flex flex-wrap gap-2 mb-2">
+                  <span className="badge bg-dark rounded-0 p-2">ระดับชั้น: {plan.level || '-'}</span>
+                  {plan.target_class_group && (
+                    <span className="badge bg-dark rounded-0 p-2">สาขา: {plan.target_class_group}</span>
+                  )}
+                  {plan.target_class_numbers && plan.target_class_numbers.length > 0 && (
+                    <span className="badge bg-dark rounded-0 p-2">
+                      ห้อง: {plan.target_class_numbers.length > 5 
+                        ? `${plan.target_class_numbers[0]} - ${plan.target_class_numbers[plan.target_class_numbers.length-1]}`
+                        : plan.target_class_numbers.join(', ')}
+                    </span>
+                  )}
+                  <span className="badge bg-dark rounded-0 p-2">สัปดาห์ {plan.week || '-'}</span>
+                  <span className="badge bg-dark rounded-0 p-2">ภาคเรียนที่ {plan.semester || '-'}/{plan.academicYear || '-'}</span>
+                  <span className="badge bg-dark rounded-0 p-2">เวลา: {plan.time || '-'} นาที</span>
+                </div>
+              </div>
+            </div>
+
             {plan.objectives && plan.objectives.length > 0 && (
               <div className="mb-4">
                 <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
@@ -470,39 +438,20 @@ export default function HomeroomPlanDetailPage() {
               </div>
             )}
 
-            {/* Activities */}
             <div className="mb-4">
               <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
                 <i className="bi bi-list-check me-2"></i>ขั้นตอนการดำเนินกิจกรรม
               </h5>
-              
-              <h6 className="fw-bold mt-3">ช่วงที่ 1: การจัดการระเบียบและวินัย</h6>
-              <div className="bg-light p-3 mb-3">
-                <p><span className="fw-bold">เช็คชื่อ:</span> {plan.checkAttendance || '-'}</p>
-                <p><span className="fw-bold">ตรวจระเบียบ:</span> {plan.checkUniform || '-'}</p>
-                <p><span className="fw-bold">แจ้งข่าวสาร:</span> {plan.announceNews || '-'}</p>
-              </div>
-
-              <h6 className="fw-bold">ช่วงที่ 2: กิจกรรมพัฒนาผู้เรียน</h6>
-              <div className="bg-light p-3 mb-3">
-                <p><span className="fw-bold">กิจกรรมนำ:</span> {plan.warmup || '-'}</p>
-                <p><span className="fw-bold">กิจกรรมหลัก:</span> {plan.mainActivity || '-'}</p>
-                <p><span className="fw-bold">การสรุป:</span> {plan.summary || '-'}</p>
-              </div>
-
-              <h6 className="fw-bold">ช่วงที่ 3: การดูแลรายบุคคล</h6>
-              <div className="bg-light p-3">
-                <p><span className="fw-bold">ติดตามนักเรียนที่มีปัญหา:</span> {plan.trackProblems || '-'}</p>
-                <p><span className="fw-bold">เปิดโอกาสให้นักเรียนปรึกษา:</span> {plan.individualCounsel || '-'}</p>
+              <div className="bg-light p-4 mt-3">
+                <div dangerouslySetInnerHTML={{ __html: plan.mainActivity?.replace(/\n/g, '<br/>') || '-' }} />
               </div>
             </div>
 
-            {/* ===== ส่วนสำคัญ: รายชื่อนักเรียนที่เข้าร่วม (ตามแผน) ===== */}
             <div className="mb-4 mt-4 pt-3 border-top">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="fw-bold text-info mb-0">
                   <i className="bi bi-people-fill me-2"></i>
-                  รายชื่อนักเรียนที่เข้าร่วม (ตามแผน)
+                  รายชื่อผู้เรียนที่เข้าร่วม
                 </h5>
                 <button
                   className="btn btn-outline-info rounded-0 btn-sm"
@@ -514,7 +463,6 @@ export default function HomeroomPlanDetailPage() {
                 </button>
               </div>
 
-              {/* เงื่อนไขของแผน */}
               <div className="bg-light p-3 mb-3">
                 <div className="row">
                   <div className="col-md-4">
@@ -522,7 +470,7 @@ export default function HomeroomPlanDetailPage() {
                   </div>
                   {plan.target_class_group && (
                     <div className="col-md-4">
-                      <strong>สาขาวิชาเรียน:</strong> {plan.target_class_group}
+                      <strong>สาขาเรียน:</strong> {plan.target_class_group}
                     </div>
                   )}
                   {plan.target_class_numbers && plan.target_class_numbers.length > 0 && (
@@ -534,28 +482,27 @@ export default function HomeroomPlanDetailPage() {
                 {!plan.target_class_group && !plan.target_class_numbers?.length && (
                   <div className="text-muted mt-2">
                     <i className="bi bi-info-circle me-2"></i>
-                    แผนนี้ไม่ได้ระบุสาขาวิชาเรียนหรือห้องเฉพาะเจาะจง แสดงนักเรียนทั้งหมดในระดับชั้น {plan.level}
+                    แผนนี้ไม่ได้ระบุสาขาเรียนหรือห้องเฉพาะเจาะจง แสดงผู้เรียนทั้งหมดในระดับชั้น {plan.level}
                   </div>
                 )}
               </div>
 
-              {/* ตารางรายชื่อนักเรียน */}
               {showStudentList && (
                 <div className="table-responsive">
                   {studentLoading ? (
                     <div className="text-center py-4">
                       <div className="spinner-border spinner-border-sm text-info me-2"></div>
-                      กำลังโหลดรายชื่อนักเรียน...
+                      กำลังโหลดรายชื่อผู้เรียน...
                     </div>
                   ) : (
                     <table className="table table-bordered table-hover bg-white">
                       <thead className="table-secondary">
                         <tr>
                           <th>#</th>
-                          <th>รหัสนักเรียน</th>
+                          <th>รหัส</th>
                           <th>ชื่อ-นามสกุล</th>
                           <th>ระดับชั้น</th>
-                          <th>สาขาวิชาเรียน</th>
+                          <th>สาขาเรียน</th>
                           <th>ห้อง</th>
                         </tr>
                       </thead>
@@ -591,7 +538,7 @@ export default function HomeroomPlanDetailPage() {
                           <tr>
                             <td colSpan={6} className="text-center py-4 text-muted">
                               <i className="bi bi-people fs-1 d-block mb-2"></i>
-                              ไม่มีนักเรียนตามเงื่อนไขนี้
+                              ไม่มีผู้เรียนตามเงื่อนไขนี้
                             </td>
                           </tr>
                         )}
@@ -602,7 +549,6 @@ export default function HomeroomPlanDetailPage() {
               )}
             </div>
 
-            {/* Evaluation & Materials */}
             <div className="row mb-4">
               <div className="col-md-6">
                 <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
@@ -682,7 +628,6 @@ export default function HomeroomPlanDetailPage() {
               </div>
             </div>
 
-            {/* Suggestions */}
             <div className="mb-4">
               <h5 className="fw-bold text-warning border-bottom border-warning pb-2">
                 <i className="bi bi-chat-dots me-2"></i>ข้อเสนอแนะ
@@ -691,21 +636,20 @@ export default function HomeroomPlanDetailPage() {
             </div>
           </div>
 
-          {/* ข้อมูลบันทึกหลังกิจกรรม */}
           {(plan.has_record || plan.activity_notes || plan.activity_problems || plan.activity_solutions || plan.special_track || plan.individualFollowup) && (
             <div className="mb-4 mt-5 pt-4 border-top">
               <h4 className="text-success mb-3">📝 ข้อมูลบันทึกหลังกิจกรรม</h4>
               
               <div className="row mb-3">
-                <div className="col-md-3"><p><span className="fw-bold">วันที่จัดกิจกรรม:</span> {plan.activity_date || '-'}</p></div>
-                <div className="col-md-3"><p><span className="fw-bold">จำนวนนักเรียน:</span> {plan.students_attended || '-'} / {plan.total_students || '-'} คน</p></div>
-                <div className="col-md-3"><p><span className="fw-bold">ผู้บันทึก:</span> {plan.evaluator || '-'}</p></div>
-                <div className="col-md-3"><p><span className="fw-bold">บันทึกเมื่อ:</span> {plan.recorded_at || '-'}</p></div>
+                <div className="col-md-4"><p><span className="fw-bold">วันที่จัดกิจกรรม:</span> {plan.activity_date || '-'}</p></div>
+                <div className="col-md-4"><p><span className="fw-bold">จำนวนผู้เรียน:</span> {plan.students_attended || '-'} / {plan.total_students || '-'} คน</p></div>
+              
+                <div className="col-md-4"><p><span className="fw-bold">บันทึกเมื่อ:</span> {plan.recorded_at || '-'}</p></div>
               </div>
 
               <div className="mb-3">
                 <h5 className="fw-bold text-success border-bottom border-success pb-2">
-                  <i className="bi bi-journal-text me-2"></i>6. บันทึกหลังกิจกรรม
+                  <i className="bi bi-journal-text me-2"></i>บันทึกหลังกิจกรรม
                 </h5>
                 <div className="row">
                   <div className="col-md-6">
@@ -715,7 +659,7 @@ export default function HomeroomPlanDetailPage() {
                     <div className="bg-light p-2 rounded mb-2">{plan.activity_problems || plan.problems || '-'}</div>
                   </div>
                   <div className="col-md-6">
-                    <p><span className="fw-bold">นักเรียนที่ต้องติดตามเป็นพิเศษ:</span></p>
+                    <p><span className="fw-bold">ผู้เรียนที่ต้องติดตามเป็นพิเศษ:</span></p>
                     <div className="bg-light p-2 rounded mb-2">{plan.special_track || '-'}</div>
                     <p><span className="fw-bold">บันทึกการจัดกิจกรรม (รายครั้ง):</span></p>
                     <div className="bg-light p-2 rounded">{plan.activity_solutions || plan.sessionNote || '-'}</div>
@@ -734,7 +678,6 @@ export default function HomeroomPlanDetailPage() {
             </div>
           )}
 
-          {/* Photo Album Section */}
           <div className="mb-4 mt-5 pt-4 border-top">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h4 className="text-info mb-0">
@@ -834,7 +777,6 @@ export default function HomeroomPlanDetailPage() {
             )}
           </div>
 
-          {/* Footer Info */}
           <div className="text-end text-muted small mt-3 pt-3 border-top">
             <div>สร้างเมื่อ: {plan.created_at || new Date().toLocaleDateString('th-TH')}</div>
             <div>สร้างโดย: {plan.created_by || '-'}</div>
@@ -842,7 +784,6 @@ export default function HomeroomPlanDetailPage() {
         </div>
       </div>
 
-      {/* Photo Gallery Modal */}
       {showGallery && photos.length > 0 && (
         <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-90 d-flex align-items-center justify-content-center" style={{ zIndex: 9999 }}>
           <div className="container-fluid h-100 d-flex flex-column">

@@ -46,12 +46,12 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
           }));
         }
       } else {
-        alert("ไม่พบข้อมูลนักเรียน");
+        alert("ไม่พบข้อมูลผู้เรียน");
         router.push("/student_problem");
       }
     } catch (error) {
       console.error("Error fetching student data:", error);
-      alert("ไม่พบข้อมูลนักเรียน");
+      alert("ไม่พบข้อมูลผู้เรียน");
       router.push("/student_problem");
     } finally {
       setFetchLoading(false);
@@ -121,10 +121,10 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
       <div className="row justify-content-center">
         <div className="col-md-10">
           <div className="card">
-            <div className="card-header bg-dark text-white">
-              <h4 className="mb-0">
+            <div className="card-header text-dark">
+              <h4 className="mb-0 fw-bold">
                 <i className="bi bi-clipboard-check me-2"></i>
-                บันทึกผลการประเมินการช่วยเหลือ
+                บันทึกการประเมิน (การป้องกันและแก้ไขปัญหา)
               </h4>
             </div>
             <div className="card-body">
@@ -139,10 +139,7 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                           <i className="bi bi-person-badge me-1"></i>
                           รหัส {student.student_id}
                         </span>
-                        <span className="badge bg-primary rounded-0">
-                          <i className="bi bi-chart-line me-1"></i>
-                          ความคืบหน้า {student.progress || 0}%
-                        </span>
+                        
                         <span className="badge bg-warning text-dark rounded-0">
                           <i className="bi bi-flag me-1"></i>
                           {student.isp_status || 'กำลังดำเนินการ'}
@@ -203,14 +200,14 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                   <div className="col-md-12">
                     <h5 className="border-bottom pb-2 mb-3">
                       <i className="bi bi-clipboard2-pulse me-2"></i>
-                      แบบประเมินผลการช่วยเหลือ (ครั้งที่ {currentEvaluation})
+                      แบบประเมิน
                     </h5>
                   </div>
                 </div>
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label fw-bold">วันที่ประเมิน</label>
+                    <label className="form-label fw-bold">วันที่</label>
                     <input
                       type="date"
                       className="form-control"
@@ -252,7 +249,7 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                         />
                         <label className="form-check-label" htmlFor={option.value}>
                           <div className="d-flex">
-                            <span className="me-2">[ ]</span>
+                           
                             <div>
                               <strong>{option.value}:</strong> {option.desc}
                             </div>
@@ -268,19 +265,19 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="บรรยายรายละเอียดการเปลี่ยนแปลงที่เกิดขึ้น..."
+                    placeholder=""
                     value={formData.improvement_detail}
                     onChange={(e) => setFormData({...formData, improvement_detail: e.target.value})}
                   />
                 </div>
 
                 <div className="mb-4">
-                  <label className="form-label fw-bold">สรุปผลการช่วยเหลือ</label>
+                  <label className="form-label fw-bold">สรุปผลการพัฒนา</label>
                   <div className="border p-3 bg-light">
                     {[
-                      { value: 'ยุติการช่วยเหลือ', desc: 'กลับสู่สาขาวิชาปกติ' },
-                      { value: 'ดำเนินการต่อ', desc: 'ยังคงดูแลต่อ' },
-                      { value: 'ส่งต่อผู้เชี่ยวชาญ', desc: 'ส่งไปยังผู้เชี่ยวชาญเฉพาะทาง' }
+                   
+                      { value: 'ดำเนินการต่อ', desc: 'ดูแลต่อ' },
+                      { value: 'ส่งต่อผู้เชี่ยวชาญ', desc: 'ส่งต่อภายใน/ภายนอก' }
                     ].map((option) => (
                       <div className="form-check mb-2" key={option.value}>
                         <input
@@ -294,7 +291,7 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                         />
                         <label className="form-check-label" htmlFor={option.value}>
                           <div className="d-flex">
-                            <span className="me-2">[ ]</span>
+                          
                             <div>
                               <strong>{option.value}:</strong> {option.desc}
                             </div>
@@ -306,11 +303,11 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div className="mb-4">
-                  <label className="form-label fw-bold">หมายเหตุเพิ่มเติม</label>
+                  <label className="form-label fw-bold">หมายเหตุ</label>
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="ข้อสังเกตอื่นๆ..."
+                    placeholder=""
                     value={formData.notes}
                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
                   />
@@ -330,7 +327,7 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
                     ) : (
                       <>
                         <i className="bi bi-save me-2"></i>
-                        บันทึกผลการประเมิน
+                        บันทึกการประเมิน
                       </>
                     )}
                   </button>

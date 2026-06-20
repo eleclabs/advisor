@@ -72,7 +72,7 @@ export default function StudentSendPage() {
               <div className="border-bottom border-3 border-warning pb-2">
                 <h2 className="text-uppercase fw-bold m-0">
                   <i className="bi bi-send me-2 text-warning"></i>
-                  การส่งต่อภายใน/ภายนอก
+                  การส่งต่อผู้เรียนภายใน/ภายนอก
                 </h2>
               </div>
             </div>
@@ -124,7 +124,9 @@ export default function StudentSendPage() {
                         <thead>
                           <tr>
                             <th>ชื่อนักเรียน</th>
-                            <th>ระดับ/ชั้น</th>
+                            <th>ระดับชั้น</th>
+                            <th>สาขา</th>
+                            <th>ห้อง</th>
                             <th>ประเภท</th>
                             <th>ส่งต่อ</th>
                             <th>สาเหตุ</th>
@@ -137,7 +139,9 @@ export default function StudentSendPage() {
                           {referrals.map(ref => (
                             <tr key={ref._id}>
                               <td>{ref.student_name}</td>
-                              <td>{ref.student_level}/{ref.student_class} ห้อง {ref.student_number}</td>
+                              <td>{ref.student_level}</td>
+                              <td>{ref.student_class}</td>
+                              <td>{ref.student_number}</td>
                               <td>
                                 <span className={`badge bg-${ref.type === 'internal' ? 'info' : 'primary'} rounded-0`}>
                                   {ref.type === 'internal' ? 'ภายใน' : 'ภายนอก'}

@@ -13,9 +13,10 @@ const ProblemSchema = new mongoose.Schema({
   behavioral_contract: { type: Boolean, default: false }, // กิจกรรมปรับเปลี่ยนพฤติกรรม
   home_visit: { type: Boolean, default: false }, // การเยี่ยมบ้าน
   referral: { type: Boolean, default: false }, // การส่งต่อ
+  custom_methods: [{ type: String }], // ✅ เพิ่ม: วิธีการแก้ไขที่กำหนดเอง
   duration: { type: String }, // ระยะเวลาดำเนินการ
   responsible: { type: String }, // ผู้รับผิดชอบ
-  isp_status: { type: String, enum: ["กำลังดำเนินการ", "สำเร็จ", "ปรับแผน"] }, // สถานะแผน
+  isp_status: { type: String, enum: ["กำลังดำเนินการ", "สำเร็จ", "ปรับแผน"], default: "กำลังดำเนินการ" }, // สถานะแผน
   progress: { type: Number, default: 0 }, // ความคืบหน้า
   
   // ✅ ส่วนที่เพิ่ม: ข้อมูลกิจกรรมที่นักเรียนเข้าร่วม
@@ -52,6 +53,7 @@ const ProblemSchema = new mongoose.Schema({
   
   // ส่วนที่ 2: การประเมินผลการช่วยเหลือ (สามารถมีหลายครั้ง)
   evaluations: [{
+    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     evaluation_number: { type: Number }, // ครั้งที่
     improvement_level: { 
       type: String, 

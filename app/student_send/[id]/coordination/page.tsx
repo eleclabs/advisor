@@ -9,8 +9,10 @@ export default function CoordinationPage() {
   const params = useParams();
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
-    organization: "", // ✅ เพิ่มฟิลด์นี้
+    organization: "",
     contact_person: "",
+    position: "",
+    contact_info: "",
     channel: "โทรศัพท์" as "โทรศัพท์" | "พบปะโดยตรง" | "หนังสือราชการ" | "ออนไลน์",
     details: "",
     agreement: "",
@@ -31,9 +33,8 @@ export default function CoordinationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // ✅ ตรวจสอบข้อมูลก่อนส่ง
     if (!form.organization) {
-      alert("กรุณากรอกชื่อหน่วยงาน/บุคคลที่ประสาน");
+      alert("กรุณากรอกชื่อหน่วยงาน");
       return;
     }
     
@@ -43,12 +44,14 @@ export default function CoordinationPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           referral_id: params.id,
-          organization: form.organization, // ✅ ส่ง organization
+          organization: form.organization,
           contact_person: form.contact_person,
+          position: form.position,
+          contact_info: form.contact_info,
           channel: form.channel,
           details: form.details,
           agreement: form.agreement,
-          coordination_date: form.date, // ✅ ส่ง coordination_date
+          coordination_date: form.date,
         }),
       });
       
@@ -101,7 +104,7 @@ export default function CoordinationPage() {
                       />
                     </div>
                     <div className="col-md-6 mb-3">
-                      <label className="form-label text-uppercase fw-semibold small">ช่องทาง <span className="text-danger">*</span></label>
+                      <label className="form-label text-uppercase fw-semibold small">ช่องทางการติดต่อ <span className="text-danger">*</span></label>
                       <select 
                         className="form-select rounded-0"
                         value={form.channel}
@@ -115,9 +118,7 @@ export default function CoordinationPage() {
                       </select>
                     </div>
                     <div className="col-12 mb-3">
-                      <label className="form-label text-uppercase fw-semibold small">
-                        ชื่อหน่วยงาน/บุคคลที่ประสาน <span className="text-danger">*</span>
-                      </label>
+                      <label className="form-label text-uppercase fw-semibold small">ชื่อหน่วยงาน <span className="text-danger">*</span></label>
                       <input 
                         type="text" 
                         className="form-control rounded-0"
@@ -127,22 +128,40 @@ export default function CoordinationPage() {
                         required
                       />
                     </div>
-                    <div className="col-12 mb-3">
-                      <label className="form-label text-uppercase fw-semibold small">ชื่อบุคคลที่ติดต่อ</label>
-                      <input 
-                        type="text" 
-                        className="form-control rounded-0"
-                        placeholder="เช่น คุณสมศรี ใจดี"
-                        value={form.contact_person}
-                        onChange={(e) => setForm({...form, contact_person: e.target.value})}
-                      />
-                    </div>
+                   <div className="col-12 mb-3">
+  <label className="form-label text-uppercase fw-semibold small">
+    ชื่อบุคคลที่ติดต่อ <span className="text-danger">*</span>
+  </label>
+  <input 
+    type="text" 
+    className="form-control rounded-0"
+    placeholder="เช่น คุณสมศรี ใจดี"
+    value={form.contact_person}
+    onChange={(e) => setForm({...form, contact_person: e.target.value})}
+    required  // ✅ เพิ่มตรงนี้
+  />
+</div>
+
+<div className="col-12 mb-3">
+  <label className="form-label text-uppercase fw-semibold small">
+    เบอร์ติดต่อ / อีเมล / ไอดีไลน์ <span className="text-danger">*</span>
+  </label>
+  <input 
+    type="text" 
+    className="form-control rounded-0"
+    placeholder="เช่น 081-234-5678 / example@email.com / @line_id"
+    value={form.contact_info}
+    onChange={(e) => setForm({...form, contact_info: e.target.value})}
+    required  // ✅ เพิ่มตรงนี้
+  />
+</div>
+                
                     <div className="col-12 mb-3">
                       <label className="form-label text-uppercase fw-semibold small">สรุปรายละเอียดการประสานงาน <span className="text-danger">*</span></label>
                       <textarea 
                         className="form-control rounded-0" 
                         rows={4}
-                        placeholder="บันทึกรายละเอียดการสนทนา ปัญหาที่นำเสนอ ข้อมูลที่แลกเปลี่ยน..."
+                        placeholder="บันทึกรายละเอียดการสนทนา ปัญหาที่นำเสนอ..."
                         value={form.details}
                         onChange={(e) => setForm({...form, details: e.target.value})}
                         required

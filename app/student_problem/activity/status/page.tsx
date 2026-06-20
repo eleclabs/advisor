@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-function ActivityStatusContent() {
+export default function ActivityStatusPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -59,7 +59,7 @@ function ActivityStatusContent() {
       console.log("🔍 Student activities:", studentActivities);
       console.log("🔍 Looking for activity_id:", activityJson.data._id);
 
-      // ค้นหาทั้งแบบ activity_id เป็น object และ string
+      // 🔥 แก้ไข: ค้นหาทั้งแบบ activity_id เป็น object และ string
       const matchingActivities = studentActivities.filter((a: any) => {
         // ถ้า activity_id เป็น object (มี _id)
         if (a.activity_id && typeof a.activity_id === 'object' && a.activity_id._id) {
@@ -71,12 +71,12 @@ function ActivityStatusContent() {
 
       console.log("🔍 Matching activities:", matchingActivities);
 
-      // เลือกอันที่มีข้อมูลครบที่สุด
+      // 🔥 แก้ไข: เลือกอันที่มีข้อมูลครบที่สุด (joined_at และ completed_at)
       let found = null;
       if (matchingActivities.length > 0) {
         // ลองหาอันที่มี joined_at และ completed_at ก่อน
-        found = matchingActivities.find((a: any) => a.joined_at && a.completed_at) || 
-                matchingActivities.find((a: any) => a.joined_at) ||
+        found = matchingActivities.find(a => a.joined_at && a.completed_at) || 
+                matchingActivities.find(a => a.joined_at) ||
                 matchingActivities[0];
       }
 
@@ -159,7 +159,7 @@ function ActivityStatusContent() {
     e.preventDefault();
     
     if (!student || !activity) {
-      alert("ข้อมูลนักเรียนหรือกิจกรรมไม่โหลด");
+      alert("ข้อมูลผู้เรียนหรือกิจกรรมไม่โหลด");
       return;
     }
 
@@ -229,7 +229,7 @@ function ActivityStatusContent() {
 
         <div className="card-body">
           <p><b>กิจกรรม:</b> {activity.name}</p>
-          <p><b>นักเรียน:</b> {student_name || student.student_name} ({student.student_id})</p>
+          <p><b>ผู้เรียน:</b> {student_name || student.student_name} ({student.student_id})</p>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
@@ -292,13 +292,5 @@ function ActivityStatusContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function ActivityStatusPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ActivityStatusContent />
-    </Suspense>
   );
 }

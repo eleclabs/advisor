@@ -318,7 +318,7 @@ export default function InterviewViewPage() {
                 <span
                   className={`badge bg-${getStatusColor(interviewData.student_group)} rounded-0 text-uppercase fw-semibold p-2 me-2`}
                 >
-                  {interviewData.student_group}
+                  
                 </span>
                 {/* แสดงปุ่มแก้ไขบันทึกเฉพาะ admin/teacher เท่านั้น (student ไม่เห็น) */}
                 {!isStudentUser && (
@@ -377,7 +377,7 @@ export default function InterviewViewPage() {
               <div className="p-3 border-bottom bg-dark">
                 <h5 className="text-uppercase fw-semibold m-0 text-white">
                   <i className="bi bi-house-heart me-2 text-warning"></i>
-                  ข้อมูลครอบครัวและการเป็นอยู่
+                  ข้อมูลครอบครัว
                 </h5>
               </div>
               <div className="p-3">
@@ -494,14 +494,7 @@ export default function InterviewViewPage() {
               </div>
               <div className="p-3">
                 <div className="row g-3">
-                  <div className="col-md-2">
-                    <label className="form-label text-uppercase fw-semibold small text-muted">สาขาวิชานักเรียน</label>
-                    <p>
-                      <span className={`badge bg-${getStatusColor(interviewData.student_group)} rounded-0 p-2`}>
-                        {interviewData.student_group}
-                      </span>
-                    </p>
-                  </div>
+                  
                   <div className="col-md-10">
                     <label className="form-label text-uppercase fw-semibold small text-muted">แนวทางการช่วยเหลือ/ส่งต่อ</label>
                     <p>{interviewData.help_guidelines}</p>

@@ -32,9 +32,9 @@ export async function GET(request: NextRequest) {
       
       // กำหนดระดับความเสี่ยง
       let overallRisk = 'normal';
-      if (totalScore >= 20) overallRisk = 'high';
-      else if (totalScore >= 16) overallRisk = 'medium';
-      else if (totalScore >= 11) overallRisk = 'low';
+      if (totalScore >= 19) overallRisk = 'high';
+      else if (totalScore >= 17) overallRisk = 'medium';
+
       // If score is below 11, it remains 'normal'
 
       return {

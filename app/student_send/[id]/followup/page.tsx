@@ -9,7 +9,7 @@ export default function FollowUpPage() {
   const params = useParams();
   const [form, setForm] = useState({
     follow_date: new Date().toISOString().split('T')[0],
-    result: "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย" as "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย" | "พฤติกรรมคงเดิม" | "มีภาวะวิกฤตเพิ่มเติม",
+    result: "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย" as "พฤติกรรมดีขึ้น" | "พฤติกรรมคงเดิม" | "มีภาวะวิกฤตเพิ่มเติม",
     notes: "", // ✅ เพิ่มฟิลด์ notes
   });
 
@@ -48,7 +48,7 @@ export default function FollowUpPage() {
       
       if (response.ok) {
         // ถ้าการช่วยเหลือเสร็จสิ้น อัปเดตสถานะการส่งต่อ
-        if (form.result === "พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย") {
+        if (form.result === "พฤติกรรมดีขึ้น") {
           await fetch(`/api/send/${params.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -74,7 +74,7 @@ export default function FollowUpPage() {
             <div className="border-bottom border-3 border-warning pb-2">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-clipboard-check me-2 text-warning"></i>
-                บันทึกการติดตามผล
+                บันทึกการติดตามผล (การส่งต่อผู้เรียน)
               </h2>
             </div>
           </div>
@@ -110,9 +110,9 @@ export default function FollowUpPage() {
                         onChange={(e) => setForm({...form, result: e.target.value as any})}
                         required
                       >
-                        <option value="พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย">พฤติกรรมดีขึ้น/ปัญหาคลี่คลาย</option>
+                        <option value="พฤติกรรมดีขึ้น">พฤติกรรมดีขึ้น</option>
                         <option value="พฤติกรรมคงเดิม">พฤติกรรมคงเดิม</option>
-                        <option value="มีภาวะวิกฤตเพิ่มเติม">มีภาวะวิกฤตเพิ่มเติม</option>
+                       
                       </select>
                     </div>
                   </div>

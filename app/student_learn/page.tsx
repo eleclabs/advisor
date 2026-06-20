@@ -1,4 +1,3 @@
-// D:\advisor-main\app\student_learn\page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -42,6 +41,11 @@ interface Major {
   major_name: string;
 }
 
+interface PlanDisplayInfo {
+  departments: string[];
+  rooms: string[];
+}
+
 export default function StudentLearnPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -55,69 +59,48 @@ export default function StudentLearnPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
 
-  // Filter states
   const [selectedLevel, setSelectedLevel] = useState("");
   const [selectedClassGroup, setSelectedClassGroup] = useState("");
   const [selectedClassNumber, setSelectedClassNumber] = useState("");
+  const [filterDepartment, setFilterDepartment] = useState("");
+  const [filterRoom, setFilterRoom] = useState("");
   const [majors, setMajors] = useState<Major[]>([]);
   
-  // Assigned students ของครูปัจจุบัน
   const [assignedStudents, setAssignedStudents] = useState<Student[]>([]);
   const [loadingAssigned, setLoadingAssigned] = useState(true);
 
-  // Calendar state
   const [calendarLevel, setCalendarLevel] = useState<"day" | "month" | "year">("day");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [calendarEvents, setCalendarEvents] = useState<{[key: string]: HomeroomPlan[]}>({});
 
-  // สำหรับแสดงนักเรียนในแต่ละแผน (ดึงจาก API นักเรียนทั้งหมด)
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
   const [planStudents, setPlanStudents] = useState<{[key: string]: Student[]}>({});
   const [loadingStudents, setLoadingStudents] = useState<{[key: string]: boolean}>({});
 
+  const [planDisplayInfo, setPlanDisplayInfo] = useState<{[key: string]: PlanDisplayInfo}>({});
+
   const teacher_name = session?.user?.name || "ไม่พบชื่อผู้ใช้";
   const userRole = session?.user?.role || "";
   const userId = session?.user?.id || "";
-  const academic_year = "2568";
 
-  // Calendar helper functions
   const monthNamesFull = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
-  const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
-  const getFirstDayOfMonth = (year: number, month: number) => {
-    return new Date(year, month, 1).getDay();
-  };
-
-  const formatDateKey = (year: number, month: number, day: number) => {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  };
-
-  const getEventsForDate = (year: number, month: number, day: number) => {
-    const dateKey = formatDateKey(year, month, day);
-    return calendarEvents[dateKey] || [];
-  };
-
-  const getEventsForMonth = (year: number, month: number) => {
-    return plans.filter(plan => {
-      if (!plan.date) return false;
-      const [y, m] = plan.date.split('-').map(Number);
-      return y === year && m === month + 1;
-    });
-  };
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+  const formatDateKey = (year: number, month: number, day: number) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const getEventsForDate = (year: number, month: number, day: number) => calendarEvents[formatDateKey(year, month, day)] || [];
+  const getEventsForMonth = (year: number, month: number) => plans.filter(plan => {
+    if (!plan.date) return false;
+    const [y, m] = plan.date.split('-').map(Number);
+    return y === year && m === month + 1;
+  });
 
   const changeDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
-    if (calendarLevel === "day") {
-      newDate.setDate(selectedDate.getDate() + (direction === 'next' ? 1 : -1));
-    } else if (calendarLevel === "month") {
-      newDate.setMonth(selectedDate.getMonth() + (direction === 'next' ? 1 : -1));
-    } else if (calendarLevel === "year") {
-      newDate.setFullYear(selectedDate.getFullYear() + (direction === 'next' ? 1 : -1));
-    }
+    if (calendarLevel === "day") newDate.setDate(selectedDate.getDate() + (direction === 'next' ? 1 : -1));
+    else if (calendarLevel === "month") newDate.setMonth(selectedDate.getMonth() + (direction === 'next' ? 1 : -1));
+    else if (calendarLevel === "year") newDate.setFullYear(selectedDate.getFullYear() + (direction === 'next' ? 1 : -1));
     setSelectedDate(newDate);
   };
 
@@ -127,310 +110,217 @@ export default function StudentLearnPage() {
   };
 
   const zoomIn = (date?: Date) => {
-    if (calendarLevel === "year" && date) {
-      setSelectedDate(date);
-      setCalendarLevel("month");
-    } else if (calendarLevel === "month" && date) {
-      setSelectedDate(date);
-      setCalendarLevel("day");
-    }
+    if (calendarLevel === "year" && date) { setSelectedDate(date); setCalendarLevel("month"); }
+    else if (calendarLevel === "month" && date) { setSelectedDate(date); setCalendarLevel("day"); }
   };
 
-  const goToToday = () => {
-    setSelectedDate(new Date());
-    setCalendarLevel("day");
-  };
-
+  const goToToday = () => { setSelectedDate(new Date()); setCalendarLevel("day"); };
   const buddhistYear = selectedDate.getFullYear() + 543;
 
-  // ดึงข้อมูล majors
   useEffect(() => {
     const fetchMajors = async () => {
       try {
         const majorRes = await fetch("/api/major");
-        if (majorRes.ok) {
-          const majorData = await majorRes.json();
-          setMajors(majorData);
-        }
-      } catch (error) {
-        console.error("Error fetching majors:", error);
-      }
+        if (majorRes.ok) setMajors(await majorRes.json());
+      } catch (error) { console.error("Error fetching majors:", error); }
     };
     fetchMajors();
   }, []);
 
-  // ดึงข้อมูล assigned students ของครูปัจจุบัน
   useEffect(() => {
     const fetchAssignedStudents = async () => {
-      if (!userId) {
-        setLoadingAssigned(false);
-        return;
-      }
-      
+      if (!userId) { setLoadingAssigned(false); return; }
       try {
-        console.log("📥 กำลังดึง assigned students สำหรับ user:", userId);
         const assignedRes = await fetch(`/api/user/${userId}/assign-students`);
         if (assignedRes.ok) {
           const assignedData = await assignedRes.json();
           if (assignedData.success) {
             const students = assignedData.data.map((a: any) => {
-              const student = a.student_id;
+              const s = a.student_id;
               return {
-                _id: student._id,
-                id: student.id || "",
-                prefix: student.prefix || "",
-                first_name: student.first_name || "",
-                last_name: student.last_name || "",
-                name: `${student.prefix || ''}${student.first_name || ''} ${student.last_name || ''}`.trim(),
-                level: student.level || "",
-                class_group: student.class_group || "",
-                class_number: student.class_number || "",
-                status: student.status || "ปกติ",
-                image: student.image || ""
+                _id: s._id, id: s.id || "", prefix: s.prefix || "",
+                first_name: s.first_name || "", last_name: s.last_name || "",
+                name: `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim(),
+                level: s.level || "", class_group: s.class_group || "",
+                class_number: s.class_number || "", status: s.status || "ปกติ", image: s.image || ""
               };
             });
-            console.log(`✅ พบนักเรียนที่ดูแล ${students.length} คน`);
             setAssignedStudents(students);
           }
         }
-      } catch (error) {
-        console.error("Error fetching assigned students:", error);
-      } finally {
-        setLoadingAssigned(false);
-      }
+      } catch (error) { console.error("Error fetching assigned students:", error); }
+      finally { setLoadingAssigned(false); }
     };
-
     fetchAssignedStudents();
   }, [userId]);
 
-  // ดึงข้อมูลแผนกิจกรรม
- // ใน useEffect สำหรับดึงแผนกิจกรรม ให้รอให้ assignedStudents โหลดเสร็จก่อน
-useEffect(() => {
-  const fetchPlans = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (selectedSemester) params.append('semester', selectedSemester.replace('ภาคเรียนที่ ', ''));
-      if (selectedYear) params.append('academicYear', selectedYear);
-      
-      if (selectedStatus === 'บันทึกผลแล้ว') {
-        params.append('hasRecord', 'true');
-      } else if (selectedStatus) {
-        const statusMap: {[key: string]: string} = {
-          'เผยแพร่': 'published',
-          'ร่าง': 'draft'
-        };
-        params.append('status', statusMap[selectedStatus] || selectedStatus);
-      }
-      
-      if (searchKeyword) params.append('search', searchKeyword);
-      
-      const url = `/api/learn${params.toString() ? `?${params.toString()}` : ''}`;
-      console.log("📡 Fetching URL:", url);
-      
-      const response = await fetch(url);
-      const result = await response.json();
-      
-      if (result.success) {
-        console.log("📥 ได้รับแผนทั้งหมด:", result.data.length, "แผน");
-        setPlans(result.data);
-        
-        // กรองตามสิทธิ์ที่หน้า UI (เผื่อ API ส่งมาทั้งหมด)
-        let filtered = result.data;
-        
-        if (userRole !== 'ADMIN') {
-          filtered = filtered.filter((plan: HomeroomPlan) => {
-            // ร่าง: เห็นเฉพาะที่ตัวเองสร้าง
-            if (plan.status === 'ร่าง' || plan.status === 'draft') {
-              return plan.created_by === teacher_name;
-            }
-            
-            // เผยแพร่: กรองตาม assignedStudents ที่มีอยู่
-            if (assignedStudents.length === 0) {
-              return false; // ถ้าไม่มีนักเรียนเลย ไม่เห็นแผนเผยแพร่
-            }
-            
-            // เช็คว่ามีนักเรียนในระดับชั้นนี้หรือไม่
-            const hasLevel = assignedStudents.some(s => s.level === plan.level);
-            if (!hasLevel) return false;
-            
-            // ถ้าแผนระบุสาขาวิชาเรียน
-            if (plan.target_class_group) {
-              const hasGroup = assignedStudents.some(s => 
-                s.level === plan.level && 
-                s.class_group === plan.target_class_group
-              );
-              if (!hasGroup) return false;
-            }
-            
-            // ถ้าแผนระบุห้อง
-            if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
-              const hasNumber = assignedStudents.some(s => 
-                s.level === plan.level &&
-                (!plan.target_class_group || s.class_group === plan.target_class_group) &&
-                plan.target_class_numbers?.includes(s.class_number)
-              );
-              if (!hasNumber) return false;
-            }
-            
-            return true;
-          });
-        }
-        
-        console.log("📊 หลังจากกรองเหลือ:", filtered.length, "แผน");
-        setFilteredPlans(filtered);
-        
-        // Group events for calendar
-        const events: {[key: string]: HomeroomPlan[]} = {};
-        filtered.forEach((plan: HomeroomPlan) => {
-          if (plan.date) {
-            if (!events[plan.date]) events[plan.date] = [];
-            events[plan.date].push(plan);
-          }
-        });
-        setCalendarEvents(events);
-      }
-    } catch (error) {
-      console.error("Error fetching plans:", error);
-    } finally {
-      setLoading(false);
-    }
+  const calculatePlanDisplayInfo = (plan: HomeroomPlan) => {
+    const matchedStudents = assignedStudents.filter(s => {
+      if (s.level !== plan.level) return false;
+      if (plan.target_class_group && s.class_group !== plan.target_class_group) return false;
+      if (plan.target_class_numbers?.length && !plan.target_class_numbers.includes(s.class_number)) return false;
+      return true;
+    });
+    
+    const departments = [...new Set(matchedStudents.map(s => s.class_group).filter(Boolean))];
+    const rooms = [...new Set(matchedStudents.map(s => s.class_number).filter(Boolean))];
+    
+    return { departments, rooms };
   };
 
-  // รอให้ assignedStudents โหลดเสร็จก่อนค่อย fetch แผน
-  if (!loadingAssigned) {
-    fetchPlans();
-  }
-}, [selectedSemester, selectedYear, selectedStatus, searchKeyword, userRole, teacher_name, assignedStudents, loadingAssigned]);
-  // ฟังก์ชันดึงนักเรียนที่เข้าร่วมในแผน (จากฐานข้อมูลทั้งหมด)
+  useEffect(() => {
+    const newInfo: {[key: string]: PlanDisplayInfo} = {};
+    filteredPlans.forEach(plan => {
+      newInfo[plan.id] = calculatePlanDisplayInfo(plan);
+    });
+    setPlanDisplayInfo(newInfo);
+  }, [filteredPlans, assignedStudents]);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (selectedSemester) params.append('semester', selectedSemester.replace('ภาคเรียนที่ ', ''));
+        if (selectedYear) params.append('academicYear', selectedYear);
+        if (selectedStatus === 'บันทึกผลแล้ว') params.append('hasRecord', 'true');
+        else if (selectedStatus) {
+          const statusMap: {[key: string]: string} = { 'เผยแพร่': 'published', 'ร่าง': 'draft' };
+          params.append('status', statusMap[selectedStatus] || selectedStatus);
+        }
+        if (searchKeyword) params.append('search', searchKeyword);
+        
+        const response = await fetch(`/api/learn${params.toString() ? `?${params.toString()}` : ''}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          setPlans(result.data);
+          let filtered = result.data;
+          
+          if (userRole !== 'ADMIN') {
+            filtered = filtered.filter((plan: HomeroomPlan) => {
+              if (plan.status === 'ร่าง' || plan.status === 'draft') return plan.created_by === teacher_name;
+              if (assignedStudents.length === 0) return false;
+              return assignedStudents.some(s => {
+                if (s.level !== plan.level) return false;
+                if (plan.target_class_group && s.class_group !== plan.target_class_group) return false;
+                if (plan.target_class_numbers?.length && !plan.target_class_numbers.includes(s.class_number)) return false;
+                return true;
+              });
+            });
+          }
+          
+          if (filterDepartment || filterRoom) {
+            filtered = filtered.filter((plan: HomeroomPlan) => {
+              if (filterDepartment && plan.target_class_group !== filterDepartment) return false;
+              if (filterRoom && !plan.target_class_numbers?.includes(filterRoom)) return false;
+              return true;
+            });
+          }
+          
+          setFilteredPlans(filtered);
+          
+          const events: {[key: string]: HomeroomPlan[]} = {};
+          filtered.forEach(plan => { if (plan.date) { if (!events[plan.date]) events[plan.date] = []; events[plan.date].push(plan); } });
+          setCalendarEvents(events);
+        }
+      } catch (error) { console.error("Error fetching plans:", error); }
+      finally { setLoading(false); }
+    };
+
+    if (!loadingAssigned) fetchPlans();
+  }, [selectedSemester, selectedYear, selectedStatus, searchKeyword, userRole, teacher_name, assignedStudents, loadingAssigned, filterDepartment, filterRoom]);
+
   const fetchPlanStudents = async (plan: HomeroomPlan) => {
     if (planStudents[plan.id]) {
       setExpandedPlanId(expandedPlanId === plan.id ? null : plan.id);
       return;
     }
-
     setLoadingStudents(prev => ({ ...prev, [plan.id]: true }));
-    
     try {
-      // สร้าง query parameters
       const params = new URLSearchParams();
       if (plan.level) params.append('level', plan.level);
-      
-      // ดึงข้อมูลนักเรียนทั้งหมดตามระดับชั้น
       const response = await fetch(`/api/student?${params.toString()}`);
       const result = await response.json();
-      
       if (result.success) {
         let students = result.data;
+        if (plan.target_class_group) students = students.filter((s: any) => s.class_group === plan.target_class_group);
+        if (plan.target_class_numbers?.length) students = students.filter((s: any) => plan.target_class_numbers?.includes(s.class_number));
         
-        // กรองตามสาขาวิชาเรียน ถ้ามี
-        if (plan.target_class_group) {
-          students = students.filter((s: any) => 
-            s.class_group === plan.target_class_group
-          );
-        }
-        
-        // กรองตามห้อง ถ้ามี
-        if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
-          students = students.filter((s: any) => 
-            plan.target_class_numbers?.includes(s.class_number)
-          );
-        }
-        
-        // จัดรูปแบบข้อมูล
-        const formattedStudents = students.map((s: any) => ({
-          _id: s._id,
-          id: s.id || "",
-          prefix: s.prefix || "",
-          first_name: s.first_name || "",
-          last_name: s.last_name || "",
+        setPlanStudents(prev => ({ ...prev, [plan.id]: students.map((s: any) => ({
+          _id: s._id, id: s.id || "", prefix: s.prefix || "",
+          first_name: s.first_name || "", last_name: s.last_name || "",
           name: `${s.prefix || ''}${s.first_name || ''} ${s.last_name || ''}`.trim(),
-          level: s.level || "",
-          class_group: s.class_group || "",
-          class_number: s.class_number || "",
-          status: s.status || "ปกติ",
-          image: s.image || ""
-        }));
-        
-        setPlanStudents(prev => ({
-          ...prev,
-          [plan.id]: formattedStudents
-        }));
+          level: s.level || "", class_group: s.class_group || "",
+          class_number: s.class_number || "", status: s.status || "ปกติ", image: s.image || ""
+        })) }));
         setExpandedPlanId(plan.id);
       }
-    } catch (error) {
-      console.error("Error fetching students:", error);
-    } finally {
-      setLoadingStudents(prev => ({ ...prev, [plan.id]: false }));
-    }
+    } catch (error) { console.error("Error fetching students:", error); }
+    finally { setLoadingStudents(prev => ({ ...prev, [plan.id]: false })); }
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    
     try {
-      const response = await fetch(`/api/learn/${deleteId}`, {
-        method: 'DELETE',
-      });
-      
+      const response = await fetch(`/api/learn/${deleteId}`, { method: 'DELETE' });
       const result = await response.json();
-      
       if (result.success) {
-        setPlans(plans.filter(p => p.id !== deleteId));
-        setFilteredPlans(filteredPlans.filter(p => p.id !== deleteId));
-        
+        setPlans(prev => prev.filter(p => p.id !== deleteId));
+        setFilteredPlans(prev => prev.filter(p => p.id !== deleteId));
         const modal = document.getElementById('deleteModal');
-        if (modal) {
-          const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
-          bsModal.hide();
-        }
-      } else {
-        alert(result.message);
-      }
+        if (modal) { const bsModal = (window as any).bootstrap.Modal.getInstance(modal); bsModal?.hide(); }
+      } else alert(result.message);
       setDeleteId(null);
-    } catch (error) {
-      console.error("Error deleting plan:", error);
-      alert("เกิดข้อผิดพลาดในการลบข้อมูล");
-    }
+    } catch (error) { console.error("Error deleting plan:", error); alert("เกิดข้อผิดพลาดในการลบข้อมูล"); }
   };
 
   const getStatusBadge = (status: string, has_record?: boolean) => {
-    if (has_record) {
-      return <span className="badge bg-info rounded-0 text-uppercase fw-semibold">บันทึกผลแล้ว</span>;
-    }
-    
+    if (has_record) return <span className="badge bg-info rounded-0 text-uppercase fw-semibold">บันทึกผลแล้ว</span>;
     switch(status) {
-      case 'ร่าง':
-      case 'draft':
-        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">ร่าง</span>;
-      case 'เผยแพร่':
-      case 'published':
-        return <span className="badge bg-success rounded-0 text-uppercase fw-semibold">เผยแพร่</span>;
-      default:
-        return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">{status}</span>;
+      case 'ร่าง': case 'draft': return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">ร่าง</span>;
+      case 'เผยแพร่': case 'published': return <span className="badge bg-success rounded-0 text-uppercase fw-semibold">เผยแพร่</span>;
+      default: return <span className="badge bg-secondary rounded-0 text-uppercase fw-semibold">{status}</span>;
     }
   };
 
-  // ฟังก์ชันตรวจสอบสิทธิ์การแก้ไข/ลบ
   const canEditPlan = (plan: HomeroomPlan) => {
     if (userRole === 'ADMIN') return true;
     if (!plan.created_by || plan.created_by === "-") return true;
     return plan.created_by === teacher_name;
   };
 
-  // สร้างข้อความแสดงเงื่อนไขของแผน
   const getPlanTargetText = (plan: HomeroomPlan) => {
     let text = `ระดับชั้น ${plan.level}`;
-    if (plan.target_class_group) {
-      text += `, สาขาวิชา ${plan.target_class_group}`;
-    }
-    if (plan.target_class_numbers && plan.target_class_numbers.length > 0) {
+    if (plan.target_class_group) text += `, สาขาวิชา ${plan.target_class_group}`;
+    if (plan.target_class_numbers?.length) {
       const numbers = plan.target_class_numbers.length > 5 
         ? `${plan.target_class_numbers[0]} - ${plan.target_class_numbers[plan.target_class_numbers.length-1]}`
         : plan.target_class_numbers.join(', ');
       text += `, ห้อง ${numbers}`;
     }
     return text;
+  };
+
+  const getDisplayDept = (plan: HomeroomPlan) => {
+    const info = planDisplayInfo[plan.id];
+    if (info?.departments.length) return info.departments.join(', ');
+    return plan.target_class_group || '-';
+  };
+
+  const getDisplayRoom = (plan: HomeroomPlan) => {
+    const info = planDisplayInfo[plan.id];
+    if (info?.rooms.length) {
+      return info.rooms.length > 5 
+        ? `${info.rooms[0]} - ${info.rooms[info.rooms.length-1]}`
+        : info.rooms.join(', ');
+    }
+    if (plan.target_class_numbers?.length) {
+      return plan.target_class_numbers.length > 5 
+        ? `${plan.target_class_numbers[0]} - ${plan.target_class_numbers[plan.target_class_numbers.length-1]}`
+        : plan.target_class_numbers.join(', ');
+    }
+    return '-';
   };
 
   return (
@@ -442,10 +332,9 @@ useEffect(() => {
             <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-calendar-check me-2 text-warning"></i>
-                แผนกิจกรรมโฮมรูม
+                แผนกิจกรรมโฮมรูม (การส่งเสริมและพัฒนาผู้เรียน)
               </h2>
-              <div>
-                              </div>
+              <div></div>
             </div>
           </div>
         </div>
@@ -466,7 +355,24 @@ useEffect(() => {
               />
             </div>
           </div>
+        
           <div className="col-md-2">
+            <select 
+              className="form-select rounded-0"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              <option value="">ปีการศึกษา</option>
+              <option value="2569">2569</option>
+              <option value="2570">2570</option>
+              <option value="2571">2571</option>
+              <option value="2572">2572</option>
+              <option value="2573">2573</option>
+              <option value="2574">2574</option>
+              <option value="2575">2575</option>
+            </select>
+          </div>
+            <div className="col-md-2">
             <select 
               className="form-select rounded-0"
               value={selectedSemester}
@@ -477,39 +383,46 @@ useEffect(() => {
               <option value="ภาคเรียนที่ 2">ภาคเรียนที่ 2</option>
             </select>
           </div>
+           <div className="col-md-2">
+          <select 
+            className="form-select rounded-0"
+            value={selectedLevel}
+            onChange={(e) => setSelectedLevel(e.target.value)}
+          >
+            <option value="">ระดับชั้น</option>
+            <option value="ปวช.1">ปวช.1</option>
+            <option value="ปวช.2">ปวช.2</option>
+            <option value="ปวช.3">ปวช.3</option>
+            <option value="ปวส.1">ปวส.1</option>
+            <option value="ปวส.2">ปวส.2</option>
+            <option value="ป.ตรี">ป.ตรี</option>
+          </select>
+        </div>
           <div className="col-md-2">
             <select 
               className="form-select rounded-0"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
+              value={filterDepartment}
+              onChange={(e) => setFilterDepartment(e.target.value)}
             >
-              <option value="2569">2569</option>
-              <option value="2570">2570</option>
-              <option value="2571">2571</option>
-              <option value="2572">2572</option>
-              <option value="2573">2573</option>
-              <option value="2574">2574</option>
-              <option value="2575">2575</option>
-
+          
+              <option value="">สาขา</option>
+              {majors.map((major) => (
+                <option key={major._id} value={major.major_name}>{major.major_name}</option>
+              ))}
             </select>
           </div>
           <div className="col-md-2">
             <select 
               className="form-select rounded-0"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              value={filterRoom}
+              onChange={(e) => setFilterRoom(e.target.value)}
             >
-              <option value="">สถานะ</option>
-              <option value="ร่าง">ร่าง</option>
-              <option value="เผยแพร่">เผยแพร่</option>
-              <option value="บันทึกผลแล้ว">บันทึกผลแล้ว</option>
+              <option value="">ห้อง</option>
+              {Array.from({length: 10}, (_, i) => i + 1).map((num) => (
+                <option key={num} value={num.toString()}>{num}</option>
+              ))}
             </select>
           </div>
-{/*           <div className="col-md-3">
-            <button className="btn btn-warning rounded-0 w-100 text-uppercase fw-semibold">
-              <i className="bi bi-funnel me-2"></i>ค้นหา
-            </button>
-          </div> */}
         </div>
 
         {/* View Toggle and Action Bar */}
@@ -557,12 +470,13 @@ useEffect(() => {
                     <thead className="bg-dark text-white">
                       <tr>
                         <th className="text-uppercase fw-semibold" style={{width: '50px'}}>ลำดับ</th>
-                        <th className="text-uppercase fw-semibold">หัวข้อหลัก</th>
+                        <th className="text-uppercase fw-semibold">หัวข้อ</th>
                         <th className="text-uppercase fw-semibold">ระดับชั้น</th>
-                        <th className="text-uppercase fw-semibold">สัปดาห์ที่</th>
+                        <th className="text-uppercase fw-semibold">สาขา</th>
+                        <th className="text-uppercase fw-semibold">ห้อง</th>
+                        <th className="text-uppercase fw-semibold">สัปดาห์</th>
                         <th className="text-uppercase fw-semibold">วันที่จัดกิจกรรม</th>
                         <th className="text-uppercase fw-semibold">สถานะ</th>
-                        <th className="text-uppercase fw-semibold">สาขาวิชาเป้าหมาย</th>
                         <th className="text-uppercase fw-semibold">จัดการ</th>
                       </tr>
                     </thead>
@@ -581,31 +495,22 @@ useEffect(() => {
                                 </Link>
                               </td>
                               <td>{plan.level}</td>
+                              <td>
+                                <span style={{ fontSize: '17px' }}>
+                                  {getDisplayDept(plan)}
+                                </span>
+                              </td>
+                              <td>
+                                <span style={{ fontSize: '17px' }}>
+                                  {getDisplayRoom(plan)}
+                                </span>
+                              </td>
                               <td>{plan.week}</td>
                               <td>{plan.date || '-'}</td>
                               <td>{getStatusBadge(plan.status, plan.has_record)}</td>
                               <td>
-                                <button
-                                  className="btn btn-sm btn-outline-info rounded-0 w-100"
-                                  onClick={() => fetchPlanStudents(plan)}
-                                  disabled={loadingStudents[plan.id]}
-                                >
-                                  {loadingStudents[plan.id] ? (
-                                    <>
-                                      <span className="spinner-border spinner-border-sm me-1"></span>
-                                      กำลังโหลด...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <i className="bi bi-people me-1"></i>
-                                      ดูรายชื่อ
-                                      {planStudents[plan.id] && ` (${planStudents[plan.id].length})`}
-                                    </>
-                                  )}
-                                </button>
-                              </td>
-                              <td>
                                 <div className="btn-group" role="group">
+                                 
                                   <button 
                                     className="btn btn-sm btn-outline-primary rounded-0"
                                     onClick={() => router.push(`/student_learn/${plan.id}`)}
@@ -652,7 +557,7 @@ useEffect(() => {
                             </tr>
                             {expandedPlanId === plan.id && planStudents[plan.id] && (
                               <tr className="bg-light">
-                                <td colSpan={8} className="p-3">
+                                <td colSpan={9} className="p-3">
                                   <div className="border-start border-3 border-info ps-3">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                       <h6 className="fw-bold mb-0">
@@ -673,7 +578,7 @@ useEffect(() => {
                                               <th>รหัสนักเรียน</th>
                                               <th>ชื่อ-นามสกุล</th>
                                               <th>ระดับชั้น</th>
-                                              <th>สาขาวิชาเรียน</th>
+                                              <th>สาขาเรียน</th>
                                               <th>ห้อง</th>
                                             </tr>
                                           </thead>
@@ -718,7 +623,7 @@ useEffect(() => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={8} className="text-center text-muted py-5">
+                          <td colSpan={9} className="text-center text-muted py-5">
                             <i className="bi bi-calendar-x fs-1 d-block mb-3"></i>
                             <h5>ไม่พบแผนกิจกรรมโฮมรูม</h5>
                             <p className="mb-0">ลองปรับเปลี่ยนตัวกรอง หรือสร้างแผนใหม่</p>
@@ -733,7 +638,7 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Calendar View (เหมือนเดิม) */}
+        {/* Calendar View */}
         {viewMode === 'calendar' && (
           <div className="row">
             <div className="col-12">

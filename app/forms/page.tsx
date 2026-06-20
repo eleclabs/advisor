@@ -561,22 +561,7 @@ export default function StudentFormsPage() {
             >
               🧠 แบบประเมินจิตวิทยา ({assessments.length})
             </button>
-            <button
-              onClick={() => setActiveTab('evaluations')}
-              style={{
-                flex: 1,
-                padding: '16px 20px',
-                backgroundColor: activeTab === 'evaluations' ? '#007bff' : 'transparent',
-                color: activeTab === 'evaluations' ? 'white' : '#6c757d',
-                border: 'none',
-                fontSize: '15px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                borderRadius: '8px 8px 0 0'
-              }}
-            >
-              📊 แบบประเมินความพึงพอใจ ({evaluations.length})
-            </button>
+            
             {(currentUser?.role === 'ADMIN' || currentUser?.role === 'TEACHER') && (
               <button
                 onClick={() => setActiveTab('custom')}

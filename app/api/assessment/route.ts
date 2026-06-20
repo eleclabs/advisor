@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Assessment from '@/models/Assessment';
+import Student from '@/models/Student';
+import { ObjectId } from 'mongodb';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,8 +29,24 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Check if studentId is a valid MongoDB ObjectId
+    let finalStudentId = studentId;
+    if (studentId && !ObjectId.isValid(studentId)) {
+      // If not a valid ObjectId, search for student by 'id' field (student_id)
+      const student = await Student.findOne({ id: studentId });
+      if (student) {
+        finalStudentId = student._id.toString();
+        console.log(`🔄 Converted student_id "${studentId}" to ObjectId "${finalStudentId}"`);
+      } else {
+        return NextResponse.json({ 
+          success: false, 
+          error: `ไม่พบนักเรียนที่มีรหัสนักเรียน "${studentId}"` 
+        }, { status: 404 });
+      }
+    }
+
     const assessmentData = {
-      studentId: studentId || `STU_${Date.now()}`,
+      studentId: finalStudentId || `STU_${Date.now()}`,
       studentName,
       grade,
       classroom,

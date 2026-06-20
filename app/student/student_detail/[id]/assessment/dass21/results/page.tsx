@@ -254,7 +254,7 @@ export default function StudentDASS21ResultsPage() {
             </div>
           </div>
           <Link
-            href={`/assessment?type=dass21&studentId=${studentDocId}`}
+            href={`/assessment?type=dass21&studentId=${student.id}`}
             style={{
               backgroundColor: '#28a745',
               color: 'white',
@@ -296,7 +296,7 @@ export default function StudentDASS21ResultsPage() {
               นักเรียนยังไม่เคยได้รับการประเมินด้วยแบบ DASS-21
             </p>
             <Link
-              href={`/assessment?type=dass21&studentId=${studentDocId}`}
+              href={`/assessment?type=dass21&studentId=${student.id}`}
               style={{
                 display: 'inline-block',
                 padding: '12px 24px',

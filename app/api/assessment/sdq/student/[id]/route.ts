@@ -30,7 +30,7 @@ export async function GET(
       const hyperactivityScore = calculateHyperactivityScore(answers);
       const peerScore = calculatePeerScore(answers);
       const prosocialScore = calculateProsocialScore(answers);
-      const totalScore = emotionalScore + conductScore + hyperactivityScore + peerScore + prosocialScore;
+      const totalScore = emotionalScore + conductScore + hyperactivityScore + peerScore; // รวม 4 ด้านปัญหา (ไม่รวม prosocial)
       
       // กำหนดระดับความเสี่ยง
       let overallRisk = 'normal';

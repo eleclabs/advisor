@@ -135,18 +135,7 @@ const RadioScale3 = ({ name, value, onChange, labels }: {
 }) => {
   return (
     <div style={{ marginTop: '16px' }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '12px',
-        color: '#6c757d',
-        marginBottom: '10px',
-        letterSpacing: '0.3px'
-      }}>
-        {labels.map((label, i) => (
-          <span key={i}>{label}</span>
-        ))}
-      </div>
+      
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -213,18 +202,7 @@ const RadioScale4 = ({ name, value, onChange, labels }: {
 }) => {
   return (
     <div style={{ marginTop: '16px' }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '12px',
-        color: '#6c757d',
-        marginBottom: '10px',
-        letterSpacing: '0.3px'
-      }}>
-        {labels.map((label, i) => (
-          <span key={i}>{label}</span>
-        ))}
-      </div>
+      
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -381,58 +359,60 @@ const SectionHeader = ({ number, title, subtitle, description }: {
 
 // ========== ข้อมูลแบบประเมิน ==========
 const SDQ_QUESTIONS = [
-  { id: 'sdq1', text: '1. มักปวดศีรษะหรือปวดท้องหรือเจ็บป่วยบ่อย' },
-  { id: 'sdq2', text: '2. อารมณ์เสียง่าย หงุดหงิดง่าย' },
-  { id: 'sdq3', text: '3. มักเศร้าสร้อย ท้อแท้ หรือหมดหวัง' },
-  { id: 'sdq4', text: '4. มักกังวลหรือกลัวสิ่งต่างๆ มากเกินไป' },
-  { id: 'sdq5', text: '5. มักเงียบขรึม ไม่ค่อยพูดกับคนอื่น' },
-  { id: 'sdq6', text: '6. มักทะเลาะวิวาทหรือกลั่นแกล้งผู้อื่น' },
-  { id: 'sdq7', text: '7. เชื่อฟังผู้ใหญ่ มักไม่เถียง' },
-  { id: 'sdq8', text: '8. มักอยู่ไม่นิ่ง ซน หรือขาดสมาธิ' },
-  { id: 'sdq9', text: '9. มักมีพฤติกรรมก้าวร้าว ทำร้ายผู้อื่น' },
-  { id: 'sdq10', text: '10. มักขโมยของหรือโกหก' },
-  { id: 'sdq11', text: '11. มักมีเพื่อนสนิทอย่างน้อย 1 คน' },
-  { id: 'sdq12', text: '12. มักเป็นที่ชื่นชอบของเพื่อนฝูง' },
-  { id: 'sdq13', text: '13. มักถูกเพื่อนแกล้งหรือรังแก' },
-  { id: 'sdq14', text: '14. มักช่วยเหลือผู้อื่นเมื่อเห็นคนอื่นเจ็บป่วยหรือไม่สบาย' },
-  { id: 'sdq15', text: '15. มักอาสาช่วยเหลือครูหรือผู้ใหญ่' },
-  { id: 'sdq16', text: '16. มักคิดก่อนทำ ไม่หุนหันพลันแล่น' },
-  { id: 'sdq17', text: '17. มักเสร็จสิ้นงานที่ได้รับมอบหมาย' },
-  { id: 'sdq18', text: '18. มักมีพฤติกรรมเด็กกว่าวัย' },
-  { id: 'sdq19', text: '19. มักกังวลเมื่อต้องแยกจากผู้ปกครอง' },
-  { id: 'sdq20', text: '20. มักมีความมั่นใจในตนเอง' },
-  { id: 'sdq21', text: '21. มักชอบอยู่คนเดียวมากกว่าอยู่ร่วมกับผู้อื่น' },
-  { id: 'sdq22', text: '22. มักมีอารมณ์ร้อนวู่วาม' },
-  { id: 'sdq23', text: '23. มักแสดงความเห็นอกเห็นใจผู้อื่น' },
-  { id: 'sdq24', text: '24. มักมีสมาธิจดจ่อได้นาน' },
-  { id: 'sdq25', text: '25. มักเป็นที่ไว้วางใจของเพื่อน' }
+  { id: 'sdq1', text: '1. ห่วงใยความรู้สึกของผู้อื่น' },
+  { id: 'sdq2', text: '2. อยู่ไม่นิ่ง นั่งนิ่งๆ ไม่ได้' },
+  { id: 'sdq3', text: '3. มักบ่นว่าปวดศรีษะ ปวดท้อง' },
+  { id: 'sdq4', text: '4. เต็มใจแบ่งปันสิ่งของให้เพื่อน ( เช่น ขนม ของเล่น ดินสอ )' },
+  { id: 'sdq5', text: '5. มักจะอาละวาด หรือโมโหร้าย' },
+  { id: 'sdq6', text: '6. ค่อนข้างแยกตัว ชอบเล่นคนเดียว' },
+  { id: 'sdq7', text: '7. เชื่อฟังมักจะทำตามที่ผู้ใหญ่ต้องการ' },
+  { id: 'sdq8', text: '8. กังวลใจหลายเรื่อง ดูกังวลเสมอ' },
+  { id: 'sdq9', text: '9. เป็นที่พึ่งพาได้เวลาคนอื่นเสียใจ อารมณ์ไม่ดี หรือไม่สบายใจ' },
+  { id: 'sdq10', text: '10. อยู่ไม่สุข วุ่นวายอย่างมาก' },
+  { id: 'sdq11', text: '11. มีเพื่อนสนิท' },
+  { id: 'sdq12', text: '12. มักจะมีเรื่องทะเลาะวิวาทกับเด็กอื่น หรือรังแกเด็กอื่น' },
+  { id: 'sdq13', text: '13. ดูไม่มีความสุข ท้อแท้' },
+  { id: 'sdq14', text: '14. เป็นที่ชื่นชอบของเพื่อน' },
+  { id: 'sdq15', text: '15. วอกแวกง่าย / สมาธิสั้น' },
+  { id: 'sdq16', text: '16. เครียด ไม่ยอมห่างเวลาอยู่ในสถานการณ์ที่ไม่คุ้น และขาดความเชื่อมั่นใจในตนเอง' },
+  { id: 'sdq17', text: '17. ใจดีกับเด็กที่เล็กกว่า' },
+  { id: 'sdq18', text: '18. ชอบโกหก หรือขี้โกง' },
+  { id: 'sdq19', text: '19. ถูกเด็กนักเรียนคนอื่นล้อเรียน หรือรังแก' },
+  { id: 'sdq20', text: '20. ชอบอาสาช่วยเหลือผู้อื่น ( พ่อแม่ ครู เด็กคนอื่น )' },
+  { id: 'sdq21', text: '21. คิดก่อนทำ' },
+  { id: 'sdq22', text: '22. ขโมยของของที่บ้าน ที่โรงเรียนหรือที่อื่น' },
+  { id: 'sdq23', text: '23. เข้ากับผุ้ใหญ่ได้ดีกว่าเด็กวัยเดียวกัน' },
+  { id: 'sdq24', text: '24. รู้ขี้กลัว รู้สึกหวาดกลัวได้ง่าย' },
+  { id: 'sdq25', text: '25. ทำงานได้จนเสร็จ มีความตั้งใจในการทำงาน' }
 ];
 
 const DASS21_QUESTIONS = [
-  // Depression (1-7)
-  { id: 'd1', text: '1. ฉันรู้สึกว่าชีวิตนี้ช่างว่างเปล่า ไร้ความหมาย', category: 'depression' },
-  { id: 'd2', text: '2. ฉันไม่สามารถรู้สึกถึงอารมณ์ดีๆ ได้เลย', category: 'depression' },
-  { id: 'd3', text: '3. ฉันรู้สึกว่าไม่มีอะไรในชีวิตที่น่าตื่นเต้นหรือทำให้ฉันมีความสุข', category: 'depression' },
-  { id: 'd4', text: '4. ฉันรู้สึกท้อแท้และหมดหวังกับอนาคต', category: 'depression' },
-  { id: 'd5', text: '5. ฉันรู้สึกว่าฉันไม่มีค่าอะไรเลย', category: 'depression' },
-  { id: 'd6', text: '6. ฉันรู้สึกว่าชีวิตนี้ไม่คุ้มค่าที่จะมีชีวิตอยู่', category: 'depression' },
-  { id: 'd7', text: '7. ฉันไม่สามารถรู้สึกถึงความสนุกสนานหรือเพลิดเพลินกับสิ่งใดๆ', category: 'depression' },
-  // Anxiety (8-14)
-  { id: 'a1', text: '8. ฉันรู้สึกปากแห้งหรือหายใจไม่สะดวก', category: 'anxiety' },
-  { id: 'a2', text: '9. ฉันรู้สึกหวาดกลัวโดยไม่มีเหตุผล', category: 'anxiety' },
-  { id: 'a3', text: '10. ฉันรู้สึกกลัวจนตัวสั่น', category: 'anxiety' },
-  { id: 'a4', text: '11. ฉันรู้สึกว่าฉันใกล้จะแตกสลาย', category: 'anxiety' },
-  { id: 'a5', text: '12. ฉันรู้สึกว่าฉันควบคุมตัวเองไม่ได้', category: 'anxiety' },
-  { id: 'a6', text: '13. ฉันรู้สึกกังวลจนไม่สามารถผ่อนคลายได้', category: 'anxiety' },
-  { id: 'a7', text: '14. ฉันรู้สึกหวาดกลัวต่อสถานการณ์บางอย่าง', category: 'anxiety' },
-  // Stress (15-21)
-  { id: 's1', text: '15. ฉันรู้สึกว่าฉันใช้พลังงานไปมากกับความเครียดเล็กๆ น้อยๆ', category: 'stress' },
-  { id: 's2', text: '16. ฉันรู้สึกว่าฉันหงุดหงิดง่ายกับสิ่งต่างๆ', category: 'stress' },
-  { id: 's3', text: '17. ฉันรู้สึกว่าฉันแทบจะทนไม่ไหวกับสิ่งที่เกิดขึ้น', category: 'stress' },
-  { id: 's4', text: '18. ฉันรู้สึกว่าฉันกังวลกับเรื่องต่างๆ มากเกินไป', category: 'stress' },
-  { id: 's5', text: '19. ฉันรู้สึกว่าฉันไม่สามารถหยุดกังวลได้', category: 'stress' },
-  { id: 's6', text: '20. ฉันรู้สึกว่าสถานการณ์ต่างๆ ทำให้ฉันเครียดมาก', category: 'stress' },
-  { id: 's7', text: '21. ฉันรู้สึกว่าฉันต้องใช้ความพยายามมากในการทำสิ่งต่างๆ', category: 'stress' }
+  // ข้อ 1-7: ภาวะซึมเศร้า (Depression)
+  { id: 's1', text: '1. ฉันรู้สึกยากที่จะสงบจิตใจลง', category: 'depression' },
+  { id: 'a1', text: '2. ฉันรู้สึกปากแห้งคอแห้ง', category: 'depression' },
+  { id: 'd1', text: '3. ฉันแทบไม่รู้สึกอะไรดีๆ เลย', category: 'depression' },
+  { id: 'a2', text: '4. ฉันมีอาการหายใจผิดปกติ (เช่น หายใจเร็วเกินเหตุ หายใจไม่ทันแม้ว่าจะไม่ได้ออกแรง)', category: 'depression' },
+  { id: 'd2', text: '5. ฉันพบว่ามันยากที่จะคิดริเริ่มทำสิ่งใดสิ่งหนึ่ง', category: 'depression' },
+  { id: 's3', text: '6. ฉันมีแนวโน้มที่จะตอบสนองเกินเหตุต่อสถานการณ์', category: 'depression' },
+  { id: 'a3', text: '7. ฉันรู้สึกว่าร่างกายบางส่วนสั่นผิดปกติ (เช่น มือสั่น)', category: 'depression' },
+  
+  // ข้อ 8-14: ภาวะวิตกกังวล (Anxiety)
+  { id: 's4', text: '8. ฉันรู้สึกเสียพลังงานไปมากกับการคิดกังวล', category: 'anxiety' },
+  { id: 'a4', text: '9. ฉันรู้สึกกังวลกับเหตุการณ์ที่อาจทำให้ฉันรู้สึกตื่นกลัวและกระทำบางสิ่งที่น่าอับอาย', category: 'anxiety' },
+  { id: 'd3', text: '10. ฉันรู้สึกไม่มีเป้าหมายในชีวิต', category: 'anxiety' },
+  { id: 's5', text: '11. ฉันรู้สึกกระวนกระวายใจ', category: 'anxiety' },
+  { id: 's6', text: '12. ฉันรู้สึกยากที่จะผ่อนคลายตัวเอง', category: 'anxiety' },
+  { id: 'd4', text: '13. ฉันรู้สึกจิตใจเหงาหงอยเศร้าซึม', category: 'anxiety' },
+  { id: 's7', text: '14. ฉันรู้สึกทนไม่ได้เวลามีอะไรมาขัดขวางสิ่งที่ฉันกำลังทำอยู่', category: 'anxiety' },
+  
+  // ข้อ 15-21: ภาวะความเครียด (Stress)
+  { id: 'a5', text: '15. ฉันรู้สึกคล้ายจะมีอาการตื่นตระหนก', category: 'stress' },
+  { id: 'd5', text: '16. ฉันรู้สึกไม่มีความกระตือรือร้นต่อสิ่งใด', category: 'stress' },
+  { id: 'd6', text: '17. ฉันรู้สึกเป็นคนไม่มีคุณค่า', category: 'stress' },
+  { id: 's8', text: '18. ฉันรู้สึกค่อนข้างฉุนเฉียวง่าย', category: 'stress' },
+  { id: 'a6', text: '19. ฉันรับรู้ถึงการทำงานของหัวใจแม้ในตอนที่ฉันไม่ได้ออกแรง (เช่น รู้สึกว่าหัวใจเต้นเร็วขึ้นหรือเต้นไม่เป็นจังหวะ)', category: 'stress' },
+  { id: 'a7', text: '20. ฉันรู้สึกกลัวโดยไม่มีเหตุผล', category: 'stress' },
+  { id: 'd7', text: '21. ฉันรู้สึกว่าชีวิตไม่มีความหมาย', category: 'stress' }
 ];
 
 // ========== Main Component ==========
@@ -494,15 +474,37 @@ function AssessmentContent() {
       const response = await fetch(`/api/student/${studentId}`);
       const data = await response.json();
       
+      console.log('📊 Student data fetched:', data);
+      
       if (data.success) {
         const student = data.data;
+        console.log('👤 Student fields:', {
+          gender: student.gender,
+          birth_date: student.birth_date,
+          level: student.level,
+          class_group: student.class_group,
+          class_number: student.class_number
+        });
+        
+        // Map Thai gender to English value for select field
+        const genderMap: Record<string, string> = {
+          'ชาย': 'male',
+          'หญิง': 'female',
+          'อื่นๆ': 'other',
+          'male': 'male',
+          'female': 'female',
+          'other': 'other'
+        };
+        
+        const mappedGender = genderMap[student.gender] || '';
+        
         setStudentInfo(prev => ({
           ...prev,
           studentId: student._id, // Always use MongoDB _id
           studentName: `${student.prefix} ${student.first_name} ${student.last_name}`,
           grade: student.level,
           classroom: `${student.class_group}/${student.class_number}`,
-          gender: student.gender,
+          gender: mappedGender,
           age: student.birth_date ? calculateAge(student.birth_date).toString() : ''
         }));
       }
@@ -514,6 +516,12 @@ function AssessmentContent() {
   const calculateAge = (birthDate: string): number => {
     const birth = new Date(birthDate);
     const today = new Date();
+    
+    // If birth date is in the future, return 0
+    if (birth > today) {
+      return 0;
+    }
+    
     const age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
     return monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
@@ -526,13 +534,11 @@ function AssessmentContent() {
   ];
 
   const gradeOptions = [
-
     { value: 'ปวช.1', label: 'ประกาศนียบัตรวิชาชีพ ชั้นปี 1' },
     { value: 'ปวช.2', label: 'ประกาศนียบัตรวิชาชีพ ชั้นปี 2' },
     { value: 'ปวช.3', label: 'ประกาศนียบัตรวิชาชีพ ชั้นปี 3' },
     { value: 'ปวส.1', label: 'ประกาศนียบัตรวิชาชีพชั้นสูง ชั้นปี 1' },
     { value: 'ปวส.2', label: 'ประกาศนียบัตรวิชาชีพชั้นสูง ชั้นปี 2' },
- 
   ];
 
   useEffect(() => {
@@ -583,38 +589,53 @@ function AssessmentContent() {
     return { totalScore, interpretation };
   };
 
+  // ==================== DASS-21 Scoring (แก้ไขให้ถูกต้อง) ====================
   const calculateDASS21Score = () => {
+    // คำนวณคะแนนดิบ (ไม่คูณ 2)
     const depression = DASS21_QUESTIONS.filter(q => q.category === 'depression')
-      .reduce((sum, q) => sum + parseInt(dass21Answers[q.id] || '0'), 0) * 2;
+      .reduce((sum, q) => sum + parseInt(dass21Answers[q.id] || '0'), 0);
     
     const anxiety = DASS21_QUESTIONS.filter(q => q.category === 'anxiety')
-      .reduce((sum, q) => sum + parseInt(dass21Answers[q.id] || '0'), 0) * 2;
+      .reduce((sum, q) => sum + parseInt(dass21Answers[q.id] || '0'), 0);
     
     const stress = DASS21_QUESTIONS.filter(q => q.category === 'stress')
-      .reduce((sum, q) => sum + parseInt(dass21Answers[q.id] || '0'), 0) * 2;
+      .reduce((sum, q) => sum + parseInt(dass21Answers[q.id] || '0'), 0);
 
-    const getLevel = (score: number, type: string) => {
-      const levels: Record<string, { normal: number; mild: number; moderate: number; severe: number }> = {
-        depression: { normal: 9, mild: 13, moderate: 20, severe: 27 },
-        anxiety: { normal: 7, mild: 9, moderate: 14, severe: 19 },
-        stress: { normal: 14, mild: 18, moderate: 25, severe: 33 }
-      };
-      
-      const l = levels[type];
-      if (score <= l.normal) return 'ปกติ';
-      if (score <= l.mild) return 'เบา';
-      if (score <= l.moderate) return 'ปานกลาง';
-      if (score <= l.severe) return 'รุนแรง';
-      return 'รุนแรงมาก';
+    // เกณฑ์ระดับความรุนแรง (ใช้กับคะแนนดิบ) ตามมาตรฐาน DASS-21 ฉบับล่าสุด
+    // ด้านภาวะซึมเศร้า (Depression): ปกติ 0-4, ต่ำ/น้อย 5-6, ปานกลาง 7-10, รุนแรง 11-13, รุนแรงที่สุด 14+
+    const getDepressionLevel = (score: number): string => {
+      if (score <= 4) return 'ปกติ (Normal)';
+      if (score <= 6) return 'ต่ำ / น้อย (Mild)';
+      if (score <= 10) return 'ปานกลาง (Moderate)';
+      if (score <= 13) return 'รุนแรง (Severe)';
+      return 'รุนแรงที่สุด (Extremely Severe)';
+    };
+
+    // ด้านภาวะวิตกกังวล (Anxiety): ปกติ 0-3, ต่ำ/น้อย 4-5, ปานกลาง 6-7, รุนแรง 8-9, รุนแรงที่สุด 10+
+    const getAnxietyLevel = (score: number): string => {
+      if (score <= 3) return 'ปกติ (Normal)';
+      if (score <= 5) return 'ต่ำ / น้อย (Mild)';
+      if (score <= 7) return 'ปานกลาง (Moderate)';
+      if (score <= 9) return 'รุนแรง (Severe)';
+      return 'รุนแรงที่สุด (Extremely Severe)';
+    };
+
+    // ด้านความเครียด (Stress): ปกติ 0-7, ต่ำ/น้อย 8-9, ปานกลาง 10-12, รุนแรง 13-16, รุนแรงที่สุด 17+
+    const getStressLevel = (score: number): string => {
+      if (score <= 7) return 'ปกติ (Normal)';
+      if (score <= 9) return 'ต่ำ / น้อย (Mild)';
+      if (score <= 12) return 'ปานกลาง (Moderate)';
+      if (score <= 16) return 'รุนแรง (Severe)';
+      return 'รุนแรงที่สุด (Extremely Severe)';
     };
 
     return {
       depression,
-      depressionLevel: getLevel(depression, 'depression'),
+      depressionLevel: getDepressionLevel(depression),
       anxiety,
-      anxietyLevel: getLevel(anxiety, 'anxiety'),
+      anxietyLevel: getAnxietyLevel(anxiety),
       stress,
-      stressLevel: getLevel(stress, 'stress')
+      stressLevel: getStressLevel(stress)
     };
   };
 
@@ -1077,7 +1098,7 @@ function AssessmentContent() {
                 number="1" 
                 title="แบบประเมิน SDQ (Strengths and Difficulties Questionnaire)"
                 subtitle="คำชี้แจง: โปรดทำเครื่องหมาย ✓ ในช่องที่ตรงกับพฤติกรรมของนักเรียนมากที่สุด"
-                description="⏱️ คำถาม 25 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-2 (ไม่ตรง=0, ค่อนข้างตรง=1, ตรงมาก=2)"
+                description="⏱️ คำถาม 25 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-2 (ไม่จริง=0, ค่อนข้างจริง=1,จริง=2)"
               />
 
               <div style={{
@@ -1089,11 +1110,11 @@ function AssessmentContent() {
               }}>
                 <strong>คำชี้แจง:</strong> แบบประเมินนี้ประกอบด้วย 5 ด้าน ได้แก่
                 <ul style={{ margin: '8px 0 0 20px', fontSize: '14px', color: '#6c757d' }}>
-                  <li>อาการทางอารมณ์ (ข้อ 1-5)</li>
-                  <li>ปัญหาด้านพฤติกรรม (ข้อ 6-10)</li>
-                  <li>ภาวะอยู่ไม่นิ่ง/ขาดสมาธิ (ข้อ 11-15)</li>
-                  <li>ปัญหาด้านความสัมพันธ์กับเพื่อน (ข้อ 16-20)</li>
-                  <li>พฤติกรรมเชิงบวก (ข้อ 21-25)</li>
+                  <li>พฤติกรรมด้านอารมณ์ (5 ข้อ)</li>
+                  <li>พฤติกรรมอยู่ไม่นิ่ง / สมาธิสั้น (5 ข้อ)</li>
+                  <li>พฤติกรรมเกเร /ความประพฤติ (5 ข้อ)</li>
+                  <li>พฤติกรรมด้านความสัมพันธ์กับเพื่อน (5 ข้อ)</li>
+                  <li>พฤติกรรมด้านสัมพันธภาพทางสังคม (5 ข้อ)</li>
                 </ul>
               </div>
 
@@ -1105,7 +1126,7 @@ function AssessmentContent() {
                   value={sdqAnswers[q.id] || ''}
                   onChange={handleSdqChange}
                   scaleType="3"
-                  scaleLabels={['ไม่ตรง', 'ค่อนข้างตรง', 'ตรงมาก']}
+                  scaleLabels={['ไม่จริง', 'ค่อนข้างจริง', 'จริง']}
                 />
               ))}
             </>
@@ -1118,24 +1139,10 @@ function AssessmentContent() {
                 number="1" 
                 title="แบบประเมิน DASS-21 (Depression Anxiety Stress Scales)"
                 subtitle="คำชี้แจง: โปรดทำเครื่องหมาย ✓ ในช่องที่ตรงกับความรู้สึกของท่านในช่วง 1 สัปดาห์ที่ผ่านมา"
-                description="⏱️ คำถาม 21 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-3 (ไม่เลย=0, นิดหน่อย=1, ปานกลาง=2, มากมาก=3)"
+                description="⏱️ คำถาม 21 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-3 (ไม่ตรงกับฉันเลย=0, ตรงกับฉันบ้าง หรือเกิดขึ้นเป็นบางครั้ง=1, ตรงกับฉันหรือเกิดขึ้นบ่อย=2, ตรงกับฉันมาก หรือเกิดขึ้นบ่อยมากที่สุด=3)"
               />
 
-              <div style={{
-                backgroundColor: '#d1ecf1',
-                border: '1px solid #17a2b8',
-                borderRadius: '4px',
-                padding: '16px 20px',
-                marginBottom: '24px'
-              }}>
-                <strong>คำชี้แจง:</strong> แบบประเมินนี้ประกอบด้วย 3 ด้าน ได้แก่
-                <ul style={{ margin: '8px 0 0 20px', fontSize: '14px', color: '#6c757d' }}>
-                  <li>ภาวะซึมเศร้า (ข้อ 1-7)</li>
-                  <li>ภาวะวิตกกังวล (ข้อ 8-14)</li>
-                  <li>ภาวะความเครียด (ข้อ 15-21)</li>
-                </ul>
-              </div>
-
+             
               {DASS21_QUESTIONS.map((q) => (
                 <QuestionCard
                   key={q.id}
@@ -1144,7 +1151,7 @@ function AssessmentContent() {
                   value={dass21Answers[q.id] || ''}
                   onChange={handleDass21Change}
                   scaleType="4"
-                  scaleLabels={['ไม่เลย', 'นิดหน่อย', 'ปานกลาง', 'มากมาก']}
+                  scaleLabels={['ไม่ตรงกับฉันเลย', 'ตรงกับฉันบ้าง หรือเกิดขึ้นเป็นบางครั้ง', 'ตรงกับฉันหรือเกิดขึ้นบ่อย', 'ตรงกับฉันมาก หรือเกิดขึ้นบ่อยมากที่สุด']}
                 />
               ))}
             </>
