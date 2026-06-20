@@ -78,6 +78,9 @@ export default function StudentLearnPage() {
   const [loadingStudents, setLoadingStudents] = useState<{[key: string]: boolean}>({});
 
   const [planDisplayInfo, setPlanDisplayInfo] = useState<{[key: string]: PlanDisplayInfo}>({});
+  
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [loadingFilteredStudents, setLoadingFilteredStudents] = useState(false);
 
   const teacher_name = session?.user?.name || "ไม่พบชื่อผู้ใช้";
   const userRole = session?.user?.role || "";
@@ -135,7 +138,9 @@ export default function StudentLearnPage() {
         if (assignedRes.ok) {
           const assignedData = await assignedRes.json();
           if (assignedData.success) {
-            const students = assignedData.data.map((a: any) => {
+            const students = assignedData.data
+            .filter((a: any) => a.student_id != null)
+            .map((a: any) => {
               const s = a.student_id;
               return {
                 _id: s._id, id: s.id || "", prefix: s.prefix || "",
@@ -177,6 +182,24 @@ export default function StudentLearnPage() {
   }, [filteredPlans, assignedStudents]);
 
   useEffect(() => {
+    setLoadingFilteredStudents(true);
+    let filtered = assignedStudents;
+    
+    if (selectedLevel) {
+      filtered = filtered.filter(s => s.level === selectedLevel);
+    }
+    if (filterDepartment) {
+      filtered = filtered.filter(s => s.class_group === filterDepartment);
+    }
+    if (filterRoom) {
+      filtered = filtered.filter(s => s.class_number === filterRoom);
+    }
+    
+    setFilteredStudents(filtered);
+    setLoadingFilteredStudents(false);
+  }, [selectedLevel, filterDepartment, filterRoom, assignedStudents]);
+
+  useEffect(() => {
     const fetchPlans = async () => {
       setLoading(true);
       try {
@@ -210,8 +233,9 @@ export default function StudentLearnPage() {
             });
           }
           
-          if (filterDepartment || filterRoom) {
+          if (selectedLevel || filterDepartment || filterRoom) {
             filtered = filtered.filter((plan: HomeroomPlan) => {
+              if (selectedLevel && plan.level !== selectedLevel) return false;
               if (filterDepartment && plan.target_class_group !== filterDepartment) return false;
               if (filterRoom && !plan.target_class_numbers?.includes(filterRoom)) return false;
               return true;
@@ -229,7 +253,7 @@ export default function StudentLearnPage() {
     };
 
     if (!loadingAssigned) fetchPlans();
-  }, [selectedSemester, selectedYear, selectedStatus, searchKeyword, userRole, teacher_name, assignedStudents, loadingAssigned, filterDepartment, filterRoom]);
+  }, [selectedSemester, selectedYear, selectedStatus, searchKeyword, userRole, teacher_name, assignedStudents, loadingAssigned, filterDepartment, filterRoom, selectedLevel]);
 
   const fetchPlanStudents = async (plan: HomeroomPlan) => {
     if (planStudents[plan.id]) {
@@ -453,6 +477,86 @@ export default function StudentLearnPage() {
             </div>
           </div>
         </div>
+
+        {/* Filtered Students Section */}
+        {(selectedLevel || filterDepartment || filterRoom) && (
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="card rounded-0 border-0 shadow-sm">
+                <div className="card-header bg-info text-white rounded-0 py-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <h6 className="fw-bold m-0">
+                      <i className="bi bi-people-fill me-2"></i>
+                      รายชื่อนักเรียนที่กรอง ({filteredStudents.length} คน)
+                    </h6>
+                    <div>
+                      {selectedLevel && <span className="badge bg-light text-dark me-2">ระดับชั้น: {selectedLevel}</span>}
+                      {filterDepartment && <span className="badge bg-light text-dark me-2">สาขา: {filterDepartment}</span>}
+                      {filterRoom && <span className="badge bg-light text-dark">ห้อง: {filterRoom}</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="card-body p-0">
+                  {loadingFilteredStudents ? (
+                    <div className="text-center py-5">
+                      <div className="spinner-border text-info" role="status">
+                        <span className="visually-hidden">กำลังโหลด...</span>
+                      </div>
+                    </div>
+                  ) : filteredStudents.length > 0 ? (
+                    <div className="table-responsive">
+                      <table className="table table-bordered table-hover mb-0">
+                        <thead className="table-light">
+                          <tr>
+                            <th>#</th>
+                            <th>รหัสนักเรียน</th>
+                            <th>ชื่อ-นามสกุล</th>
+                            <th>ระดับชั้น</th>
+                            <th>สาขาเรียน</th>
+                            <th>ห้อง</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredStudents.map((student, idx) => (
+                            <tr key={student._id}>
+                              <td>{idx + 1}</td>
+                              <td className="fw-bold">{student.id}</td>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  {student.image ? (
+                                    <img 
+                                      src={student.image} 
+                                      alt={student.name}
+                                      className="rounded-circle me-2"
+                                      style={{width: '30px', height: '30px', objectFit: 'cover'}}
+                                    />
+                                  ) : (
+                                    <div className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style={{width: '30px', height: '30px'}}>
+                                      <i className="bi bi-person-fill small"></i>
+                                    </div>
+                                  )}
+                                  {student.name}
+                                </div>
+                              </td>
+                              <td>{student.level}</td>
+                              <td>{student.class_group}</td>
+                              <td>{student.class_number}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-5">
+                      <i className="bi bi-people fs-1 d-block mb-3 text-muted"></i>
+                      <h6 className="text-muted">ไม่พบนักเรียนตามเงื่อนไขที่เลือก</h6>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Table View */}
         {viewMode === 'table' && (

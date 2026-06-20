@@ -197,26 +197,7 @@ export default function PDCAProjectPlanPage() {
 
   return (
     <div className="min-vh-100 bg-light">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-2 border-warning">
-        <div className="container-fluid">
-          <a className="navbar-brand fw-bold text-uppercase" href="#">
-            <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-            <span className="text-warning">ระบบดูแลผู้เรียนรายบุคคล</span>
-          </a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul className="navbar-nav">
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/student">รายชื่อผู้เรียน</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3 active" href="/committees">คณะกรรมการ</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/student_learn">โฮมรูม</a></li>
-              <li className="nav-item"><a className="nav-link text-white px-3" href="/referrals">ส่งต่อ</a></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-
+      
       <div className="container-fluid py-4">
         <div className="row mb-4">
           <div className="col-12">

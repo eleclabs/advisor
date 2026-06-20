@@ -763,31 +763,31 @@ function AssessmentContent() {
         justifyContent: 'center',
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
       }}>
-        <div style={{ width: '100%', maxWidth: '600px' }}>
-          <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-            <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <Link href="/assessment/charts" style={{
+        <div style={{ width: '100%', maxWidth: '600px', textAlign: 'center' }}>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: 600,
+            color: '#212529',
+            margin: '0 0 12px 0'
+          }}>
+            แบบประเมินทางจิตวิทยา
+          </h1>
+          <p style={{
+            fontSize: '14px',
+            color: '#6c757d',
+            lineHeight: 1.6,
+            marginBottom: '32px'
+          }}>
+            กรุณาระบุประเภทแบบประเมินใน URL (เช่น ?type=sdq หรือ ?type=dass21)
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <Link
+              href="/assessment?type=sdq"
+              style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '8px 16px',
-                backgroundColor: '#17a2b8',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                fontSize: '14px',
-                fontWeight: 500,
-                transition: 'background-color 0.15s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#138496'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#17a2b8'}>
-                📊 ดูแผนภูมิสรุป
-              </Link>
-              <Link href="/assessment/summary" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
+                padding: '12px 24px',
                 backgroundColor: '#007bff',
                 color: 'white',
                 textDecoration: 'none',
@@ -797,179 +797,30 @@ function AssessmentContent() {
                 transition: 'background-color 0.15s ease'
               }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}>
-                📊 ดูสรุปการประเมินทั้งหมด
-              </Link>
-            </div>
-            <h1 style={{
-              fontSize: '28px',
-              fontWeight: 600,
-              color: '#212529',
-              margin: '0 0 12px 0'
-            }}>
-              แบบประเมินทางจิตวิทยา
-            </h1>
-            <p style={{
-              fontSize: '14px',
-              color: '#6c757d',
-              lineHeight: 1.6
-            }}>
-              กรุณาเลือกแบบประเมินที่ต้องการทำ
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gap: '20px' }}>
-            <div
-              onClick={() => setActiveForm('sdq')}
-              style={{
-                backgroundColor: 'white',
-                border: '2px solid #007bff',
-                borderRadius: '8px',
-                padding: '32px 24px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                textAlign: 'left'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e7f3ff';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'white';
-              }}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
             >
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📋</div>
-              <h3 style={{
-                fontSize: '20px',
-                fontWeight: 600,
-                color: '#212529',
-                margin: '0 0 8px 0'
-              }}>
-                SDQ (Strengths and Difficulties Questionnaire)
-              </h3>
-              <p style={{
-                fontSize: '14px',
-                color: '#6c757d',
-                margin: 0,
-                lineHeight: 1.6
-              }}>
-                แบบประเมินจุดแข็งและปัญหาพฤติกรรมสำหรับเด็กและวัยรุ่น (25 ข้อ)
-                <br />
-                ⏱️ ใช้เวลาประมาณ 5-10 นาที
-              </p>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveForm('sdq');
-                    router.push('/assessment?type=sdq');
-                  }}
-                  style={{
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    fontWeight: 500
-                  }}
-                >
-                  ดูแบบประเมิน
-                </button>
-                <Link
-                  href="/assessment/sdq/results"
-                  style={{
-                    backgroundColor: 'transparent',
-                    color: '#007bff',
-                    border: '1px solid #007bff',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    fontWeight: 500
-                  }}
-                >
-                  ดูผลการประเมิน
-                </Link>
-              </div>
-            </div>
-
-            <div
-              onClick={() => setActiveForm('dass21')}
+              📋 SDQ
+            </Link>
+            <Link
+              href="/assessment?type=dass21"
               style={{
-                backgroundColor: 'white',
-                border: '2px solid #28a745',
-                borderRadius: '8px',
-                padding: '32px 24px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-                textAlign: 'left'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e8f5e9';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'white';
-              }}
-            >
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🧠</div>
-              <h3 style={{
-                fontSize: '20px',
-                fontWeight: 600,
-                color: '#212529',
-                margin: '0 0 8px 0'
-              }}>
-                DASS-21 (Depression Anxiety Stress Scales)
-              </h3>
-              <p style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '12px 24px',
+                backgroundColor: '#28a745',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
                 fontSize: '14px',
-                color: '#6c757d',
-                margin: 0,
-                lineHeight: 1.6
-              }}>
-                แบบประเมินภาวะซึมเศร้า วิตกกังวล และความเครียด (21 ข้อ)
-                <br />
-                ⏱️ ใช้เวลาประมาณ 5-10 นาที
-              </p>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveForm('dass21');
-                    router.push('/assessment?type=dass21');
-                  }}
-                  style={{
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    fontWeight: 500
-                  }}
-                >
-                  ดูแบบประเมิน
-                </button>
-                <Link
-                  href="/assessment/dass21/results"
-                  style={{
-                    backgroundColor: 'transparent',
-                    color: '#007bff',
-                    border: '1px solid #007bff',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    fontWeight: 500
-                  }}
-                >
-                  ดูผลการประเมิน
-                </Link>
-              </div>
-            </div>
+                fontWeight: 500,
+                transition: 'background-color 0.15s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#218838'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#28a745'}
+            >
+              🧠 DASS-21
+            </Link>
           </div>
         </div>
       </div>
@@ -989,8 +840,8 @@ function AssessmentContent() {
         
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
-          <button
-            onClick={() => setActiveForm(null)}
+          <Link
+            href="/forms"
             style={{
               backgroundColor: 'transparent',
               border: 'none',
@@ -998,11 +849,12 @@ function AssessmentContent() {
               fontSize: '14px',
               cursor: 'pointer',
               marginBottom: '16px',
-              padding: '0'
+              padding: '0',
+              textDecoration: 'none'
             }}
           >
             ← กลับไปเลือกแบบประเมิน
-          </button>
+          </Link>
           <h1 style={{
             fontSize: '28px',
             fontWeight: 600,

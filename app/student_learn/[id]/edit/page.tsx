@@ -137,16 +137,18 @@ export default function EditHomeroomPlanPage() {
           if (assignedRes.ok) {
             const assignedData = await assignedRes.json();
             if (assignedData.success) {
-              const students = assignedData.data.map((a: any) => {
-                const student = a.student_id;
-                return {
-                  _id: student._id,
-                  id: student.id || "",
-                  prefix: student.prefix || "",
-                  first_name: student.first_name || "",
-                  last_name: student.last_name || "",
-                  name: `${student.prefix || ''}${student.first_name || ''} ${student.last_name || ''}`.trim(),
-                  level: student.level || "",
+              const students = assignedData.data
+                .filter((a: any) => a.student_id != null)
+                .map((a: any) => {
+                  const student = a.student_id;
+                  return {
+                    _id: student._id,
+                    id: student.id || "",
+                    prefix: student.prefix || "",
+                    first_name: student.first_name || "",
+                    last_name: student.last_name || "",
+                    name: `${student.prefix || ''}${student.first_name || ''} ${student.last_name || ''}`.trim(),
+                    level: student.level || "",
                   class_group: student.class_group || "",
                   class_number: student.class_number || "",
                   status: student.status || "ปกติ",

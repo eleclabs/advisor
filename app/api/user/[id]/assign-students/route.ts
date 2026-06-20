@@ -179,6 +179,13 @@ export async function GET(
     }
 
     console.log(`📊 พบ assigned students: ${user.assigned_students?.length || 0} คน`);
+    
+    // Debug: แสดงข้อมูลนักเรียนตัวอย่าง
+    if (user.assigned_students && user.assigned_students.length > 0) {
+      console.log("👥 Sample assigned student data:", JSON.stringify(user.assigned_students[0], null, 2));
+      console.log("🏢 Available class_groups:", [...new Set(user.assigned_students.map((a: any) => a.student_id?.class_group).filter(Boolean))]);
+      console.log("🎓 Available levels:", [...new Set(user.assigned_students.map((a: any) => a.student_id?.level).filter(Boolean))]);
+    }
 
     return NextResponse.json({
       success: true,

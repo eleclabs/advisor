@@ -69,7 +69,7 @@ export default function Sidebar() {
               key={menu.href}  // ✅ href ไม่ซ้ำกันแล้ว
               href={menu.href}
               className={`d-block py-2 px-3 mb-1 text-decoration-none rounded-0 ${
-                pathname === menu.href
+                pathname === menu.href || (pathname.startsWith(menu.href + "/") && menu.href !== "/user")
                   ? "bg-warning text-dark"
                   : "text-white hover-bg-warning hover-text-dark"
               }`}
@@ -92,7 +92,7 @@ export default function Sidebar() {
               key={link.id}  // ✅ ใช้ id แทน href เพื่อป้องกัน key ซ้ำ
               href={link.href}
               className={`d-block py-2 px-3 mb-1 text-decoration-none rounded-0 ${
-                pathname === link.href
+                pathname === link.href || (pathname.startsWith(link.href + "/") && link.href !== "/student")
                   ? "bg-warning text-dark"
                   : "text-white hover-bg-warning hover-text-dark"
               }`}

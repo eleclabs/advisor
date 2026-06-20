@@ -169,7 +169,7 @@ export default function EditReferralPage() {
                             .slice(0, 10)
                             .map((s: any) => (
                               <div
-                                key={s.id}
+                                key={s._id || s.id}
                                 className="p-2 border-bottom cursor-pointer hover-bg-light"
                                 style={{cursor: 'pointer'}}
                                 onClick={() => handleStudentSelect(s)}

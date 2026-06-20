@@ -25,6 +25,17 @@ interface Student {
   class_group: string;
   class_number: string;
   advisor_name?: string;
+  assigned_teachers?: Teacher[];
+}
+
+interface Teacher {
+  _id: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  department?: string;
 }
 
 interface AssignmentResult {
@@ -37,6 +48,7 @@ interface AssignmentResult {
 export default function StudentAssignmentPage() {
   const router = useRouter();
   const [teachers, setTeachers] = useState<User[]>([]);
+  const [teacherList, setTeacherList] = useState<Teacher[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedTeachers, setSelectedTeachers] = useState<Set<string>>(new Set());
   const [selectedLevel, setSelectedLevel] = useState<string>('');
@@ -53,8 +65,60 @@ export default function StudentAssignmentPage() {
   const [groupBy, setGroupBy] = useState<'none' | 'level' | 'major' | 'class'>('none'); // เพิ่ม state สำหรับการจัดกลุ่ม
 
   useEffect(() => {
-    fetchData();
+    if (teacherList.length > 0) {
+      fetchData();
+    }
+  }, [teacherList]);
+
+  // ดึงข้อมูลครูทั้งหมด
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const response = await fetch('/api/user?role=TEACHER');
+        const data = await response.json();
+        if (data.success) {
+          setTeacherList(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+      }
+    };
+    
+    fetchTeachers();
   }, []);
+
+  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับนักเรียนแต่ละคน
+  const fetchAssignedTeachersForStudent = async (studentId: string): Promise<Teacher[]> => {
+    try {
+      const assignedTeachers: Teacher[] = [];
+      
+      for (const teacher of teacherList) {
+        try {
+          const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
+          if (assignedRes.ok) {
+            const assignedData = await assignedRes.json();
+            if (assignedData.success && assignedData.data) {
+              const isAssigned = assignedData.data.some((assignment: any) => {
+                const studentIdFromAssignment = assignment.student_id?._id || assignment.student_id;
+                return studentIdFromAssignment === studentId;
+              });
+              
+              if (isAssigned) {
+                assignedTeachers.push(teacher);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error checking assignments for teacher ${teacher._id}:`, error);
+        }
+      }
+      
+      return assignedTeachers;
+    } catch (error) {
+      console.error("Error fetching assigned teachers:", error);
+      return [];
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -82,7 +146,13 @@ export default function StudentAssignmentPage() {
       }
       
       if (studentsData.success) {
-        setStudents(studentsData.data);
+        const studentsWithTeachers = await Promise.all(
+          studentsData.data.map(async (student: any) => {
+            const assignedTeachers = await fetchAssignedTeachersForStudent(student._id);
+            return { ...student, assigned_teachers: assignedTeachers };
+          })
+        );
+        setStudents(studentsWithTeachers);
       }
       
     } catch (error) {
@@ -484,10 +554,20 @@ export default function StudentAssignmentPage() {
                                 )}
                               </div>
                             </div>
-                            {student.advisor_name && (
-                              <span className="badge bg-warning text-dark small">
-                                ที่ปรึกษา: {student.advisor_name}
-                              </span>
+                            {student.assigned_teachers && student.assigned_teachers.length > 0 ? (
+                              <div className="mt-1">
+                                {student.assigned_teachers.map((teacher: Teacher, index: number) => (
+                                  <span key={teacher._id} className="badge bg-warning text-dark small me-1">
+                                    ที่ปรึกษา: {teacher.prefix} {teacher.first_name} {teacher.last_name}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              student.advisor_name && (
+                                <span className="badge bg-warning text-dark small">
+                                  ที่ปรึกษา: {student.advisor_name}
+                                </span>
+                              )
                             )}
                           </div>
                         </label>
@@ -523,10 +603,20 @@ export default function StudentAssignmentPage() {
                                     </div>
                                   </div>
                                 </div>
-                                {student.advisor_name && (
-                                  <span className="badge bg-warning text-dark small">
-                                    ที่ปรึกษา: {student.advisor_name}
-                                  </span>
+                                {student.assigned_teachers && student.assigned_teachers.length > 0 ? (
+                                  <div className="mt-1">
+                                    {student.assigned_teachers.map((teacher: Teacher, index: number) => (
+                                      <span key={teacher._id} className="badge bg-warning text-dark small me-1">
+                                        ที่ปรึกษา: {teacher.prefix} {teacher.first_name} {teacher.last_name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  student.advisor_name && (
+                                    <span className="badge bg-warning text-dark small">
+                                      ที่ปรึกษา: {student.advisor_name}
+                                    </span>
+                                  )
                                 )}
                               </div>
                             </label>

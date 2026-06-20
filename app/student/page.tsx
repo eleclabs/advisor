@@ -20,6 +20,17 @@ interface Student {
   class_number: string;
   phone_number: string;
   image?: string;
+  assigned_teachers?: Teacher[];
+}
+
+interface Teacher {
+  _id: string;
+  prefix: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  department?: string;
 }
 
 interface Major {
@@ -47,6 +58,7 @@ function StudentListPage() {
   const [importData, setImportData] = useState<any[]>([]);
   const [importLoading, setImportLoading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [columnMapping, setColumnMapping] = useState({
     studentId: '',
     firstName: '',
@@ -89,10 +101,66 @@ function StudentListPage() {
     fetchMajors();
   }, []);
 
+  // ดึงข้อมูลครูทั้งหมด
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const response = await fetch('/api/user?role=TEACHER');
+        const data = await response.json();
+        if (data.success) {
+          setTeachers(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+      }
+    };
+    
+    fetchTeachers();
+  }, []);
+
+  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับนักเรียนแต่ละคน
+  const fetchAssignedTeachersForStudent = async (studentId: string): Promise<Teacher[]> => {
+    try {
+      const assignedTeachers: Teacher[] = [];
+      
+      for (const teacher of teachers) {
+        try {
+          const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
+          if (assignedRes.ok) {
+            const assignedData = await assignedRes.json();
+            if (assignedData.success && assignedData.data) {
+              const isAssigned = assignedData.data.some((assignment: any) => {
+                const studentIdFromAssignment = assignment.student_id?._id || assignment.student_id;
+                return studentIdFromAssignment === studentId;
+              });
+              
+              if (isAssigned) {
+                assignedTeachers.push(teacher);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error checking assignments for teacher ${teacher._id}:`, error);
+        }
+      }
+      
+      return assignedTeachers;
+    } catch (error) {
+      console.error("Error fetching assigned teachers:", error);
+      return [];
+    }
+  };
+
   // Fetch students function for reuse
   const fetchStudents = async () => {
     try {
       setLoading(true);
+      
+      // Wait for teachers to load first
+      if (teachers.length === 0) {
+        console.log("Waiting for teachers to load...");
+        return;
+      }
       
       // ✅ ADMIN: เห็นผูํเรียนทั้งหมด
       if (userRole === "ADMIN") {
@@ -119,11 +187,20 @@ function StudentListPage() {
           class_group: s.class_group || "",
           class_number: s.class_number || "",
           phone_number: s.phone_number || "",
-          image: s.image || ""
+          image: s.image || "",
+          assigned_teachers: []
         }));
         
-        setStudent(formattedData);
-        setFilteredStudent(formattedData);
+        // Fetch assigned teachers for each student
+        const studentsWithTeachers = await Promise.all(
+          formattedData.map(async (student: any) => {
+            const assignedTeachers = await fetchAssignedTeachersForStudent(student._id);
+            return { ...student, assigned_teachers: assignedTeachers };
+          })
+        );
+        
+        setStudent(studentsWithTeachers);
+        setFilteredStudent(studentsWithTeachers);
       }
       
       // TEACHER: เห็นเฉพาะ assigned students
@@ -148,12 +225,21 @@ function StudentListPage() {
               class_group: s.class_group || "",
               class_number: s.class_number || "",
               phone_number: s.phone_number || "",
-              image: s.image || ""
+              image: s.image || "",
+              assigned_teachers: []
             };
           });
           
-          setStudent(formattedData);
-          setFilteredStudent(formattedData);
+          // Fetch assigned teachers for each student
+          const studentsWithTeachers = await Promise.all(
+            formattedData.map(async (student: any) => {
+              const assignedTeachers = await fetchAssignedTeachersForStudent(student._id);
+              return { ...student, assigned_teachers: assignedTeachers };
+            })
+          );
+          
+          setStudent(studentsWithTeachers);
+          setFilteredStudent(studentsWithTeachers);
         } else {
           setStudent([]);
           setFilteredStudent([]);
@@ -185,11 +271,20 @@ function StudentListPage() {
           class_group: s.class_group || "",
           class_number: s.class_number || "",
           phone_number: s.phone_number || "",
-          image: s.image || ""
+          image: s.image || "",
+          assigned_teachers: []
         }));
         
-        setStudent(formattedData);
-        setFilteredStudent(formattedData);
+        // Fetch assigned teachers for each student
+        const studentsWithTeachers = await Promise.all(
+          formattedData.map(async (student: any) => {
+            const assignedTeachers = await fetchAssignedTeachersForStudent(student._id);
+            return { ...student, assigned_teachers: assignedTeachers };
+          })
+        );
+        
+        setStudent(studentsWithTeachers);
+        setFilteredStudent(studentsWithTeachers);
       }
       
     } catch (error) {
@@ -200,10 +295,10 @@ function StudentListPage() {
   };
 
   useEffect(() => {
-    if (session?.user?.id) {
+    if (session?.user?.id && teachers.length > 0) {
       fetchStudents();
     }
-  }, [session, userRole]);
+  }, [session, userRole, teachers]);
 
   // กรองข้อมูล
   useEffect(() => {
@@ -737,7 +832,20 @@ function StudentListPage() {
                       <td>{student.level}</td>
                       <td>{student.class_group || '-'}</td>
                       <td>{student.class_number || '-'}</td>
-                      <td>{student.advisor_name || '-'}</td>
+                      <td>
+                        {student.assigned_teachers && student.assigned_teachers.length > 0 ? (
+                          <div>
+                            {student.assigned_teachers.map((teacher: Teacher, index: number) => (
+                              <div key={teacher._id} className="mb-1">
+                                {teacher.prefix} {teacher.first_name} {teacher.last_name}
+                                {teacher.department && <small className="text-muted"> ({teacher.department})</small>}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </td>
                       <td className="text-center">
                         <div className="btn-group" role="group">
                           <button 

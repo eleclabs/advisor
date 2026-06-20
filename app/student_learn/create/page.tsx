@@ -109,7 +109,9 @@ export default function CreateHomeroomPlanPage() {
           if (assignedRes.ok) {
             const assignedData = await assignedRes.json();
             if (assignedData.success) {
-              const students = assignedData.data.map((a: any) => {
+              const students = assignedData.data
+              .filter((a: any) => a.student_id != null)
+              .map((a: any) => {
                 const student = a.student_id;
                 return {
                   _id: student._id,
@@ -149,16 +151,28 @@ export default function CreateHomeroomPlanPage() {
       return;
     }
 
+    console.log("🔍 Create Page Filter Debug:", { 
+      level: formData.level, 
+      target_class_group: formData.target_class_group, 
+      target_class_numbers: formData.target_class_numbers 
+    });
+    console.log("👥 Assigned Students Count:", assignedStudents.length);
+    console.log("👥 Sample Assigned Student:", assignedStudents[0]);
+
     let filtered = assignedStudents.filter(s => s.level === formData.level);
+    console.log(`🎓 After level filter (${formData.level}):`, filtered.length);
 
     if (formData.target_class_group) {
       filtered = filtered.filter(s => s.class_group === formData.target_class_group);
+      console.log(`🏢 After department filter (${formData.target_class_group}):`, filtered.length);
     }
 
     if (formData.target_class_numbers.length > 0) {
       filtered = filtered.filter(s => formData.target_class_numbers.includes(s.class_number));
+      console.log(`🚪 After room filter:`, filtered.length);
     }
 
+    console.log("✅ Final filtered students:", filtered.length);
     setFilteredStudents(filtered);
   }, [formData.level, formData.target_class_group, formData.target_class_numbers, assignedStudents]);
 
