@@ -243,9 +243,10 @@ export async function PUT(
       updateData.behavioral_contract = body.methods.includes("กิจกรรมปรับเปลี่ยนพฤติกรรม");
       updateData.home_visit = body.methods.includes("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง");
       updateData.referral = body.methods.includes("การส่งต่อ");
-      updateData.custom_methods = body.methods.filter((m: string) => 
+      updateData.custom_methods = body.methods.filter((m: string) =>
         !["การให้คำปรึกษาเบื้องต้น", "กิจกรรมปรับเปลี่ยนพฤติกรรม", "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง", "การส่งต่อ"].includes(m)
       );
+      updateData.methods = body.methods; // ✅ บันทึก methods array โดยตรง
     }
     
     // ✅ อัปเดตกิจกรรมที่เลือก

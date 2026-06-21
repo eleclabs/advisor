@@ -14,6 +14,7 @@ const ProblemSchema = new mongoose.Schema({
   home_visit: { type: Boolean, default: false }, // การเยี่ยมบ้าน
   referral: { type: Boolean, default: false }, // การส่งต่อ
   custom_methods: [{ type: String }], // ✅ เพิ่ม: วิธีการแก้ไขที่กำหนดเอง
+  methods: [{ type: String }], // ✅ เพิ่ม: วิธีการแก้ไขทั้งหมด (array)
   duration: { type: String }, // ระยะเวลาดำเนินการ
   responsible: { type: String }, // ผู้รับผิดชอบ
   isp_status: { type: String, enum: ["กำลังดำเนินการ", "สำเร็จ", "ปรับแผน"], default: "กำลังดำเนินการ" }, // สถานะแผน

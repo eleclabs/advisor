@@ -188,6 +188,7 @@ export async function POST(request: NextRequest) {
       home_visit: methodsData.home_visit,
       referral: methodsData.referral,
       custom_methods: methodsData.custom_methods,
+      methods: methods || [], // ✅ บันทึก methods array โดยตรง
       duration,
       responsible,
       isp_status: "กำลังดำเนินการ",

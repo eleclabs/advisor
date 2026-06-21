@@ -295,32 +295,43 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                   <h6 className="text-muted mb-2">วิธีการแก้ไขที่เลือก</h6>
                   <div className="row">
                     <div className="col-12">
-                      {problem.counseling && (
-                        <div className="mb-2 p-2 bg-light rounded">
-                          <span className="badge bg-success me-2">✓</span>
-                          การให้คำปรึกษาเบื้องต้น
-                        </div>
-                      )}
-                      {problem.behavioral_contract && (
-                        <div className="mb-2 p-2 bg-light rounded">
-                          <span className="badge bg-success me-2">✓</span>
-                          กิจกรรมปรับเปลี่ยนพฤติกรรม
-                        </div>
-                      )}
-                      {problem.home_visit && (
-                        <div className="mb-2 p-2 bg-light rounded">
-                          <span className="badge bg-success me-2">✓</span>
-                          การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง
-                        </div>
-                      )}
-                      {problem.referral && (
-                        <div className="mb-2 p-2 bg-light rounded">
-                          <span className="badge bg-success me-2">✓</span>
-                          การส่งต่อ
-                        </div>
-                      )}
-                      {!problem.counseling && !problem.behavioral_contract && !problem.home_visit && !problem.referral && (
-                        <p className="text-muted">ไม่มีวิธีการแก้ไข</p>
+                      {problem.methods && Array.isArray(problem.methods) && problem.methods.length > 0 ? (
+                        problem.methods.map((method: string, idx: number) => (
+                          <div key={idx} className="mb-2 p-2 bg-light rounded">
+                            <span className="badge bg-success me-2">✓</span>
+                            {method}
+                          </div>
+                        ))
+                      ) : (
+                        <>
+                          {problem.counseling && (
+                            <div className="mb-2 p-2 bg-light rounded">
+                              <span className="badge bg-success me-2">✓</span>
+                              การให้คำปรึกษาเบื้องต้น
+                            </div>
+                          )}
+                          {problem.behavioral_contract && (
+                            <div className="mb-2 p-2 bg-light rounded">
+                              <span className="badge bg-success me-2">✓</span>
+                              กิจกรรมปรับเปลี่ยนพฤติกรรม
+                            </div>
+                          )}
+                          {problem.home_visit && (
+                            <div className="mb-2 p-2 bg-light rounded">
+                              <span className="badge bg-success me-2">✓</span>
+                              การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง
+                            </div>
+                          )}
+                          {problem.referral && (
+                            <div className="mb-2 p-2 bg-light rounded">
+                              <span className="badge bg-success me-2">✓</span>
+                              การส่งต่อ
+                            </div>
+                          )}
+                          {!problem.counseling && !problem.behavioral_contract && !problem.home_visit && !problem.referral && (
+                            <p className="text-muted">ไม่มีวิธีการแก้ไข</p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
