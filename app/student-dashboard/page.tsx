@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -60,7 +60,7 @@ export default function StudentDashboard() {
           <div className="border-bottom border-3 border-warning pb-2 d-flex justify-content-between align-items-center">
             <h2 className="text-uppercase fw-bold m-0">
               <i className="bi bi-speedometer2 me-2 text-warning"></i>
-              หน้าแรกสำหรับนักเรียน
+              หน้าแรกสำหรับผู้เรียน
             </h2>
             <button 
               className="btn btn-outline-danger rounded-0 text-uppercase fw-semibold"

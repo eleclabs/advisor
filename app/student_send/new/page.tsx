@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -18,7 +18,12 @@ export default function NewReferralPage() {
     reason_category: "",
     reason_detail: "",
     actions_taken: "",
+    // ✅ เพิ่มฟิลด์สำหรับกรณีเลือก "อื่นๆ"
+    target_other: "",
+    reason_category_other: "",
   });
+  const [showTargetOther, setShowTargetOther] = useState(false);
+  const [showReasonOther, setShowReasonOther] = useState(false);
 
   useEffect(() => {
     const bootstrapLink = document.createElement("link");
@@ -34,18 +39,17 @@ export default function NewReferralPage() {
     loadStudents();
   }, []);
 
-  // ใน loadStudents function
-const loadStudents = async () => {
-  try {
-    const response = await fetch('/api/student?assigned_only=true'); // เพิ่ม query param
-    const data = await response.json();
-    if (data.success) {
-      setStudents(data.data);
+  const loadStudents = async () => {
+    try {
+      const response = await fetch('/api/student?assigned_only=true');
+      const data = await response.json();
+      if (data.success) {
+        setStudents(data.data);
+      }
+    } catch (error) {
+      console.error('Error loading students:', error);
     }
-  } catch (error) {
-    console.error('Error loading students:', error);
-  }
-};
+  };
 
   const handleStudentSelect = (student: any) => {
     setForm({
@@ -61,26 +65,44 @@ const loadStudents = async () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ✅ ตรวจสอบว่าถ้าเลือก "อื่นๆ" ต้องกรอกข้อความ
+    if (form.target === "อื่นๆ" && !form.target_other.trim()) {
+      alert("กรุณาระบุหน่วยงานที่ส่งต่อ");
+      return;
+    }
+    if (form.reason_category === "อื่นๆ" && !form.reason_category_other.trim()) {
+      alert("กรุณาระบุสาเหตุการส่งต่อ");
+      return;
+    }
+    
     try {
       const response = await fetch('/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          // ✅ ถ้าเลือก "อื่นๆ" ให้ใช้ค่าที่กรอก
+          target: form.target === "อื่นๆ" ? form.target_other : form.target,
+          reason_category: form.reason_category === "อื่นๆ" ? form.reason_category_other : form.reason_category,
+        }),
       });
       
       if (response.ok) {
         const data = await response.json();
         router.push(`/student_send/${data.data._id}`);
+      } else {
+        const error = await response.json();
+        alert(error.error || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
       console.error('Error:', error);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
     }
   };
 
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      
-
       <div className="flex-grow-1">
         <div className="container-fluid py-4">
           <div className="row mb-4">
@@ -209,30 +231,42 @@ const loadStudents = async () => {
                       </div>
                       <div className="col-md-6 mb-3">
                         <label className="form-label text-uppercase fw-semibold small">ส่งต่อ</label>
-                        {form.type === "internal" ? (
-                          <select 
-                            className="form-select rounded-0"
-                            value={form.target}
-                            onChange={(e) => setForm({...form, target: e.target.value})}
-                            required
-                          >
-                            <option value="">เลือกหน่วยงานภายใน</option>
-                            <option value="ฝ่ายแนะแนว">ฝ่ายแนะแนว</option>
-                            <option value="ฝ่ายปกครอง">ฝ่ายปกครอง</option>
-                            <option value="พยาบาล">พยาบาล</option>
-                          </select>
-                        ) : (
-                          <select 
-                            className="form-select rounded-0"
-                            value={form.target}
-                            onChange={(e) => setForm({...form, target: e.target.value})}
-                            required
-                          >
-                            <option value="">เลือกหน่วยงานภายนอก</option>
-                            <option value="โรงพยาบาล">โรงพยาบาล</option>
-
-                            <option value="พัฒนาสังคมฯ">พัฒนาสังคมและความมั่นคงของมนุษย์</option>
-                          </select>
+                        <select 
+                          className="form-select rounded-0"
+                          value={form.target}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setForm({...form, target: value});
+                            setShowTargetOther(value === "อื่นๆ");
+                          }}
+                          required
+                        >
+                          <option value="">เลือกหน่วยงาน</option>
+                          {form.type === "internal" ? (
+                            <>
+                              <option value="ฝ่ายแนะแนว">ฝ่ายแนะแนว</option>
+                              <option value="ฝ่ายปกครอง">ฝ่ายปกครอง</option>
+                              <option value="พยาบาล">พยาบาล</option>
+                              <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="โรงพยาบาล">โรงพยาบาล</option>
+                              <option value="พัฒนาสังคมฯ">พัฒนาสังคมและความมั่นคงของมนุษย์</option>
+                              <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                            </>
+                          )}
+                        </select>
+                        {showTargetOther && (
+                          <div className="mt-2">
+                            <input 
+                              type="text" 
+                              className="form-control rounded-0"
+                              placeholder="ระบุหน่วยงานที่ส่งต่อ..."
+                              value={form.target_other}
+                              onChange={(e) => setForm({...form, target_other: e.target.value})}
+                            />
+                          </div>
                         )}
                       </div>
                       <div className="col-12 mb-3">
@@ -240,7 +274,11 @@ const loadStudents = async () => {
                         <select 
                           className="form-select rounded-0 mb-2"
                           value={form.reason_category}
-                          onChange={(e) => setForm({...form, reason_category: e.target.value})}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setForm({...form, reason_category: value});
+                            setShowReasonOther(value === "อื่นๆ");
+                          }}
                           required
                         >
                           <option value="">เลือกสาเหตุ</option>
@@ -248,12 +286,23 @@ const loadStudents = async () => {
                           <option value="ด้านพฤติกรรม/ระเบียบวินัย">ด้านพฤติกรรม/ระเบียบวินัย</option>
                           <option value="ด้านอารมณ์/จิตใจ">ด้านอารมณ์/จิตใจ</option>
                           <option value="ด้านครอบครัว/เศรษฐกิจ">ด้านครอบครัว/เศรษฐกิจ</option>
-                          <option value="อื่นๆ">อื่นๆ</option>
+                          <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
                         </select>
+                        {showReasonOther && (
+                          <div className="mt-2 mb-2">
+                            <input 
+                              type="text" 
+                              className="form-control rounded-0"
+                              placeholder="ระบุสาเหตุการส่งต่อ..."
+                              value={form.reason_category_other}
+                              onChange={(e) => setForm({...form, reason_category_other: e.target.value})}
+                            />
+                          </div>
+                        )}
                         <textarea 
                           className="form-control rounded-0" 
                           rows={3}
-                          placeholder="ปัญหาที่พบ"
+                          placeholder="รายละเอียดปัญหา"
                           value={form.reason_detail}
                           onChange={(e) => setForm({...form, reason_detail: e.target.value})}
                           required
@@ -292,8 +341,6 @@ const loadStudents = async () => {
           </div>
         </div>
       </div>
-
-    
     </div>
   );
 }

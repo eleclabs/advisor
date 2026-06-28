@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 
@@ -103,7 +103,7 @@ const getRoleLabel = (role: string) => {
     'TEACHER': 'อาจารย์',
     'EXECUTIVE': 'ผู้บริหาร',
     'COMMITTEE': 'คณะกรรมการ',
-    'STUDENT': 'นักเรียน'
+    'STUDENT': 'ผู้เรียน'
   };
   return roleMap[role] || role || 'ไม่ระบุ';
 };

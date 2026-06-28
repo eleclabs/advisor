@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
@@ -115,9 +115,9 @@ export default function AccessPage() {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      'นักเรียนปกติ': 'success',
-      'นักเรียนเสี่ยง': 'warning',
-      'นักเรียนพิเศษ': 'info'
+      'ผู้เรียนปกติ': 'success',
+      'ผู้เรียนเสี่ยง': 'warning',
+      'ผู้เรียนพิเศษ': 'info'
     };
     return colors[status as keyof typeof colors] || 'secondary';
   };
@@ -147,7 +147,7 @@ export default function AccessPage() {
               โปรดตรวจสอบว่า:
               <ul className="mb-0 mt-1">
                 <li>ฐานข้อมูล MongoDB ทำงานปกติ</li>
-                <li>มีข้อมูลนักเรียนในฐานข้อมูล</li>
+                <li>มีข้อมูลผู้เรียนในฐานข้อมูล</li>
                 <li>เซิร์ฟเวอร์ทำงานบนพอร์ตที่ถูกต้อง</li>
               </ul>
             </small>
@@ -169,7 +169,7 @@ export default function AccessPage() {
             <div className="border-bottom border-3 border-warning pb-2">
               <h2 className="text-uppercase fw-bold m-0">
                 <i className="bi bi-door-open me-2 text-warning"></i>
-                ข้อมูลการเข้าถึงนักเรียน
+                ข้อมูลการเข้าถึงผู้เรียน
               </h2>
             </div>
           </div>
@@ -217,7 +217,7 @@ export default function AccessPage() {
                   disabled={!selectedClassNumber}
                 >
                   <i className="bi bi-person-badge me-2"></i>
-                  Tab 4: รหัสนักเรียน
+                  Tab 4: รหัส
                   {selectedClassNumber && <span className="badge bg-success ms-2">{selectedClassNumber}</span>}
                 </button>
               </li>
@@ -332,7 +332,7 @@ export default function AccessPage() {
                   <div>
                     <h4 className="mb-3">
                       <i className="bi bi-person-badge me-2 text-success"></i>
-                      รหัสนักเรียนในห้อง {selectedClassNumber} สาขาวิชา {selectedClassGroup} ระดับชั้น {selectedLevel}
+                      รหัสในห้อง {selectedClassNumber} สาขาวิชา {selectedClassGroup} ระดับชั้น {selectedLevel}
                     </h4>
                     <div className="row">
                       {getStudentsForSelection().map((student) => (
@@ -370,7 +370,7 @@ export default function AccessPage() {
                       {getStudentsForSelection().length === 0 && (
                         <div className="col-12 text-center py-5">
                           <i className="bi bi-inbox display-1 text-muted"></i>
-                          <h4 className="mt-3">ไม่พบข้อมูลนักเรียนในห้อง {selectedClassNumber}</h4>
+                          <h4 className="mt-3">ไม่พบข้อมูลผู้เรียนในห้อง {selectedClassNumber}</h4>
                         </div>
                       )}
                     </div>

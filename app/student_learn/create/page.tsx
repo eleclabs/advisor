@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -538,7 +538,7 @@ export default function CreateHomeroomPlanPage() {
             </div>
           </div>
 
-          {/* แถวที่ 3: รายชื่อนักเรียน */}
+          {/* แถวที่ 3: รายชื่อผู้เรียน */}
           {showStudentList && formData.level && (
             <div className="row mb-4">
               <div className="col-12">
@@ -569,7 +569,7 @@ export default function CreateHomeroomPlanPage() {
                             <th>รหัส</th>
                             <th>ชื่อ-นามสกุล</th>
                             <th>ระดับชั้น</th>
-                            <th>สาขาเรียน</th>
+                            <th>สาขา</th>
                             <th>ห้อง</th>
                           </tr>
                         </thead>

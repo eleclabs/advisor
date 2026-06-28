@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -37,7 +37,11 @@ export default function EditReferralPage() {
     reason_detail: "",
     actions_taken: "",
     status: "อยู่ระหว่างดำเนินการ" as "อยู่ระหว่างดำเนินการ" | "สิ้นสุดการช่วยเหลือ",
+    target_other: "",
+    reason_category_other: "",
   });
+  const [showTargetOther, setShowTargetOther] = useState(false);
+  const [showReasonOther, setShowReasonOther] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -82,14 +86,72 @@ export default function EditReferralPage() {
   const loadReferral = async () => {
     try {
       setLoading(true);
+      console.log("🔍 Loading referral with ID:", params.id);
+      
       const response = await fetch(`/api/send/${params.id}`);
       const data = await response.json();
-      if (data.success) {
-        setForm(data.data.referral);
-        setSearchTerm(data.data.referral.student_name);
+      
+      console.log("📥 API Response:", data);
+      
+      if (data.success && data.data) {
+        // ✅ ตรวจสอบว่า referral อยู่ใน data.data.referral หรือ data.data โดยตรง
+        let referral = data.data.referral || data.data;
+        
+        console.log("📋 Referral data:", referral);
+        
+        // ✅ กำหนดค่าที่ถูกต้องสำหรับ dropdown
+        const internalTargets = ["ฝ่ายแนะแนว", "ฝ่ายปกครอง", "พยาบาล"];
+        const externalTargets = ["โรงพยาบาล", "พัฒนาสังคมฯ"];
+        const allTargets = [...internalTargets, ...externalTargets];
+        const reasonCategories = [
+          "ด้านการเรียน/สติปัญญา", 
+          "ด้านพฤติกรรม/ระเบียบวินัย", 
+          "ด้านอารมณ์/จิตใจ", 
+          "ด้านครอบครัว/เศรษฐกิจ"
+        ];
+        
+        // ✅ ตรวจสอบว่า target อยู่ในรายการหรือไม่
+        const isTargetOther = referral.target && !allTargets.includes(referral.target) && referral.target !== "";
+        const isReasonOther = referral.reason_category && !reasonCategories.includes(referral.reason_category) && referral.reason_category !== "";
+        
+        console.log("🔍 isTargetOther:", isTargetOther, "target:", referral.target);
+        console.log("🔍 isReasonOther:", isReasonOther, "reason_category:", referral.reason_category);
+        
+        // ✅ อัปเดต form ด้วยข้อมูลที่ถูกต้อง
+        const newForm = {
+          student_id: referral.student_id || "",
+          student_name: referral.student_name || "",
+          student_level: referral.student_level || "",
+          student_class: referral.student_class || "",
+          student_number: referral.student_number || "",
+          type: referral.type || "internal",
+          target: isTargetOther ? "อื่นๆ" : (referral.target || ""),
+          reason_category: isReasonOther ? "อื่นๆ" : (referral.reason_category || ""),
+          reason_detail: referral.reason_detail || "",
+          actions_taken: referral.actions_taken || "",
+          status: referral.status || "อยู่ระหว่างดำเนินการ",
+          target_other: isTargetOther ? referral.target : "",
+          reason_category_other: isReasonOther ? referral.reason_category : "",
+        };
+        
+        setForm(newForm);
+        
+        // ✅ ตั้งค่า show flags - สำคัญมาก!
+        setShowTargetOther(isTargetOther);
+        setShowReasonOther(isReasonOther);
+        setSearchTerm(referral.student_name || "");
+        
+        console.log("✅ Form updated:", newForm);
+        console.log("✅ showTargetOther:", isTargetOther);
+        console.log("✅ showReasonOther:", isReasonOther);
+      } else {
+        console.error("❌ No data found:", data);
+        alert("ไม่พบข้อมูลการส่งต่อ");
+        router.push('/student_send');
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ Error loading referral:', error);
+      alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
     } finally {
       setLoading(false);
     }
@@ -97,18 +159,50 @@ export default function EditReferralPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ✅ ตรวจสอบว่าถ้าเลือก "อื่นๆ" ต้องกรอกข้อความ
+    if (form.target === "อื่นๆ" && !form.target_other.trim()) {
+      alert("กรุณาระบุหน่วยงานที่ส่งต่อ");
+      return;
+    }
+    if (form.reason_category === "อื่นๆ" && !form.reason_category_other.trim()) {
+      alert("กรุณาระบุสาเหตุการส่งต่อ");
+      return;
+    }
+    
     try {
+      // ✅ เตรียมข้อมูลที่จะส่ง
+      const submitData = {
+        student_id: form.student_id,
+        student_name: form.student_name,
+        student_level: form.student_level,
+        student_class: form.student_class,
+        student_number: form.student_number,
+        type: form.type,
+        target: form.target === "อื่นๆ" ? form.target_other : form.target,
+        reason_category: form.reason_category === "อื่นๆ" ? form.reason_category_other : form.reason_category,
+        reason_detail: form.reason_detail,
+        actions_taken: form.actions_taken,
+        status: form.status,
+      };
+      
+      console.log("📤 Submitting:", submitData);
+      
       const response = await fetch(`/api/send/${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submitData),
       });
       
       if (response.ok) {
         router.push(`/student_send/${params.id}`);
+      } else {
+        const error = await response.json();
+        alert(error.error || "เกิดข้อผิดพลาด");
       }
     } catch (error) {
       console.error('Error:', error);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
     }
   };
 
@@ -151,11 +245,11 @@ export default function EditReferralPage() {
                   <form onSubmit={handleSubmit}>
                     <div className="row">
                       <div className="col-12 mb-3">
-                        <label className="form-label text-uppercase fw-semibold small">ค้นหาและเลือกนักเรียน</label>
+                        <label className="form-label text-uppercase fw-semibold small">ค้นหาและเลือกผู้เรียน</label>
                         <input 
                           type="text" 
                           className="form-control rounded-0 mb-2"
-                          placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..."
+                          placeholder="พิมพ์ชื่อหรือรหัส..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -191,7 +285,7 @@ export default function EditReferralPage() {
                             s.id.toLowerCase().includes(searchTerm.toLowerCase())
                           ).length === 0 && (
                             <div className="p-3 text-center text-muted">
-                              <i className="bi bi-search"></i> ไม่พบนักเรียนที่ค้นหา
+                              <i className="bi bi-search"></i> ไม่พบผู้เรียนที่ค้นหา
                             </div>
                           )}
                         </div>
@@ -253,30 +347,48 @@ export default function EditReferralPage() {
                       </div>
                       <div className="col-md-6 mb-3">
                         <label className="form-label text-uppercase fw-semibold small">ส่งต่อ</label>
-                        {form.type === "internal" ? (
-                          <select 
-                            className="form-select rounded-0"
-                            value={form.target}
-                            onChange={(e) => setForm({...form, target: e.target.value})}
-                            required
-                          >
-                            <option value="">เลือกหน่วยงานภายใน</option>
-                            <option value="ฝ่ายแนะแนว">ฝ่ายแนะแนว</option>
-                            <option value="ฝ่ายปกครอง">ฝ่ายปกครอง</option>
-                            <option value="พยาบาล">พยาบาล</option>
-                          </select>
-                        ) : (
-                          <select 
-                            className="form-select rounded-0"
-                            value={form.target}
-                            onChange={(e) => setForm({...form, target: e.target.value})}
-                            required
-                          >
-                            <option value="">เลือกหน่วยงานภายนอก</option>
-                            <option value="โรงพยาบาล">โรงพยาบาล</option>
-                          
-                            <option value="พัฒนาสังคมฯ">พัฒนาสังคมและความมั่นคงของมนุษย์</option>
-                          </select>
+                        <select 
+                          className="form-select rounded-0"
+                          value={form.target || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setForm(prev => ({
+                              ...prev, 
+                              target: value,
+                              // ถ้าเปลี่ยนจาก "อื่นๆ" เป็นอย่างอื่น ให้ล้างค่าที่กรอก
+                              target_other: value !== "อื่นๆ" ? "" : prev.target_other
+                            }));
+                            setShowTargetOther(value === "อื่นๆ");
+                          }}
+                          required
+                        >
+                          <option value="">เลือกหน่วยงาน</option>
+                          {form.type === "internal" ? (
+                            <>
+                              <option value="ฝ่ายแนะแนว">ฝ่ายแนะแนว</option>
+                              <option value="ฝ่ายปกครอง">ฝ่ายปกครอง</option>
+                              <option value="พยาบาล">พยาบาล</option>
+                              <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="โรงพยาบาล">โรงพยาบาล</option>
+                              <option value="พัฒนาสังคมฯ">พัฒนาสังคมและความมั่นคงของมนุษย์</option>
+                              <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
+                            </>
+                          )}
+                        </select>
+                        {showTargetOther && (
+                          <div className="mt-2">
+                            <input 
+                              type="text" 
+                              className="form-control rounded-0"
+                              placeholder="ระบุหน่วยงานที่ส่งต่อ..."
+                              value={form.target_other}
+                              onChange={(e) => setForm({...form, target_other: e.target.value})}
+                              required
+                            />
+                          </div>
                         )}
                       </div>
                       <div className="col-md-6 mb-3">
@@ -294,8 +406,16 @@ export default function EditReferralPage() {
                         <label className="form-label text-uppercase fw-semibold small">สาเหตุการส่งต่อ</label>
                         <select 
                           className="form-select rounded-0 mb-2"
-                          value={form.reason_category}
-                          onChange={(e) => setForm({...form, reason_category: e.target.value})}
+                          value={form.reason_category || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setForm(prev => ({
+                              ...prev, 
+                              reason_category: value,
+                              reason_category_other: value !== "อื่นๆ" ? "" : prev.reason_category_other
+                            }));
+                            setShowReasonOther(value === "อื่นๆ");
+                          }}
                           required
                         >
                           <option value="">เลือกสาเหตุ</option>
@@ -303,7 +423,20 @@ export default function EditReferralPage() {
                           <option value="ด้านพฤติกรรม/ระเบียบวินัย">ด้านพฤติกรรม/ระเบียบวินัย</option>
                           <option value="ด้านอารมณ์/จิตใจ">ด้านอารมณ์/จิตใจ</option>
                           <option value="ด้านครอบครัว/เศรษฐกิจ">ด้านครอบครัว/เศรษฐกิจ</option>
+                          <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
                         </select>
+                        {showReasonOther && (
+                          <div className="mt-2 mb-2">
+                            <input 
+                              type="text" 
+                              className="form-control rounded-0"
+                              placeholder="ระบุสาเหตุการส่งต่อ..."
+                              value={form.reason_category_other}
+                              onChange={(e) => setForm({...form, reason_category_other: e.target.value})}
+                              required
+                            />
+                          </div>
+                        )}
                         <textarea 
                           className="form-control rounded-0" 
                           rows={3}

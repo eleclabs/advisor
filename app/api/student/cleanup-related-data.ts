@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Student from "@/models/Student";
 import Problem from "@/models/Problem";
@@ -18,7 +18,7 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 });
     }
     
-    console.log(`🧹 เริ่มลบข้อมูลที่เกี่ยวข้องกับนักเรียน ID: ${studentId}`);
+    console.log(`🧹 เริ่มลบข้อมูลที่เกี่ยวข้องกับผู้เรียน ID: ${studentId}`);
     
     // 1. ลบข้อมูลปัญหา (Problem)
     const deletedProblems = await Problem.deleteMany({ student_id: studentId });
@@ -29,7 +29,7 @@ export async function DELETE(request: NextRequest) {
     console.log(`📤 ลบข้อมูลการส่งต่อ: ${deletedReferrals.deletedCount} รายการ`);
     
     // 3. ตรวจสอบว่ามีข้อมูลอื่นอีกไหม
-    // สามารถเพิ่มการลบข้อมูลอื่นๆ ที่เกี่ยวข้องกับนักเรียนได้ที่นี่
+    // สามารถเพิ่มการลบข้อมูลอื่นๆ ที่เกี่ยวข้องกับผู้เรียนได้ที่นี่
     // เช่น ข้อมูลการเรียน, ข้อมูลกิจกรรม, ข้อมูลการปรึกษา ฯลฯ
     
     return NextResponse.json({

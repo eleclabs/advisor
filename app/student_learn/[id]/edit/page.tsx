@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -128,7 +128,7 @@ export default function EditHomeroomPlanPage() {
     fetchPlanData();
   }, [params.id, teacher_name, userRole]);
 
-  // โหลดข้อมูลนักเรียนและ majors
+  // โหลดข้อมูลผู้เรียนและ majors
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -173,7 +173,7 @@ export default function EditHomeroomPlanPage() {
     fetchInitialData();
   }, [userId]);
 
-  // กรองนักเรียนตามที่เลือก
+  // กรองผู้เรียนตามที่เลือก
   useEffect(() => {
     if (!formData.level) {
       setFilteredStudents([]);
@@ -546,7 +546,7 @@ export default function EditHomeroomPlanPage() {
             </div>
           </div>
 
-          {/* แถวที่ 3: รายชื่อนักเรียน (แสดงเมื่อกดปุ่ม) */}
+          {/* แถวที่ 3: รายชื่อผู้เรียน (แสดงเมื่อกดปุ่ม) */}
           {showStudentList && formData.level && (
             <div className="row mb-4">
               <div className="col-12">
@@ -554,7 +554,7 @@ export default function EditHomeroomPlanPage() {
                   <div className="card-header bg-light py-2">
                     <span className="fw-bold">
                       <i className="bi bi-people-fill me-2 text-info"></i>
-                      รายชื่อนักเรียน
+                      รายชื่อผู้เรียน
                       {formData.target_class_group && <span className="badge bg-dark ms-2">สาขา {formData.target_class_group}</span>}
                       {formData.target_class_numbers.length > 0 && (
                         <span className="badge bg-dark ms-2">
@@ -574,7 +574,7 @@ export default function EditHomeroomPlanPage() {
                         <thead className="table-secondary sticky-top">
                           <tr>
                             <th className="text-center" style={{ width: '50px' }}>#</th>
-                            <th>รหัสนักเรียน</th>
+                            <th>รหัส</th>
                             <th>ชื่อ-นามสกุล</th>
                             <th>ระดับชั้น</th>
                             <th>สาขา</th>
@@ -613,7 +613,7 @@ export default function EditHomeroomPlanPage() {
                             <tr>
                               <td colSpan={6} className="text-center py-3 text-muted">
                                 <i className="bi bi-info-circle me-2"></i>
-                                ไม่มีนักเรียนตามเงื่อนไขนี้
+                                ไม่มีผู้เรียนตามเงื่อนไขนี้
                               </td>
                             </tr>
                           )}

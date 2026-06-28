@@ -1,4 +1,4 @@
-// D:\advisor-main\app\student_learn\[id]\record\page.tsx
+﻿// D:\advisor-main\app\student_learn\[id]\record\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";

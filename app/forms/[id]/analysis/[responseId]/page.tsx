@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -72,7 +72,7 @@ export default function FormResponseAnalysisPage() {
       'TEACHER': 'อาจารย์',
       'EXECUTIVE': 'ผู้บริหาร',
       'COMMITTEE': 'คณะกรรมการ',
-      'STUDENT': 'นักเรียน'
+      'STUDENT': 'ผู้เรียน'
     };
     return roleMap[role] || role;
   };

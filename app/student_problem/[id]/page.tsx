@@ -1,4 +1,4 @@
-// D:\advisor-main\app\student_problem\[id]\page.tsx
+﻿// D:\advisor-main\app\student_problem\[id]\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -44,7 +44,7 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
 
       if (res.ok) {
         alert("ลบการประเมินเรียบร้อย");
-        fetchData(); // โหลดข้อมูลใหม่
+        fetchData();
       } else {
         const data = await res.json();
         alert(data.error || "เกิดข้อผิดพลาดในการลบ");
@@ -126,6 +126,19 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
       case 'เข้าร่วมแล้ว': return 'bg-info';
       default: return 'bg-secondary';
     }
+  };
+
+  // ✅ Get all methods including custom ones
+  const getAllMethods = () => {
+    const methods: string[] = [];
+    if (problem?.counseling) methods.push("การให้คำปรึกษาเบื้องต้น");
+    if (problem?.behavioral_contract) methods.push("กิจกรรมปรับเปลี่ยนพฤติกรรม");
+    if (problem?.home_visit) methods.push("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง");
+    if (problem?.referral) methods.push("การส่งต่อ");
+    if (problem?.custom_methods && Array.isArray(problem.custom_methods)) {
+      methods.push(...problem.custom_methods);
+    }
+    return methods;
   };
 
   if (loading) {
@@ -291,48 +304,26 @@ export default function ViewProblemPage({ params }: { params: Promise<{ id: stri
                   </div>
                 </div>
 
+                {/* ✅ วิธีการแก้ไข - แสดงทั้งหมดรวม custom methods */}
                 <div>
                   <h6 className="text-muted mb-2">วิธีการแก้ไขที่เลือก</h6>
                   <div className="row">
                     <div className="col-12">
-                      {problem.methods && Array.isArray(problem.methods) && problem.methods.length > 0 ? (
-                        problem.methods.map((method: string, idx: number) => (
-                          <div key={idx} className="mb-2 p-2 bg-light rounded">
+                      {(() => {
+                        const allMethods = getAllMethods();
+                        if (allMethods.length === 0) {
+                          return <p className="text-muted">ไม่มีวิธีการแก้ไข</p>;
+                        }
+                        return allMethods.map((method, index) => (
+                          <div key={index} className="mb-2 p-2 bg-light rounded">
                             <span className="badge bg-success me-2">✓</span>
                             {method}
+                            {!["การให้คำปรึกษาเบื้องต้น", "กิจกรรมปรับเปลี่ยนพฤติกรรม", "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง", "การส่งต่อ"].includes(method) && (
+                              <span className="badge bg-info ms-2">เพิ่มเติม</span>
+                            )}
                           </div>
-                        ))
-                      ) : (
-                        <>
-                          {problem.counseling && (
-                            <div className="mb-2 p-2 bg-light rounded">
-                              <span className="badge bg-success me-2">✓</span>
-                              การให้คำปรึกษาเบื้องต้น
-                            </div>
-                          )}
-                          {problem.behavioral_contract && (
-                            <div className="mb-2 p-2 bg-light rounded">
-                              <span className="badge bg-success me-2">✓</span>
-                              กิจกรรมปรับเปลี่ยนพฤติกรรม
-                            </div>
-                          )}
-                          {problem.home_visit && (
-                            <div className="mb-2 p-2 bg-light rounded">
-                              <span className="badge bg-success me-2">✓</span>
-                              การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง
-                            </div>
-                          )}
-                          {problem.referral && (
-                            <div className="mb-2 p-2 bg-light rounded">
-                              <span className="badge bg-success me-2">✓</span>
-                              การส่งต่อ
-                            </div>
-                          )}
-                          {!problem.counseling && !problem.behavioral_contract && !problem.home_visit && !problem.referral && (
-                            <p className="text-muted">ไม่มีวิธีการแก้ไข</p>
-                          )}
-                        </>
-                      )}
+                        ));
+                      })()}
                     </div>
                   </div>
                 </div>

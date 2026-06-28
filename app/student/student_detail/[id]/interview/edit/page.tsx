@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -347,7 +347,7 @@ export default function InterviewEditPage() {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="alert alert-danger mb-0">
-          <p className="mb-0">ไม่พบข้อมูลนักเรียน</p>
+          <p className="mb-0">ไม่พบข้อมูลผู้เรียน</p>
           <Link href={`/student/student_detail/${studentDocId}/interview`} className="btn btn-sm btn-dark mt-3">
             <i className="bi bi-arrow-left me-2"></i>กลับไป
           </Link>
@@ -392,7 +392,7 @@ export default function InterviewEditPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h5 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-person-badge me-2 text-warning"></i>
-                    ข้อมูลนักเรียน
+                    ข้อมูลผู้เรียน
                   </h5>
                 </div>
                 <div className="p-3 bg-light">
@@ -567,7 +567,7 @@ export default function InterviewEditPage() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">นักเรียนพักอาศัยกับ</label>
+                    <label className="form-label text-uppercase fw-semibold small">ผู้เรียนพักอาศัยกับ</label>
                     <div className="row">
                       <div className="col-md-3">
                         <div className="form-check">
@@ -890,7 +890,7 @@ export default function InterviewEditPage() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label text-uppercase fw-semibold small">ความกังวลใจของผู้ปกครองที่มีต่อนักเรียน</label>
+                    <label className="form-label text-uppercase fw-semibold small">ความกังวลใจของผู้ปกครองที่มีต่อผู้เรียน</label>
                     <textarea 
                       name="parent_concerns"
                       className="form-control rounded-0" 
@@ -970,11 +970,11 @@ export default function InterviewEditPage() {
                           <input 
                             type="checkbox" 
                             className="form-check-input rounded-0" 
-                            value="ชุดนักเรียน"
-                            checked={formData.assistance_needs.includes("ชุดนักเรียน")}
+                            value="ชุดผู้เรียน"
+                            checked={formData.assistance_needs.includes("ชุดผู้เรียน")}
                             onChange={(e) => handleCheckboxChange(e, "assistance_needs")}
                           />
-                          <label className="form-check-label">ชุดนักเรียน</label>
+                          <label className="form-check-label">ชุดผู้เรียน</label>
                         </div>
                       </div>
                       <div className="col-md-3">

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Student from "@/models/Student";
 
-// GET - ดึงข้อมูลการสัมภาษณ์นักเรียนทั้งหมดหรือตาม student_id
+// GET - ดึงข้อมูลการสัมภาษณ์ผู้เรียนทั้งหมดหรือตาม student_id
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();

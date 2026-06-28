@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Assessment from "@/models/Assessment";
 
-// GET - ดึงข้อมูลการประเมิน SDQ สำหรับนักเรียนคนเดียว (จากหน้า results)
+// GET - ดึงข้อมูลการประเมิน SDQ สำหรับผู้เรียนคนเดียว (จากหน้า results)
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // ค้นหาการประเมินล่าสุดของนักเรียนคนนี้
+    // ค้นหาการประเมินล่าสุดของผู้เรียนคนนี้
     const assessment = await Assessment.findOne({ 
       student_id: studentId,
       assessmentType: 'sdq'

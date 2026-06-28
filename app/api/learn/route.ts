@@ -1,4 +1,4 @@
-// app/api/learn/route.ts
+﻿// app/api/learn/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "next-auth";
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const type = searchParams.get('type');
     
-    // ถ้า type = 'student' ให้ค้นหานักเรียน
+    // ถ้า type = 'student' ให้ค้นหาผู้เรียน
     if (type === 'student') {
       console.log("🔍 Searching for student with query:", search);
       
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     // ✅ ถ้าไม่ใช่ Admin ให้กรองตามสิทธิ์การเข้าถึง
     if (!isAdmin) {
       try {
-        // ดึงข้อมูลนักเรียนที่ครูคนนี้ดูแล
+        // ดึงข้อมูลผู้เรียนที่ครูคนนี้ดูแล
         let assignedLevels: string[] = [];
         let assignedStudentIds: string[] = [];
         
@@ -113,21 +113,21 @@ export async function GET(request: NextRequest) {
         // สร้างเงื่อนไขการเข้าถึง
         // ครูจะเห็น:
         // 1. แผนทั้งหมดที่ตัวเองสร้าง (ทั้งร่างและเผยแพร่)
-        // 2. แผนเผยแพร่ที่มีระดับชั้นตรงกับนักเรียนที่ดูแล
+        // 2. แผนเผยแพร่ที่มีระดับชั้นตรงกับผู้เรียนที่ดูแล
         
         const accessConditions: any[] = [
           { created_by: currentUser } // แผนที่ตัวเองสร้างทั้งหมด
         ];
         
-        // ถ้ามีนักเรียนที่ดูแล ให้เพิ่มเงื่อนไขแผนเผยแพร่ตามระดับชั้น
+        // ถ้ามีผู้เรียนที่ดูแล ให้เพิ่มเงื่อนไขแผนเผยแพร่ตามระดับชั้น
         if (assignedLevels.length > 0) {
           accessConditions.push({
             status: 'published',
             level: { $in: assignedLevels }
           });
         } else {
-          // ถ้าไม่มีนักเรียนที่ดูแลเลย ให้เห็นเฉพาะแผนที่ตัวเองสร้าง
-          console.log("👤 ครูไม่มีนักเรียนในความดูแล");
+          // ถ้าไม่มีผู้เรียนที่ดูแลเลย ให้เห็นเฉพาะแผนที่ตัวเองสร้าง
+          console.log("👤 ครูไม่มีผู้เรียนในความดูแล");
         }
         
         // ถ้ามีการกรอง status อยู่แล้ว ให้รวมกับเงื่อนไขเดิม

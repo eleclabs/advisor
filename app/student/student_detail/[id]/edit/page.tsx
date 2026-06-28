@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -103,17 +103,17 @@ export default function EditStudentPage() {
       if (data.success) {
         let allTeachers = data.data;
         
-        // หาครูที่ได้รับมอบหมายนักเรียนคนนี้
+        // หาครูที่ได้รับมอบหมายผู้เรียนคนนี้
         const assignedTeachers = [];
         
         for (const teacher of allTeachers) {
           try {
-            // ดึงข้อมูลนักเรียนที่ครูคนนี้รับผิดชอบ
+            // ดึงข้อมูลผู้เรียนที่ครูคนนี้รับผิดชอบ
             const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
             if (assignedRes.ok) {
               const assignedData = await assignedRes.json();
               if (assignedData.success && assignedData.data) {
-                // ตรวจสอบว่านักเรียนคนนี้อยู่ในรายการที่ครูคนนี้รับผิดชอบหรือไม่
+                // ตรวจสอบว่าผู้เรียนคนนี้อยู่ในรายการที่ครูคนนี้รับผิดชอบหรือไม่
                 const isAssigned = assignedData.data.some((assignment: any) => {
                   const studentId = assignment.student_id?._id || assignment.student_id;
                   return studentId === studentDocId;
@@ -202,7 +202,7 @@ export default function EditStudentPage() {
             image: foundStudent.image || "",
           });
         } else {
-          setError("ไม่พบข้อมูลนักเรียน");
+          setError("ไม่พบข้อมูลผู้เรียน");
         }
       } catch (error) {
         console.error("Error:", error);
@@ -369,7 +369,7 @@ export default function EditStudentPage() {
                   <div className="row g-3">
                     {/* รูปโปรไฟล์ */}
                     <div className="col-md-12">
-                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์นักเรียน</label>
+                      <label className="form-label text-uppercase fw-semibold small">รูปโปรไฟล์ผู้เรียน</label>
                       <div className="d-flex align-items-start gap-4">
                         <div className="text-center">
                           {imagePreview || studentData.image ? (
@@ -559,7 +559,7 @@ export default function EditStudentPage() {
                             </small>
                           </div>
                         ) : (
-                          <span className="text-muted">ไม่มีครูที่ได้รับมอบหมายนักเรียนคนนี้</span>
+                          <span className="text-muted">ไม่มีครูที่ได้รับมอบหมายผู้เรียนคนนี้</span>
                         )}
                       </div>
                     </div>

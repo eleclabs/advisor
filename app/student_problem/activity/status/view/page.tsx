@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -55,7 +55,7 @@ export default function ActivityStatusViewPage() {
       setActivity(activityJson.data);
       setStudent(studentJson.data);
 
-      // ค้นหาข้อมูลกิจกรรมในนักเรียน
+      // ค้นหาข้อมูลกิจกรรมในผู้เรียน
       const studentActivities = studentJson.data.activities || [];
       console.log("🔍 Student activities:", studentActivities);
 

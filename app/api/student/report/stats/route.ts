@@ -1,4 +1,4 @@
-// app/api/student/report/stats/route.ts
+﻿// app/api/student/report/stats/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";

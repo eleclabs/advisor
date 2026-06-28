@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -83,7 +83,7 @@ export default function InterviewViewPage() {
       try {
         setLoading(true);
         
-        // ดึงข้อมูลนักเรียนและข้อมูลการสัมภาษณ์จาก student API
+        // ดึงข้อมูลผู้เรียนและข้อมูลการสัมภาษณ์จาก student API
         const studentRes = await fetch(`/api/student/${studentDocId}`);
         const studentResult = await studentRes.json();
         
@@ -240,7 +240,7 @@ export default function InterviewViewPage() {
       <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="alert alert-danger mb-0 text-center">
           <i className="bi bi-exclamation-triangle-fill fs-1 d-block mb-3"></i>
-          <h5>ไม่พบข้อมูลนักเรียน</h5>
+          <h5>ไม่พบข้อมูลผู้เรียน</h5>
           <Link href={`/student/student_detail/${studentDocId}`} className="btn btn-dark mt-3">
             <i className="bi bi-arrow-left me-2"></i>กลับไป
           </Link>

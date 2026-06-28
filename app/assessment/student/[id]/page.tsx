@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -87,17 +87,17 @@ export default function StudentBasicPage() {
       if (data.success) {
         let allTeachers = data.data;
         
-        // หาครูที่ได้รับมอบหมายนักเรียนคนนี้
+        // หาครูที่ได้รับมอบหมายผู้เรียนคนนี้
         const assignedTeachers = [];
         
         for (const teacher of allTeachers) {
           try {
-            // ดึงข้อมูลนักเรียนที่ครูคนนี้รับผิดชอบ
+            // ดึงข้อมูลผู้เรียนที่ครูคนนี้รับผิดชอบ
             const assignedRes = await fetch(`/api/user/${teacher._id}/assign-students`);
             if (assignedRes.ok) {
               const assignedData = await assignedRes.json();
               if (assignedData.success && assignedData.data) {
-                // ตรวจสอบว่านักเรียนคนนี้อยู่ในรายการที่ครูคนนี้รับผิดชอบ
+                // ตรวจสอบว่าผู้เรียนคนนี้อยู่ในรายการที่ครูคนนี้รับผิดชอบ
                 const isAssigned = assignedData.data.some((assignment: any) => {
                   const studentId = assignment.student_id?._id || assignment.student_id;
                   return studentId === studentId;
@@ -169,7 +169,7 @@ export default function StudentBasicPage() {
         };
         setStudent(formattedData);
       } else {
-        setError("ไม่พบข้อมูลนักเรียน");
+        setError("ไม่พบข้อมูลผู้เรียน");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -203,7 +203,7 @@ export default function StudentBasicPage() {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="alert alert-danger mb-0" style={{ minWidth: '300px' }}>
-          <p className="mb-0">{error || "ไม่พบข้อมูลนักเรียน"}</p>
+          <p className="mb-0">{error || "ไม่พบข้อมูลผู้เรียน"}</p>
           <div className="mt-3 d-flex gap-2">
             <button 
               onClick={() => window.location.reload()} 
@@ -327,7 +327,7 @@ export default function StudentBasicPage() {
                         <small className="text-muted">{teachers.length} ครูที่ได้รับมอบหมาย</small>
                       </div>
                     ) : (
-                      <p className="text-muted">ไม่มีครูที่ได้รับมอบหมายนักเรียนคนนี้</p>
+                      <p className="text-muted">ไม่มีครูที่ได้รับมอบหมายผู้เรียนคนนี้</p>
                     )}
                   </div>
                   <div className="col-md-3">

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -120,7 +120,7 @@ export default function UserAssignStudentsPage() {
 
   const handleSaveAssignments = async () => {
     if (selectedStudents.size === 0) {
-      alert('กรุณาเลือกอย่างน้อย 1 นักเรียน');
+      alert('กรุณาเลือกอย่างน้อย 1 ผู้เรียน');
       return;
     }
 
@@ -152,7 +152,7 @@ export default function UserAssignStudentsPage() {
         fetchData();
         
       } else {
-        throw new Error(data.message || 'เกิดข้อผิดพลาดในการมอบหมายนักเรียน');
+        throw new Error(data.message || 'เกิดข้อผิดพลาดในการมอบหมายผู้เรียน');
       }
       
     } catch (error: any) {
@@ -209,9 +209,9 @@ export default function UserAssignStudentsPage() {
           <div className="row align-items-center">
             <div className="col">
               <h1 className="h3 mb-0">
-                มอบหมายนักเรียน: {user.prefix} {user.first_name} {user.last_name}
+                มอบหมายผู้เรียน: {user.prefix} {user.first_name} {user.last_name}
               </h1>
-              <p className="mb-0 text-white-50">เลือกนักเรียนเพื่อมอบหมายความรับผิดชอบ</p>
+              <p className="mb-0 text-white-50">เลือกผู้เรียนเพื่อมอบหมายความรับผิดชอบ</p>
             </div>
             <div className="col-auto">
               <Link
@@ -229,7 +229,7 @@ export default function UserAssignStudentsPage() {
         {showResults && (
           <div className="alert alert-success border-0 rounded-0 mb-4" role="alert">
             <h5 className="alert-heading">
-              <i className="bi bi-check-circle me-2"></i>มอบหมายนักเรียนสำเร็จ
+              <i className="bi bi-check-circle me-2"></i>มอบหมายผู้เรียนสำเร็จ
             </h5>
             <hr />
             <div className="mb-0">
@@ -257,7 +257,7 @@ export default function UserAssignStudentsPage() {
                 <div className="card-header bg-info text-white">
                   <h5 className="mb-0">
                     <i className="bi bi-people-fill me-2"></i>
-                    นักเรียนที่รับผิดชอบอยู่ ({assignedStudents.length} คน)
+                    ผู้เรียนที่รับผิดชอบอยู่ ({assignedStudents.length} คน)
                   </h5>
                 </div>
                 <div className="card-body">
@@ -296,7 +296,7 @@ export default function UserAssignStudentsPage() {
               <div className="card-header bg-primary text-white">
                 <div className="d-flex justify-content-between align-items-center">
                   <h5 className="mb-0">
-                    <i className="bi bi-mortarboard me-2"></i>เลือกนักเรียนที่จะมอบหมาย
+                    <i className="bi bi-mortarboard me-2"></i>เลือกผู้เรียนที่จะมอบหมาย
                   </h5>
                   <span className="badge bg-light text-dark">
                     เลือกแล้ว {selectedStudents.size}/{filteredStudents.length} คน
@@ -312,7 +312,7 @@ export default function UserAssignStudentsPage() {
                     </span>
                     <input
                       type="text"
-                      placeholder="ค้นหานักเรียน..."
+                      placeholder="ค้นหาผู้เรียน..."
                       value={searchStudent}
                       onChange={(e) => setSearchStudent(e.target.value)}
                       className="form-control border-0 bg-light"
@@ -361,7 +361,7 @@ export default function UserAssignStudentsPage() {
                               </div>
                             </div>
                             {student.status && (
-                              <span className={`badge bg-${student.status === 'นักเรียนปกติ' ? 'success' : student.status === 'นักเรียนเสี่ยง' ? 'warning' : 'info'} text-white small`}>
+                              <span className={`badge bg-${student.status === 'ผู้เรียนปกติ' ? 'success' : student.status === 'ผู้เรียนเสี่ยง' ? 'warning' : 'info'} text-white small`}>
                                 {student.status}
                               </span>
                             )}
@@ -395,13 +395,13 @@ export default function UserAssignStudentsPage() {
                   <div className="col-md-4">
                     <div className="border-end">
                       <h4 className="text-primary mb-1">{selectedStudents.size}</h4>
-                      <small className="text-muted">นักเรียนที่เลือก</small>
+                      <small className="text-muted">ผู้เรียนที่เลือก</small>
                     </div>
                   </div>
                   <div className="col-md-4">
                     <div className="border-end">
                       <h4 className="text-success mb-1">{assignedStudents.length}</h4>
-                      <small className="text-muted">นักเรียนที่รับผิดชอบอยู่</small>
+                      <small className="text-muted">ผู้เรียนที่รับผิดชอบอยู่</small>
                     </div>
                   </div>
                   <div className="col-md-4">
@@ -419,7 +419,7 @@ export default function UserAssignStudentsPage() {
                         ) : (
                           <>
                             <i className="bi bi-save me-2"></i>
-                            มอบหมายนักเรียน
+                            มอบหมายผู้เรียน
                           </>
                         )}
                       </button>

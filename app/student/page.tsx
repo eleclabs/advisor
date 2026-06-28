@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -118,7 +118,7 @@ function StudentListPage() {
     fetchTeachers();
   }, []);
 
-  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับนักเรียนแต่ละคน
+  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับผู้เรียนแต่ละคน
   const fetchAssignedTeachersForStudent = async (studentId: string): Promise<Teacher[]> => {
     try {
       const assignedTeachers: Teacher[] = [];

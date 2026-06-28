@@ -1,4 +1,4 @@
-// app/api/user/[id]/assign-students/route.ts
+﻿// app/api/user/[id]/assign-students/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
@@ -39,7 +39,7 @@ export async function POST(
     const teacher = await User.findById(id);
     const teacherName = `${teacher.prefix} ${teacher.first_name} ${teacher.last_name}`;
     
-    // ดึงข้อมูลนักเรียนทั้งหมดที่ถูกเลือก
+    // ดึงข้อมูลผู้เรียนทั้งหมดที่ถูกเลือก
     const students = await Student.find({ _id: { $in: studentIds } });
     
     // สร้าง assigned_students array
@@ -58,7 +58,7 @@ export async function POST(
       { new: true, returnDocument: 'after' }
     );
 
-    // อัปเดตข้อมูลครูที่ปรึกษาให้นักเรียนทุกคน
+    // อัปเดตข้อมูลครูที่ปรึกษาให้ผู้เรียนทุกคน
     await Student.updateMany(
       { _id: { $in: studentIds } },
       { 
@@ -71,12 +71,12 @@ export async function POST(
       return NextResponse.json({ success: false, message: "ไม่พบผู้ใช้" }, { status: 404 });
     }
 
-    console.log(`✅ มอบหมายนักเรียน ${assignedStudents.length} คน ให้ผู้ใช้ ${id} และอัปเดตข้อมูลครูที่ปรึกษา`);
+    console.log(`✅ มอบหมายผู้เรียน ${assignedStudents.length} คน ให้ผู้ใช้ ${id} และอัปเดตข้อมูลครูที่ปรึกษา`);
 
     return NextResponse.json({
       success: true,
       data: assignedStudents,
-      message: `มอบหมายนักเรียน ${assignedStudents.length} คน สำเร็จ`
+      message: `มอบหมายผู้เรียน ${assignedStudents.length} คน สำเร็จ`
     });
 
   } catch (error: any) {
@@ -120,7 +120,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, message: "ไม่พบผู้ใช้" }, { status: 404 });
     }
 
-    // กรองนักเรียนที่ไม่ต้องการลบออก
+    // กรองผู้เรียนที่ไม่ต้องการลบออก
     const updatedAssignedStudents = user.assigned_students?.filter(
       (assignment: any) => !studentIds.includes(assignment.student_id?.toString())
     ) || [];
@@ -132,7 +132,7 @@ export async function DELETE(
       { new: true, returnDocument: 'after' }
     );
 
-    // เคลียร์ข้อมูลครูที่ปรึกษาของนักเรียนที่ถูกลบ
+    // เคลียร์ข้อมูลครูที่ปรึกษาของผู้เรียนที่ถูกลบ
     await Student.updateMany(
       { _id: { $in: studentIds } },
       { 
@@ -141,12 +141,12 @@ export async function DELETE(
       }
     );
 
-    console.log(`✅ ลบนักเรียน ${studentIds.length} คน จากผู้ใช้ ${id} และเคลียร์ข้อมูลครูที่ปรึกษา`);
+    console.log(`✅ ลบผู้เรียน ${studentIds.length} คน จากผู้ใช้ ${id} และเคลียร์ข้อมูลครูที่ปรึกษา`);
 
     return NextResponse.json({
       success: true,
       data: updatedAssignedStudents,
-      message: `ลบนักเรียน ${studentIds.length} คน สำเร็จ`
+      message: `ลบผู้เรียน ${studentIds.length} คน สำเร็จ`
     });
 
   } catch (error: any) {
@@ -168,7 +168,7 @@ export async function GET(
     
     await connectDB();
     
-    // ดึง user พร้อมข้อมูลนักเรียนที่ populate
+    // ดึง user พร้อมข้อมูลผู้เรียนที่ populate
     const user = await User.findById(id).populate({
       path: 'assigned_students.student_id',
       model: Student
@@ -180,7 +180,7 @@ export async function GET(
 
     console.log(`📊 พบ assigned students: ${user.assigned_students?.length || 0} คน`);
     
-    // Debug: แสดงข้อมูลนักเรียนตัวอย่าง
+    // Debug: แสดงข้อมูลผู้เรียนตัวอย่าง
     if (user.assigned_students && user.assigned_students.length > 0) {
       console.log("👥 Sample assigned student data:", JSON.stringify(user.assigned_students[0], null, 2));
       console.log("🏢 Available class_groups:", [...new Set(user.assigned_students.map((a: any) => a.student_id?.class_group).filter(Boolean))]);

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -418,7 +418,7 @@ export default function SDQResultsPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f8f9fa' }}>
-                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>ชื่อนักเรียน</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>ชื่อผู้เรียน</th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>ระดับชั้น</th>
                     <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>คะแนนรวม</th>
                     <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#495057', textTransform: 'uppercase', borderBottom: '1px solid #dee2e6' }}>วันที่ประเมิน</th>
@@ -532,11 +532,11 @@ export default function SDQResultsPage() {
               overflowY: 'auto',
               flex: 1
             }}>
-              {/* ข้อมูลนักเรียน */}
+              {/* ข้อมูลผู้เรียน */}
               <div style={{ marginBottom: '24px', backgroundColor: '#f8f9fa', padding: '16px', borderRadius: '8px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ชื่อนักเรียน</div>
+                    <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ชื่อผู้เรียน</div>
                     <div style={{ fontSize: '14px', color: '#212529', fontWeight: 500 }}>{selectedResponse.studentName}</div>
                   </div>
                   <div>

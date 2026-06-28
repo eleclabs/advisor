@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Assessment from '@/models/Assessment';
 import Student from '@/models/Student';
@@ -29,24 +29,23 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if studentId is a valid MongoDB ObjectId
+    // Validate studentId - must be a valid student.id from Student model
     let finalStudentId = studentId;
-    if (studentId && !ObjectId.isValid(studentId)) {
-      // If not a valid ObjectId, search for student by 'id' field (student_id)
+    if (studentId) {
+      // Check if student exists by id field
       const student = await Student.findOne({ id: studentId });
-      if (student) {
-        finalStudentId = student._id.toString();
-        console.log(`🔄 Converted student_id "${studentId}" to ObjectId "${finalStudentId}"`);
-      } else {
-        return NextResponse.json({ 
-          success: false, 
-          error: `ไม่พบนักเรียนที่มีรหัสนักเรียน "${studentId}"` 
+      if (!student) {
+        return NextResponse.json({
+          success: false,
+          error: `ไม่พบผู้เรียนที่มีรหัส "${studentId}"`
         }, { status: 404 });
       }
+      finalStudentId = student.id; // Use student.id directly
+      console.log(`✅ Using student.id: "${finalStudentId}"`);
     }
 
     const assessmentData = {
-      studentId: finalStudentId || `STU_${Date.now()}`,
+      studentId: finalStudentId,
       studentName,
       grade,
       classroom,
@@ -80,7 +79,10 @@ export async function GET(request: NextRequest) {
     const assessmentType = searchParams.get('type');
 
     let filter: any = {};
-    if (studentId) filter.studentId = studentId;
+    if (studentId) {
+      // Use student.id directly
+      filter.studentId = studentId;
+    }
     if (assessmentType) filter.assessmentType = assessmentType;
 
     const assessments = await Assessment.find(filter).sort({ assessmentDate: -1 });

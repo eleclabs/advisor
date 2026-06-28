@@ -1,4 +1,4 @@
-// D:\advisor-main\app\api\problem\[id]\evaluation\route.ts
+﻿// D:\advisor-main\app\api\problem\[id]\evaluation\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
@@ -33,7 +33,7 @@ export async function POST(
     
     if (!problem) {
       return NextResponse.json(
-        { success: false, error: "ไม่พบข้อมูลนักเรียน" },
+        { success: false, error: "ไม่พบข้อมูลผู้เรียน" },
         { status: 404 }
       );
     }

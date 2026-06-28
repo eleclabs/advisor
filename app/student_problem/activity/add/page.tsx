@@ -1,4 +1,4 @@
-// D:\advisor-main\app\student_problem\activity\add\page.tsx
+﻿// D:\advisor-main\app\student_problem\activity\add\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -105,7 +105,7 @@ export default function AddActivityPage() {
     }));
   };
 
-  // ถ้ายังโหลดนักเรียนอยู่
+  // ถ้ายังโหลดผู้เรียนอยู่
   if (loadingStudents) {
     return (
       <div className="container py-5">
@@ -231,7 +231,7 @@ export default function AddActivityPage() {
                   
                   </div>
 
-                  {/* ส่วนเลือกนักเรียน */}
+                  {/* ส่วนเลือกผู้เรียน */}
                   <div className="col-md-5">
                     <h5 className="border-bottom pb-2 mb-3">
                       👥 เลือกผู้เรียนที่เข้าร่วม 

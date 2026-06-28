@@ -1,4 +1,4 @@
-// D:\advisor-main\app\student_problem\activity\edit\page.tsx
+﻿// D:\advisor-main\app\student_problem\activity\edit\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -83,7 +83,7 @@ export default function EditActivityPage() {
       const activityRes = await fetch(`/api/problem/activity?id=${id}`);
       const activityData = await activityRes.json();
       
-      // ดึงรายชื่อนักเรียนทั้งหมด
+      // ดึงรายชื่อผู้เรียนทั้งหมด
       const studentsRes = await fetch("/api/problem");
       const studentsData = await studentsRes.json();
       
@@ -297,7 +297,7 @@ export default function EditActivityPage() {
                    
                   </div>
 
-                  {/* ส่วนเลือกนักเรียน */}
+                  {/* ส่วนเลือกผู้เรียน */}
                   <div className="col-md-5">
                     <h5 className="border-bottom pb-2 mb-3">
                       👥 เลือกผู้เรียนที่เข้าร่วม 

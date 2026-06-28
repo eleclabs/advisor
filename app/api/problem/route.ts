@@ -1,4 +1,4 @@
-// app/api/problem/route.ts
+﻿// app/api/problem/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
@@ -38,12 +38,12 @@ export async function GET() {
       });
       
       if (user && user.assigned_students && user.assigned_students.length > 0) {
-        // ดึงรหัสนักเรียนที่ครูดูแล
+        // ดึงรหัสที่ครูดูแล
         const studentIds = user.assigned_students
           .filter((item: any) => item.student_id)
           .map((item: any) => item.student_id.id); // ใช้ student_id.id แทน student_id
         
-        // ค้นหาเฉพาะนักเรียนที่อยู่ใน assigned students
+        // ค้นหาเฉพาะผู้เรียนที่อยู่ใน assigned students
         problems = await Problem.find({ 
           student_id: { $in: studentIds } 
         }).sort({ createdAt: -1 });
@@ -61,7 +61,7 @@ export async function GET() {
     
     // แปลงข้อมูลให้ตรงกับ interface
     const formattedProblems = await Promise.all(problems.map(async (p) => {
-      // หากิจกรรมที่นักเรียนคนนี้เข้าร่วม
+      // หากิจกรรมที่ผู้เรียนคนนี้เข้าร่วม
       const studentActivities = allActivities.filter(a => 
         a.participants?.some((part: any) => part.student_id === p.student_id)
       );

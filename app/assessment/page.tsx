@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -377,7 +377,7 @@ const SDQ_QUESTIONS = [
   { id: 'sdq16', text: '16. เครียด ไม่ยอมห่างเวลาอยู่ในสถานการณ์ที่ไม่คุ้น และขาดความเชื่อมั่นใจในตนเอง' },
   { id: 'sdq17', text: '17. ใจดีกับเด็กที่เล็กกว่า' },
   { id: 'sdq18', text: '18. ชอบโกหก หรือขี้โกง' },
-  { id: 'sdq19', text: '19. ถูกเด็กนักเรียนคนอื่นล้อเรียน หรือรังแก' },
+  { id: 'sdq19', text: '19. ถูกเด็กผู้เรียนคนอื่นล้อเรียน หรือรังแก' },
   { id: 'sdq20', text: '20. ชอบอาสาช่วยเหลือผู้อื่น ( พ่อแม่ ครู เด็กคนอื่น )' },
   { id: 'sdq21', text: '21. คิดก่อนทำ' },
   { id: 'sdq22', text: '22. ขโมยของของที่บ้าน ที่โรงเรียนหรือที่อื่น' },
@@ -455,17 +455,20 @@ function AssessmentContent() {
   useEffect(() => {
     const type = searchParams.get('type');
     const studentId = searchParams.get('studentId');
-    
+
     console.log('URL parameters:', { type, studentId }); // Debug log
-    
+
     if (type && (type === 'sdq' || type === 'dass21')) {
       console.log('Setting active form to:', type); // Debug log
       setActiveForm(type);
-      
+
       // If studentId is provided, fetch student data
       if (studentId) {
         fetchStudentData(studentId);
       }
+    } else if (!type && !studentId) {
+      // If no params, default to SDQ
+      setActiveForm('sdq');
     }
   }, [searchParams]);
 
@@ -500,7 +503,7 @@ function AssessmentContent() {
         
         setStudentInfo(prev => ({
           ...prev,
-          studentId: student._id, // Always use MongoDB _id
+          studentId: student.id, // Use student.id (รหัส)
           studentName: `${student.prefix} ${student.first_name} ${student.last_name}`,
           grade: student.level,
           classroom: `${student.class_group}/${student.class_number}`,
@@ -658,7 +661,7 @@ function AssessmentContent() {
     e.preventDefault();
     
     if (!studentInfo.studentName || !studentInfo.grade) {
-      alert('กรุณากรอกข้อมูลนักเรียนให้ครบถ้วน');
+      alert('กรุณากรอกข้อมูลผู้เรียนให้ครบถ้วน');
       return;
     }
 
@@ -883,7 +886,7 @@ function AssessmentContent() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* ข้อมูลนักเรียน */}
+          {/* ข้อมูลผู้เรียน */}
           <div style={{
             backgroundColor: 'white',
             border: '1px solid #dee2e6',
@@ -895,11 +898,11 @@ function AssessmentContent() {
               borderBottom: '1px solid #e9ecef',
               backgroundColor: '#fefefe'
             }}>
-              <span style={{ fontSize: '14px', fontWeight: 500, color: '#495057' }}>ข้อมูลนักเรียน</span>
+              <span style={{ fontSize: '14px', fontWeight: 500, color: '#495057' }}>ข้อมูลผู้เรียน</span>
             </div>
             <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
               <InputField 
-                label="รหัสนักเรียน" 
+                label="รหัส" 
                 name="studentId" 
                 value={studentInfo.studentId} 
                 onChange={handleStudentInfoChange}
@@ -949,7 +952,7 @@ function AssessmentContent() {
               <SectionHeader 
                 number="1" 
                 title="แบบประเมิน SDQ (Strengths and Difficulties Questionnaire)"
-                subtitle="คำชี้แจง: โปรดทำเครื่องหมาย ✓ ในช่องที่ตรงกับพฤติกรรมของนักเรียนมากที่สุด"
+                subtitle="คำชี้แจง: โปรดทำเครื่องหมาย ✓ ในช่องที่ตรงกับพฤติกรรมของผู้เรียนมากที่สุด"
                 description="⏱️ คำถาม 25 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-2 (ไม่จริง=0, ค่อนข้างจริง=1,จริง=2)"
               />
 

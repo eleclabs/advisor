@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -70,19 +70,19 @@ export default function StudentDASS21ResultsPage() {
       if (data.success) {
         setStudent(data.data);
       } else {
-        setError(data.message || 'ไม่พบข้อมูลนักเรียน');
+        setError(data.message || 'ไม่พบข้อมูลผู้เรียน');
       }
     } catch (error) {
       console.error('Error loading student:', error);
-      setError('เกิดข้อผิดพลาดในการโหลดข้อมูลนักเรียน');
+      setError('เกิดข้อผิดพลาดในการโหลดข้อมูลผู้เรียน');
     }
   };
 
   const loadDASS21Responses = async () => {
     try {
-      const response = await fetch(`/api/assessment/dass21/student/${studentDocId}`);
+      const response = await fetch(`/api/assessment/dass21/student/${student?.id || studentDocId}`);
       const data = await response.json();
-      
+
       if (data.success) {
         setResponses(data.data);
       } else {
@@ -178,7 +178,7 @@ export default function StudentDASS21ResultsPage() {
             fontWeight: 500,
             fontSize: '24px'
           }}>
-            {error || 'ไม่พบข้อมูลนักเรียน'}
+            {error || 'ไม่พบข้อมูลผู้เรียน'}
           </h2>
           <Link
             href={`/student/student_detail/${studentDocId}`}
@@ -193,7 +193,7 @@ export default function StudentDASS21ResultsPage() {
               fontSize: '14px'
             }}
           >
-            กลับไปหน้าข้อมูลนักเรียน
+            กลับไปหน้าข้อมูลผู้เรียน
           </Link>
         </div>
       </div>
@@ -249,7 +249,7 @@ export default function StudentDASS21ResultsPage() {
                 fontSize: '14px',
                 color: '#6c757d'
               }}>
-                นักเรียน: {student.prefix}{student.first_name} {student.last_name} ({student.nickname})
+                ผู้เรียน: {student.prefix}{student.first_name} {student.last_name} ({student.nickname})
               </p>
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function StudentDASS21ResultsPage() {
               color: '#6c757d',
               marginBottom: '24px'
             }}>
-              นักเรียนยังไม่เคยได้รับการประเมินด้วยแบบ DASS-21
+              ผู้เรียนยังไม่เคยได้รับการประเมินด้วยแบบ DASS-21
             </p>
             <Link
               href={`/assessment?type=dass21&studentId=${student.id}`}

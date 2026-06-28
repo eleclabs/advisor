@@ -1,4 +1,4 @@
-// app/components/Header.tsx
+﻿// app/components/Header.tsx
 "use client";
 
 import { useSession, signOut } from "next-auth/react";

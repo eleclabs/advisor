@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Student from "@/models/Student";
 
@@ -24,7 +24,7 @@ export async function GET(
 
     if (!student) {
       return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูลนักเรียน" },
+        { success: false, message: "ไม่พบข้อมูลผู้เรียน" },
         { status: 404 }
       );
     }
@@ -145,7 +145,7 @@ export async function POST(
 
     if (!updatedStudent) {
       return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูลนักเรียน" },
+        { success: false, message: "ไม่พบข้อมูลผู้เรียน" },
         { status: 404 }
       );
     }

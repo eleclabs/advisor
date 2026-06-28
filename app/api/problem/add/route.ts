@@ -1,4 +1,4 @@
-// D:\advisor-main\app\api\problem\add\route.ts
+﻿// D:\advisor-main\app\api\problem\add\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
@@ -7,8 +7,9 @@ import Activity from "@/models/Activity";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { Types } from "mongoose";
 
-// GET method สำหรับค้นหานักเรียนที่ครูคนนี้ดูแล
+// GET method สำหรับค้นหาผู้เรียนที่ครูคนนี้ดูแล
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -26,9 +27,9 @@ export async function GET(request: NextRequest) {
     console.log("🔍 [add/route] Searching students with query:", query);
     console.log("👤 User:", { userId, role: userRole });
 
-    let students = [];
+    let students: any[] = [];
 
-    // ✅ ADMIN: ค้นหาจากนักเรียนทั้งหมด
+    // ✅ ADMIN: ค้นหาจากผู้เรียนทั้งหมด
     if (userRole === "ADMIN") {
       const studentQuery: any = {};
       
@@ -46,32 +47,28 @@ export async function GET(request: NextRequest) {
     
     // ✅ TEACHER: ค้นหาเฉพาะ assigned students
     else if (userRole === "TEACHER" && userId) {
-      // ดึง user เพื่อดู assigned students
       const user = await User.findById(userId).populate({
         path: 'assigned_students.student_id',
         model: Student
       });
       
       if (user && user.assigned_students) {
-        // กรองเฉพาะที่มี student_id
         const assignedStudents = user.assigned_students
           .filter((item: any) => item.student_id)
           .map((item: any) => item.student_id);
         
-        // ถ้ามี query ให้กรองเฉพาะที่ตรง
         if (query) {
           const queryLower = query.toLowerCase();
-          students = assignedStudents.filter((s: any) => 
-            s.id?.toLowerCase().includes(queryLower) ||
-            s.first_name?.toLowerCase().includes(queryLower) ||
-            s.last_name?.toLowerCase().includes(queryLower) ||
-            s.nickname?.toLowerCase().includes(queryLower)
+          students = assignedStudents.filter((student: any) => 
+            student.id?.toLowerCase().includes(queryLower) ||
+            student.first_name?.toLowerCase().includes(queryLower) ||
+            student.last_name?.toLowerCase().includes(queryLower) ||
+            student.nickname?.toLowerCase().includes(queryLower)
           );
         } else {
           students = assignedStudents;
         }
         
-        // จำกัดจำนวน
         students = students.slice(0, 20);
       }
     }
@@ -92,9 +89,9 @@ export async function GET(request: NextRequest) {
       students = await Student.find(studentQuery).limit(20);
     }
 
-    // กรองนักเรียนที่ยังไม่มีแผน
+    // กรองผู้เรียนที่ยังไม่มีแผน
     const studentsWithPlan = await Problem.find().distinct('student_id');
-    const availableStudents = students.filter(s => !studentsWithPlan.includes(s.id));
+    const availableStudents = students.filter((student: any) => !studentsWithPlan.includes(student.id));
 
     console.log(`✅ Found ${availableStudents.length} available students`);
 
@@ -129,7 +126,7 @@ export async function POST(request: NextRequest) {
       duration, 
       responsible,
       methods,
-      activity_ids // รับ activity_ids ที่เลือก
+      activity_ids 
     } = body;
     
     console.log("📥 [add/route] Received data:", { 
@@ -143,39 +140,42 @@ export async function POST(request: NextRequest) {
     if (!student_id) {
       return NextResponse.json({ 
         success: false, 
-        error: "กรุณาระบุรหัสนักเรียน" 
+        error: "กรุณาระบุรหัส" 
       }, { status: 400 });
     }
     
-    // ตรวจสอบว่านักเรียนมีอยู่จริง
     const student = await Student.findOne({ id: student_id });
     if (!student) {
       return NextResponse.json({ 
         success: false, 
-        error: "ไม่พบรหัสนักเรียนนี้ในระบบ" 
+        error: "ไม่พบรหัสนี้ในระบบ" 
       }, { status: 404 });
     }
     
-    // ตรวจสอบว่ามีแผนอยู่แล้ว
     const existing = await Problem.findOne({ student_id });
     if (existing) {
       return NextResponse.json({ 
         success: false, 
-        error: "นักเรียนนี้มีแผนการช่วยเหลือแล้ว" 
+        error: "ผู้เรียนนี้มีแผนการช่วยเหลือแล้ว" 
       }, { status: 400 });
     }
     
     const studentName = `${student.prefix || ''} ${student.first_name || ''} ${student.last_name || ''}`.trim();
     
     // ✅ สร้าง methods object จาก methods array ที่ส่งมา
+    const defaultMethodsList = [
+      "การให้คำปรึกษาเบื้องต้น",
+      "กิจกรรมปรับเปลี่ยนพฤติกรรม",
+      "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง",
+      "การส่งต่อ"
+    ];
+    
     const methodsData = {
       counseling: methods?.includes("การให้คำปรึกษาเบื้องต้น") || counseling || false,
       behavioral_contract: methods?.includes("กิจกรรมปรับเปลี่ยนพฤติกรรม") || behavioral_contract || false,
       home_visit: methods?.includes("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง") || home_visit || false,
       referral: methods?.includes("การส่งต่อ") || referral || false,
-      custom_methods: methods?.filter((m: string) => 
-        !["การให้คำปรึกษาเบื้องต้น", "กิจกรรมปรับเปลี่ยนพฤติกรรม", "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง", "การส่งต่อ"].includes(m)
-      ) || []
+      custom_methods: methods?.filter((method: string) => !defaultMethodsList.includes(method)) || []
     };
     
     const problemData = {
@@ -188,13 +188,12 @@ export async function POST(request: NextRequest) {
       home_visit: methodsData.home_visit,
       referral: methodsData.referral,
       custom_methods: methodsData.custom_methods,
-      methods: methods || [], // ✅ บันทึก methods array โดยตรง
       duration,
       responsible,
       isp_status: "กำลังดำเนินการ",
       progress: 0,
       evaluations: [],
-      activities: [], // จะเพิ่มทีละกิจกรรม
+      activities: [],
       activities_status: new Map(),
       activity_join_dates: new Map(),
       activity_completed_dates: new Map()
@@ -202,10 +201,9 @@ export async function POST(request: NextRequest) {
     
     const newProblem = await Problem.create(problemData);
     
-    // ✅ ถ้ามีการเลือกกิจกรรม ให้เพิ่มนักเรียนเข้าไปใน participants ของกิจกรรม AND เชื่อมโยงกับ Problem
+    // ✅ ถ้ามีการเลือกกิจกรรม ให้เพิ่มผู้เรียนเข้าไปใน participants ของกิจกรรม AND เชื่อมโยงกับ Problem
     if (activity_ids && activity_ids.length > 0) {
       for (const activityId of activity_ids) {
-        // 1. เพิ่มนักเรียนเข้าไปใน Activity participants
         await Activity.findByIdAndUpdate(
           activityId,
           {
@@ -224,7 +222,6 @@ export async function POST(request: NextRequest) {
           }
         );
         
-        // 2. ✅ เชื่อมโยงกิจกรรมเข้ากับ Problem (สำคัญมาก!)
         await Problem.findByIdAndUpdate(
           newProblem._id,
           {
@@ -249,6 +246,7 @@ export async function POST(request: NextRequest) {
     }
     
     console.log("✅ [add/route] Created problem with ID:", newProblem._id);
+    console.log("✅ Custom methods saved:", methodsData.custom_methods);
     
     return NextResponse.json({ 
       success: true, 

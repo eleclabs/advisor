@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
@@ -97,7 +97,7 @@ export default function ProfilePage() {
         return;
       }
 
-      // ถ้ามีผู้ใช้ ให้ดึงข้อมูลนักเรียนที่รับผิดชอบ
+      // ถ้ามีผู้ใช้ ให้ดึงข้อมูลผู้เรียนที่รับผิดชอบ
       if (currentUser && currentUser.role === 'TEACHER') {
         try {
           const assignedRes = await fetch(`/api/user/${currentUser._id}/assign-students`);

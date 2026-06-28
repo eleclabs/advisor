@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -148,9 +148,9 @@ export default function NewUserPage() {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      'นักเรียนปกติ': 'success',
-      'นักเรียนเสี่ยง': 'warning',
-      'นักเรียนพิเศษ': 'info'
+      'ผู้เรียนปกติ': 'success',
+      'ผู้เรียนเสี่ยง': 'warning',
+      'ผู้เรียนพิเศษ': 'info'
     };
     return colors[status as keyof typeof colors] || 'secondary';
   };
@@ -413,7 +413,7 @@ export default function NewUserPage() {
               <div className="card-header bg-dark text-white">
                 <h5 className="mb-0">
                   <i className="bi bi-sliders me-2"></i>
-                  กำหนดการเข้าถึงนักเรียน
+                  กำหนดการเข้าถึงผู้เรียน
                 </h5>
               </div>
               <div className="card-body">
@@ -477,7 +477,7 @@ export default function NewUserPage() {
                 {/* Students Preview */}
                 {(selectedLevel || selectedClassGroup || selectedClassNumber) && (
                   <div className="mt-3">
-                    <h6 className="mb-2">นักเรียนที่จะเข้าถึงได้:</h6>
+                    <h6 className="mb-2">ผู้เรียนที่จะเข้าถึงได้:</h6>
                     <div className="border rounded p-2" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                       {loadingStudents ? (
                         <div className="text-center py-2">
@@ -514,7 +514,7 @@ export default function NewUserPage() {
                         ))
                       ) : (
                         <div className="text-center py-2">
-                          <small className="text-muted">ไม่พบนักเรียนในเงื่อนไขที่เลือก</small>
+                          <small className="text-muted">ไม่พบผู้เรียนในเงื่อนไขที่เลือก</small>
                         </div>
                       )}
                       {getStudentsForSelection().length > 5 && (

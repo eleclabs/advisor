@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -319,7 +319,7 @@ export default function UserDetailPage() {
                 <div className="card-header bg-primary text-white">
                   <h5 className="mb-0">
                     <i className="bi bi-people-fill me-2"></i>
-                    นักเรียนที่รับผิดชอบ ({assignmentSummary?.total_students || 0} คน)
+                    ผู้เรียนที่รับผิดชอบ ({assignmentSummary?.total_students || 0} คน)
                   </h5>
                 </div>
                 <div className="card-body p-0">

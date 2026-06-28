@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // อัปเดตข้อมูลการรับผิดชอบนักเรียนใน User Model
+    // อัปเดตข้อมูลการรับผิดชอบผู้เรียนใน User Model
     const updatedUser = await User.findByIdAndUpdate(
       user_id,
       {

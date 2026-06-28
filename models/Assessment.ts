@@ -31,10 +31,10 @@ const AssessmentSchema = new Schema({
   classroom: { type: String },
   gender: { type: String },
   age: { type: String },
-  assessmentType: { 
-    type: String, 
-    enum: ['sdq', 'dass21'], 
-    required: true 
+  assessmentType: {
+    type: String,
+    enum: ['sdq', 'dass21'],
+    required: true
   },
   sdqScore: {
     totalScore: Number,

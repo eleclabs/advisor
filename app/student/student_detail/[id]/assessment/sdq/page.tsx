@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -90,7 +90,7 @@ export default function SdqAssessmentPage() {
       "66002": "นางสาวจิรา สวยใจ",
       "66003": "นายสมเด็จ วิจิตร",
     };
-    setStudentName(mockNames[studentId as string] || "นักเรียน");
+    setStudentName(mockNames[studentId as string] || "ผู้เรียน");
     setLoading(false);
   }, [studentId]);
 
@@ -211,7 +211,7 @@ export default function SdqAssessmentPage() {
                   <i className="bi bi-clipboard-data me-2 text-warning"></i>
                   แบบประเมิน SDQ
                 </h2>
-                <p className="text-muted mb-0 mt-1">นักเรียน: {studentName}</p>
+                <p className="text-muted mb-0 mt-1">ผู้เรียน: {studentName}</p>
               </div>
               <div>
                 <span className="badge bg-info rounded-0 p-2 me-2">
@@ -563,9 +563,9 @@ export default function SdqAssessmentPage() {
                       <h6 className="fw-bold mb-2">ผลการประเมิน</h6>
                       <h4 className="fw-bold mb-2">{scores.level}</h4>
                       <p className="small mb-0">
-                        {scores.level === "ปกติ" && "นักเรียนอยู่ในเกณฑ์ปกติ ไม่มีปัญหา"}
-                        {scores.level === "เสี่ยง" && "นักเรียนมีแนวโน้มที่จะมีปัญหา ควรติดตามดูแล"}
-                        {scores.level === "มีปัญหา" && "นักเรียนมีปัญหาชัดเจน ควรได้รับความช่วยเหลือ"}
+                        {scores.level === "ปกติ" && "ผู้เรียนอยู่ในเกณฑ์ปกติ ไม่มีปัญหา"}
+                        {scores.level === "เสี่ยง" && "ผู้เรียนมีแนวโน้มที่จะมีปัญหา ควรติดตามดูแล"}
+                        {scores.level === "มีปัญหา" && "ผู้เรียนมีปัญหาชัดเจน ควรได้รับความช่วยเหลือ"}
                       </p>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -169,7 +169,7 @@ function StudentBasicPage() {
           };
           setStudent(formattedData);
         } else {
-          setError("ไม่พบข้อมูลนักเรียน");
+          setError("ไม่พบข้อมูลผู้เรียน");
         }
       } catch (error) {
         console.error("Error:", error);
@@ -217,7 +217,7 @@ function StudentBasicPage() {
     return (
       <div className="d-flex justify-content-center align-items-center min-vh-100">
         <div className="alert alert-danger mb-0" style={{ minWidth: '300px' }}>
-          <p className="mb-0">{error || "ไม่พบข้อมูลนักเรียน"}</p>
+          <p className="mb-0">{error || "ไม่พบข้อมูลผู้เรียน"}</p>
           <div className="mt-3 d-flex gap-2">
             <button 
               onClick={() => window.location.reload()} 
@@ -341,7 +341,7 @@ function StudentBasicPage() {
                         <small className="text-muted">{teachers.length} ครูที่ได้รับมอบหมาย</small>
                       </div>
                     ) : (
-                      <p className="text-muted">ไม่มีครูที่ได้รับมอบหมายนักเรียนคนนี้</p>
+                      <p className="text-muted">ไม่มีครูที่ได้รับมอบหมายผู้เรียนคนนี้</p>
                     )}
                   </div>
                   <div className="col-md-3">

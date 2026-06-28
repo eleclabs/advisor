@@ -1,4 +1,4 @@
-// app/components/withPermission.tsx
+﻿// app/components/withPermission.tsx
 "use client";
 
 import { useSession } from "next-auth/react";

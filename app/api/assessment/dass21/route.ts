@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Assessment from "@/models/Assessment";
 
@@ -18,16 +18,15 @@ export async function GET(request: NextRequest) {
     const assessments = await Assessment.find(query)
     .sort({ createdAt: -1 });
 
-    // คำนวณคะแนนและจัดกลุ่ม
     const processedAssessments = assessments.map(assessment => {
       const answers = assessment.answers || {};
       
-      // คำนวณคะแนน DASS-21
+      // ✅ คำนวณคะแนน DASS-21 (คะแนนดิบ ไม่คูณ 2) ตามรูป
       const depressionScore = calculateDepressionScore(answers);
       const anxietyScore = calculateAnxietyScore(answers);
       const stressScore = calculateStressScore(answers);
       
-      // กำหนดระดับความรุนแรง
+      // ✅ กำหนดระดับความรุนแรงตามรูป 33674
       const depressionLevel = getDepressionLevel(depressionScore);
       const anxietyLevel = getAnxietyLevel(anxietyScore);
       const stressLevel = getStressLevel(stressScore);
@@ -70,42 +69,46 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// DASS-21 Scoring Functions
+// ✅ DASS-21 Scoring Functions (คะแนนดิบ ไม่คูณ 2)
 function calculateDepressionScore(answers: any): number {
-  const depressionQuestions = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
-  return depressionQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0) * 2;
+  const questions = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7'];
+  return questions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
 }
 
 function calculateAnxietyScore(answers: any): number {
-  const anxietyQuestions = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7'];
-  return anxietyQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0) * 2;
+  const questions = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7'];
+  return questions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
 }
 
 function calculateStressScore(answers: any): number {
-  const stressQuestions = ['s1', 's2', 's3', 's4', 's5', 's6', 's7'];
-  return stressQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0) * 2;
+  const questions = ['s1', 's2', 's3', 's4', 's5', 's6', 's7'];
+  return questions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
 }
 
+// ✅ เกณฑ์ตามรูป 33674
+// Depression: ปกติ 0-4, ต่ำ 5-6, ปานกลาง 7-10, รุนแรง 11-13, รุนแรงที่สุด 14+
 function getDepressionLevel(score: number): string {
-  if (score <= 9) return 'ปกติ';
-  if (score <= 13) return 'เบา';
-  if (score <= 20) return 'ปานกลาง';
-  if (score <= 27) return 'รุนแรง';
-  return 'รุนแรงมาก';
+  if (score <= 4) return 'ปกติ';
+  if (score <= 6) return 'ต่ำ';
+  if (score <= 10) return 'ปานกลาง';
+  if (score <= 13) return 'รุนแรง';
+  return 'รุนแรงที่สุด';
 }
 
+// Anxiety: ปกติ 0-3, ต่ำ 4-5, ปานกลาง 6-7, รุนแรง 8-9, รุนแรงที่สุด 10+
 function getAnxietyLevel(score: number): string {
-  if (score <= 7) return 'ปกติ';
-  if (score <= 9) return 'เบา';
-  if (score <= 14) return 'ปานกลาง';
-  if (score <= 19) return 'รุนแรง';
-  return 'รุนแรงมาก';
+  if (score <= 3) return 'ปกติ';
+  if (score <= 5) return 'ต่ำ';
+  if (score <= 7) return 'ปานกลาง';
+  if (score <= 9) return 'รุนแรง';
+  return 'รุนแรงที่สุด';
 }
 
+// Stress: ปกติ 0-7, ต่ำ 8-9, ปานกลาง 10-12, รุนแรง 13-16, รุนแรงที่สุด 17+
 function getStressLevel(score: number): string {
-  if (score <= 14) return 'ปกติ';
-  if (score <= 18) return 'เบา';
-  if (score <= 25) return 'ปานกลาง';
-  if (score <= 33) return 'รุนแรง';
-  return 'รุนแรงมาก';
+  if (score <= 7) return 'ปกติ';
+  if (score <= 9) return 'ต่ำ';
+  if (score <= 12) return 'ปานกลาง';
+  if (score <= 16) return 'รุนแรง';
+  return 'รุนแรงที่สุด';
 }

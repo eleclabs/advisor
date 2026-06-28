@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -54,7 +54,7 @@ export default function ActivityStatusPage() {
       setActivity(activityJson.data);
       setStudent(studentJson.data);
 
-      // ค้นหาข้อมูลกิจกรรมในนักเรียน
+      // ค้นหาข้อมูลกิจกรรมในผู้เรียน
       const studentActivities = studentJson.data.activities || [];
       console.log("🔍 Student activities:", studentActivities);
       console.log("🔍 Looking for activity_id:", activityJson.data._id);
@@ -75,8 +75,8 @@ export default function ActivityStatusPage() {
       let found = null;
       if (matchingActivities.length > 0) {
         // ลองหาอันที่มี joined_at และ completed_at ก่อน
-        found = matchingActivities.find(a => a.joined_at && a.completed_at) || 
-                matchingActivities.find(a => a.joined_at) ||
+        found = matchingActivities.find((a: any) => a.joined_at && a.completed_at) ||
+                matchingActivities.find((a: any) => a.joined_at) ||
                 matchingActivities[0];
       }
 

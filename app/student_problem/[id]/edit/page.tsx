@@ -1,3 +1,4 @@
+﻿// D:\advisor-main\app\student_problem\[id]\edit\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -76,7 +77,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
       if (data.success && data.data) {
         setProblem(data.data);
         
-        // ✅ โหลดวิธีการแก้ไขจาก API (ถ้ามี)
+        // ✅ โหลดวิธีการแก้ไขจาก API
         if (data.data.methods && Array.isArray(data.data.methods)) {
           setSelectedMethods(data.data.methods);
           // รวม methods จาก API เข้ากับ DEFAULT_METHODS
@@ -89,7 +90,14 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
           if (data.data.behavioral_contract) loadedMethods.push("กิจกรรมปรับเปลี่ยนพฤติกรรม");
           if (data.data.home_visit) loadedMethods.push("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง");
           if (data.data.referral) loadedMethods.push("การส่งต่อ");
+          // ✅ Also load custom_methods
+          if (data.data.custom_methods && Array.isArray(data.data.custom_methods)) {
+            loadedMethods.push(...data.data.custom_methods);
+          }
           setSelectedMethods(loadedMethods);
+          // ✅ Update methods list to include custom ones
+          const allMethods = [...new Set([...DEFAULT_METHODS, ...loadedMethods])];
+          setMethods(allMethods);
         }
         
         setFormData({
@@ -147,6 +155,12 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
 
   // ✅ ลบวิธีการแก้ไข (เฉพาะที่เพิ่มเอง)
   const removeMethod = (method: string) => {
+    if (DEFAULT_METHODS.includes(method)) {
+      // ถ้าเป็นค่าเริ่มต้น ให้แค่ยกเลิกการเลือก
+      setSelectedMethods(prev => prev.filter(m => m !== method));
+      return;
+    }
+    // ถ้าเป็น custom method ให้ลบออกจากรายการและยกเลิกการเลือก
     setMethods(prev => prev.filter(m => m !== method));
     setSelectedMethods(prev => prev.filter(m => m !== method));
   };
@@ -156,30 +170,13 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
     setLoading(true);
     
     try {
-      // เตรียมข้อมูลกิจกรรมที่เลือก
-      const selectedActivitiesData = selectedActivities.map(actId => {
-        const act = activities.find(a => a._id === actId);
-        return act ? { 
-          activity_id: act._id,
-          name: act.name,
-          duration: act.duration,
-          materials: act.materials,
-          steps: act.steps,
-          ice_breaking: act.ice_breaking,
-          group_task: act.group_task,
-          debrief: act.debrief,
-          activity_date: act.activity_date,
-          status: "เข้าร่วมแล้ว"
-        } : null;
-      }).filter(Boolean);
-
       const res = await fetch(`/api/problem/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          methods: selectedMethods, // ✅ ส่งวิธีการแก้ไข
-          activities: selectedActivitiesData
+          methods: selectedMethods, // ✅ ส่งวิธีการแก้ไขทั้งหมด
+          activities: selectedActivities.map(actId => ({ activity_id: actId }))
         })
       });
       
@@ -235,7 +232,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
               </h4>
             </div>
             <div className="card-body">
-              {/* ข้อมูลนักเรียน */}
+              {/* ข้อมูลผู้เรียน */}
               {problem && (
                 <div className="alert alert-info mb-4">
                   <div className="d-flex justify-content-between align-items-center">
@@ -288,7 +285,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                       
                       <div className="border p-3 mb-2">
                         {methods.map((method) => (
-                          <div key={method} className="form-check d-flex align-items-center gap-2">
+                          <div key={method} className="form-check d-flex align-items-center gap-2 mb-1">
                             <input
                               type="checkbox"
                               className="form-check-input"
@@ -318,7 +315,7 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                         <input
                           type="text"
                           className="form-control"
-                          placeholder="พิมพ์วิธีการแก้ไข..."
+                          placeholder="พิมพ์วิธีการแก้ไขเพิ่มเติม..."
                           value={newMethod}
                           onChange={(e) => setNewMethod(e.target.value)}
                           onKeyDown={(e) => {
@@ -379,7 +376,17 @@ export default function EditProblemPage({ params }: { params: Promise<{ id: stri
                     </div>
 
                     <div className="row">
-                      
+                      <div className="col-md-6 mb-3">
+                        <label className="form-label fw-bold">ความคืบหน้า (%)</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          min="0"
+                          max="100"
+                          value={formData.progress}
+                          onChange={(e) => setFormData({...formData, progress: parseInt(e.target.value) || 0})}
+                        />
+                      </div>
                       <div className="col-md-6 mb-3">
                         <label className="form-label fw-bold">สถานะ</label>
                         <select

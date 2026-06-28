@@ -1,4 +1,4 @@
-// app/api/admin/batch-assign/route.ts
+﻿// app/api/admin/batch-assign/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
@@ -6,7 +6,7 @@ import Student from "@/models/Student";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-// POST - มอบหมายนักเรียนหลายคนให้กับครูหลายคนพร้อมกัน
+// POST - มอบหมายผู้เรียนหลายคนให้กับครูหลายคนพร้อมกัน
 export async function POST(req: NextRequest) {
   console.log("🚀 POST /api/admin/batch-assign เริ่มทำงาน");
   
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (teacherIds.length === 0 || studentIds.length === 0) {
       return NextResponse.json({ 
         success: false, 
-        message: "กรุณาเลือกอย่างน้อย 1 ครู และ 1 นักเรียน" 
+        message: "กรุณาเลือกอย่างน้อย 1 ครู และ 1 ผู้เรียน" 
       }, { status: 400 });
     }
 
@@ -55,11 +55,11 @@ export async function POST(req: NextRequest) {
     if (students.length !== studentIds.length) {
       return NextResponse.json({ 
         success: false, 
-        message: "พบนักเรียนที่ไม่มีในระบบ" 
+        message: "พบผู้เรียนที่ไม่มีในระบบ" 
       }, { status: 400 });
     }
 
-    // ดึงข้อมูลนักเรียนทั้งหมดที่ถูกเลือก
+    // ดึงข้อมูลผู้เรียนทั้งหมดที่ถูกเลือก
     const selectedStudents = students.map(student => ({
       student_id: student._id,
       student_name: `${student.prefix || ''}${student.first_name} ${student.last_name}`.trim(),
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const results = [];
     const errors = [];
 
-    // มอบหมายนักเรียนให้กับแต่ละครู
+    // มอบหมายผู้เรียนให้กับแต่ละครู
     for (const teacherId of teacherIds) {
       try {
         // ดึงข้อมูลครูปัจจุบันเพื่อเก็บ assigned_students เดิม
@@ -90,13 +90,13 @@ export async function POST(req: NextRequest) {
           newStudentIds.includes(assignment.student_id.toString())
         );
 
-        // ถ้าไม่มีนักเรียนใหม่ที่จะเพิ่ม ข้ามไป
+        // ถ้าไม่มีผู้เรียนใหม่ที่จะเพิ่ม ข้ามไป
         if (newAssignments.length === 0) {
           results.push({
             teacherId,
             teacherName: `${currentTeacher.prefix} ${currentTeacher.first_name} ${currentTeacher.last_name}`,
             assignedCount: 0,
-            message: "ไม่มีนักเรียนใหม่ที่จะเพิ่ม (ทั้งหมดถูกมอบหมายแล้ว)"
+            message: "ไม่มีผู้เรียนใหม่ที่จะเพิ่ม (ทั้งหมดถูกมอบหมายแล้ว)"
           });
           continue;
         }
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log(`✅ มอบหมายนักเรียน ${studentIds.length} คน ให้ครู ${results.length} คนสำเร็จ`);
+    console.log(`✅ มอบหมายผู้เรียน ${studentIds.length} คน ให้ครู ${results.length} คนสำเร็จ`);
 
     return NextResponse.json({
       success: true,
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
         results,
         errors
       },
-      message: `มอบหมายนักเรียนสำเร็จ ${results.length}/${teacherIds.length} ครู`
+      message: `มอบหมายผู้เรียนสำเร็จ ${results.length}/${teacherIds.length} ครู`
     });
 
   } catch (error: any) {

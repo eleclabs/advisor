@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -80,7 +80,7 @@ export default function ManageAssignmentPage() {
     fetchTeachers();
   }, []);
 
-  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับนักเรียนแต่ละคน
+  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับผู้เรียนแต่ละคน
   const fetchAssignedTeachersForStudent = async (studentId: string): Promise<Teacher[]> => {
     try {
       const assignedTeachers: Teacher[] = [];
@@ -205,11 +205,11 @@ export default function ManageAssignmentPage() {
 
   const handleRemoveStudents = async () => {
     if (selectedStudents.size === 0) {
-      alert("กรุณาเลือกนักเรียนที่ต้องการลบ");
+      alert("กรุณาเลือกผู้เรียนที่ต้องการลบ");
       return;
     }
 
-    if (!confirm(`คุณต้องการลบนักเรียน ${selectedStudents.size} คน จากรายการรับผิดชอบหรือไม่?`)) {
+    if (!confirm(`คุณต้องการลบผู้เรียน ${selectedStudents.size} คน จากรายการรับผิดชอบหรือไม่?`)) {
       return;
     }
 
@@ -229,7 +229,7 @@ export default function ManageAssignmentPage() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        alert(`ลบนักเรียน ${selectedStudents.size} คน สำเร็จ`);
+        alert(`ลบผู้เรียน ${selectedStudents.size} คน สำเร็จ`);
         setSelectedStudents(new Set());
         fetchAssignedStudents(selectedTeacher);
       } else {
@@ -237,7 +237,7 @@ export default function ManageAssignmentPage() {
       }
     } catch (error) {
       console.error("Error removing students:", error);
-      alert("เกิดข้อผิดพลาดในการลบนักเรียน");
+      alert("เกิดข้อผิดพลาดในการลบผู้เรียน");
     } finally {
       setRemoving(false);
     }
@@ -283,8 +283,8 @@ export default function ManageAssignmentPage() {
         <div className="container">
           <div className="row align-items-center">
             <div className="col">
-              <h1 className="h3 mb-0">จัดการการมอบหมายนักเรียน</h1>
-              <p className="mb-0 text-white-50">ลบนักเรียนออกจากรายการรับผิดชอบ</p>
+              <h1 className="h3 mb-0">จัดการการมอบหมายผู้เรียน</h1>
+              <p className="mb-0 text-white-50">ลบผู้เรียนออกจากรายการรับผิดชอบ</p>
             </div>
             <div className="col-auto">
               <Link
@@ -418,7 +418,7 @@ export default function ManageAssignmentPage() {
                   <div className="d-flex justify-content-between align-items-center">
                     <h5 className="mb-0">
                       <i className="bi bi-people me-2"></i>
-                      นักเรียนที่รับผิดชอบ ({assignedStudents.length} คน)
+                      ผู้เรียนที่รับผิดชอบ ({assignedStudents.length} คน)
                     </h5>
                     <div className="d-flex gap-2 align-items-center">
                       <span className="badge bg-light text-dark">
@@ -455,7 +455,7 @@ export default function ManageAssignmentPage() {
                       </span>
                       <input
                         type="text"
-                        placeholder="ค้นหานักเรียน..."
+                        placeholder="ค้นหาผู้เรียน..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="form-control border-0 bg-light"
@@ -534,7 +534,7 @@ export default function ManageAssignmentPage() {
                       })
                     ) : (
                       <div className="text-center p-4 text-muted">
-                        {searchTerm ? "ไม่พบนักเรียนที่ค้นหา" : "ไม่มีนักเรียนที่รับผิดชอบ"}
+                        {searchTerm ? "ไม่พบผู้เรียนที่ค้นหา" : "ไม่มีผู้เรียนที่รับผิดชอบ"}
                       </div>
                     )}
                   </div>

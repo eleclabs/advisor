@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -209,11 +209,11 @@ export default function ViewReferralPage() {
                 <div className="p-3 border-bottom bg-dark">
                   <h6 className="text-uppercase fw-semibold m-0 text-white">
                     <i className="bi bi-person me-2 text-warning"></i>
-                    ข้อมูลนักเรียน
+                    ข้อมูลผู้เรียน
                   </h6>
                 </div>
                 <div className="p-3">
-                  <p className="mb-2"><strong>รหัสนักเรียน:</strong> {referral.student_id}</p>
+                  <p className="mb-2"><strong>รหัส:</strong> {referral.student_id}</p>
                   <p className="mb-2"><strong>ชื่อ:</strong> {referral.student_name}</p>
                   <p className="mb-2"><strong>ระดับชั้น:</strong> {referral.student_level}</p>
                   <p className="mb-0"><strong>ห้อง:</strong> {referral.student_class}/{referral.student_number}</p>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -245,7 +245,7 @@ export default function StudentLearnPage() {
           setFilteredPlans(filtered);
           
           const events: {[key: string]: HomeroomPlan[]} = {};
-          filtered.forEach(plan => { if (plan.date) { if (!events[plan.date]) events[plan.date] = []; events[plan.date].push(plan); } });
+          filtered.forEach((plan: HomeroomPlan) => { if (plan.date) { if (!events[plan.date]) events[plan.date] = []; events[plan.date].push(plan); } });
           setCalendarEvents(events);
         }
       } catch (error) { console.error("Error fetching plans:", error); }
@@ -487,7 +487,7 @@ export default function StudentLearnPage() {
                   <div className="d-flex justify-content-between align-items-center">
                     <h6 className="fw-bold m-0">
                       <i className="bi bi-people-fill me-2"></i>
-                      รายชื่อนักเรียนที่กรอง ({filteredStudents.length} คน)
+                      รายชื่อผู้เรียนที่กรอง ({filteredStudents.length} คน)
                     </h6>
                     <div>
                       {selectedLevel && <span className="badge bg-light text-dark me-2">ระดับชั้น: {selectedLevel}</span>}
@@ -509,10 +509,10 @@ export default function StudentLearnPage() {
                         <thead className="table-light">
                           <tr>
                             <th>#</th>
-                            <th>รหัสนักเรียน</th>
+                            <th>รหัส</th>
                             <th>ชื่อ-นามสกุล</th>
                             <th>ระดับชั้น</th>
-                            <th>สาขาเรียน</th>
+                            <th>สาขา</th>
                             <th>ห้อง</th>
                           </tr>
                         </thead>
@@ -549,7 +549,7 @@ export default function StudentLearnPage() {
                   ) : (
                     <div className="text-center py-5">
                       <i className="bi bi-people fs-1 d-block mb-3 text-muted"></i>
-                      <h6 className="text-muted">ไม่พบนักเรียนตามเงื่อนไขที่เลือก</h6>
+                      <h6 className="text-muted">ไม่พบผู้เรียนตามเงื่อนไขที่เลือก</h6>
                     </div>
                   )}
                 </div>
@@ -666,7 +666,7 @@ export default function StudentLearnPage() {
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                       <h6 className="fw-bold mb-0">
                                         <i className="bi bi-people-fill me-2 text-info"></i>
-                                        รายชื่อนักเรียนที่เข้าร่วม ({planStudents[plan.id].length} คน)
+                                        รายชื่อผู้เรียนที่เข้าร่วม ({planStudents[plan.id].length} คน)
                                       </h6>
                                       <small className="text-muted">
                                         {getPlanTargetText(plan)}
@@ -679,10 +679,10 @@ export default function StudentLearnPage() {
                                           <thead className="table-secondary">
                                             <tr>
                                               <th>#</th>
-                                              <th>รหัสนักเรียน</th>
+                                              <th>รหัส</th>
                                               <th>ชื่อ-นามสกุล</th>
                                               <th>ระดับชั้น</th>
-                                              <th>สาขาเรียน</th>
+                                              <th>สาขา</th>
                                               <th>ห้อง</th>
                                             </tr>
                                           </thead>
@@ -717,7 +717,7 @@ export default function StudentLearnPage() {
                                         </table>
                                       </div>
                                     ) : (
-                                      <p className="text-muted">ไม่มีนักเรียนตามเงื่อนไขนี้</p>
+                                      <p className="text-muted">ไม่มีผู้เรียนตามเงื่อนไขนี้</p>
                                     )}
                                   </div>
                                 </td>

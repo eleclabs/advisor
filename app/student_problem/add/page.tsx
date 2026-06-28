@@ -1,3 +1,4 @@
+﻿// D:\advisor-main\app\student_problem\add\page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -114,7 +115,7 @@ export default function AddProblemPage() {
         body: JSON.stringify({
           student_id: student.id,
           ...formData,
-          methods: selectedMethods, // ✅ ส่งวิธีการแก้ไขที่เลือก
+          methods: selectedMethods,
           activity_ids: selectedActivities
         })
       });
@@ -156,13 +157,17 @@ export default function AddProblemPage() {
     const trimmed = newMethod.trim();
     if (trimmed && !methods.includes(trimmed)) {
       setMethods(prev => [...prev, trimmed]);
-      setSelectedMethods(prev => [...prev, trimmed]); // เลือกอัตโนมัติ
+      setSelectedMethods(prev => [...prev, trimmed]);
       setNewMethod("");
     }
   };
 
   // ✅ ลบวิธีการแก้ไข
   const removeMethod = (method: string) => {
+    if (DEFAULT_METHODS.includes(method)) {
+      setSelectedMethods(prev => prev.filter(m => m !== method));
+      return;
+    }
     setMethods(prev => prev.filter(m => m !== method));
     setSelectedMethods(prev => prev.filter(m => m !== method));
   };
@@ -192,13 +197,13 @@ export default function AddProblemPage() {
               </h4>
             </div>
             <div className="card-body">
-              {/* ขั้นตอนที่ 1: ค้นหาและเลือกนักเรียน */}
+              {/* ขั้นตอนที่ 1: ค้นหาและเลือกผู้เรียน */}
               {step === 1 && (
                 <div>
                   <div className="text-center mb-4">
                     <div className="badge bg-warning text-dark p-2">ขั้นตอนที่ 1</div>
                     <h5 className="mt-2">ค้นหาและเลือกผู้เรียน</h5>
-                    <p className="text-muted">พิมพ์ชื่อหรือรหัสผู้เรียนเพื่อค้นหา</p>
+                    <p className="text-muted">พิมพ์ชื่อหรือรหัสเพื่อค้นหา</p>
                   </div>
                   
                   <div className="mb-4">
@@ -210,7 +215,7 @@ export default function AddProblemPage() {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="พิมพ์ชื่อหรือรหัสผู้เรียน..."
+                        placeholder="พิมพ์ชื่อหรือรหัส..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         autoFocus
@@ -316,7 +321,7 @@ export default function AddProblemPage() {
                     <h5 className="mt-2">แผนการช่วยเหลือและเลือกกิจกรรม</h5>
                   </div>
 
-                  {/* ข้อมูลนักเรียนที่เลือก */}
+                  {/* ข้อมูลผู้เรียนที่เลือก */}
                   <div className="alert alert-info mb-4">
                     <div className="d-flex justify-content-between align-items-center">
                       <div>
@@ -385,19 +390,18 @@ export default function AddProblemPage() {
                           
                           {/* Checkbox รายการที่มี */}
                           <div className="border p-3 mb-2">
-                            {methods.map((method) => (
-                              <div key={method} className="form-check d-flex align-items-center gap-2 mb-1">
+                            {methods.map((method, index) => (
+                              <div key={`method-${index}-${method}`} className="form-check d-flex align-items-center gap-2 mb-1">
                                 <input
                                   type="checkbox"
                                   className="form-check-input"
-                                  id={`method-${method}`}
+                                  id={`method-${index}-${method}`}
                                   checked={selectedMethods.includes(method)}
                                   onChange={() => toggleMethod(method)}
                                 />
-                                <label className="form-check-label flex-grow-1" htmlFor={`method-${method}`}>
+                                <label className="form-check-label flex-grow-1" htmlFor={`method-${index}-${method}`}>
                                   {method}
                                 </label>
-                                {/* ปุ่มลบรายการ (ยกเว้น 4 รายการเริ่มต้น) */}
                                 {!DEFAULT_METHODS.includes(method) && (
                                   <button
                                     type="button"
@@ -445,8 +449,8 @@ export default function AddProblemPage() {
                                 เลือก {selectedMethods.length} วิธี
                               </span>
                               <div className="mt-1">
-                                {selectedMethods.map(m => (
-                                  <span key={m} className="badge bg-light text-dark me-1 mb-1 border">
+                                {selectedMethods.map((m, idx) => (
+                                  <span key={`selected-${idx}-${m}`} className="badge bg-light text-dark me-1 mb-1 border">
                                     {m}
                                   </span>
                                 ))}

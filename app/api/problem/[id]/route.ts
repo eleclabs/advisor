@@ -1,4 +1,4 @@
-// D:\advisor-main\app\api\problem\[id]\route.ts
+﻿// D:\advisor-main\app\api\problem\[id]\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
@@ -6,7 +6,7 @@ import Student from "@/models/Student";
 import Activity from "@/models/Activity";
 import mongoose from "mongoose";
 
-// GET: ดึงข้อมูลนักเรียน
+// GET: ดึงข้อมูลผู้เรียน
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -22,7 +22,6 @@ export async function GET(
     
     // ตรวจสอบว่า id เป็น MongoDB ObjectId หรือไม่
     if (mongoose.Types.ObjectId.isValid(id)) {
-      // ✅ ค้นหาด้วย _id และ populate ข้อมูล activities
       problem = await Problem.findById(id)
         .populate('activities.activity_id');
       console.log("📋 Found by _id:", problem ? "Yes" : "No");
@@ -30,14 +29,12 @@ export async function GET(
     
     // ถ้าไม่เจอด้วย _id ให้ค้นหาด้วย student_id
     if (!problem) {
-      // ✅ ค้นหาด้วย student_id และ populate ข้อมูล activities
       problem = await Problem.findOne({ student_id: id })
         .populate('activities.activity_id');
       console.log("📋 Found by student_id:", problem ? "Yes" : "No");
     }
     
     if (problem) {
-      // ✅ แปลงข้อมูลให้แน่ใจว่า activities อยู่ในรูปแบบที่ถูกต้อง
       const problemData = problem.toObject();
       
       // แปลง Map ให้เป็น plain object
@@ -51,12 +48,27 @@ export async function GET(
         problemData.activity_completed_dates = Object.fromEntries(problemData.activity_completed_dates);
       }
       
-      // ถ้าไม่มี activities array ให้สร้าง array ว่าง
       if (!problemData.activities) {
         problemData.activities = [];
       }
       
-      console.log("✅ Sending problem data with activities count:", problemData.activities.length);
+      // ✅ Ensure custom_methods is always an array
+      if (!problemData.custom_methods) {
+        problemData.custom_methods = [];
+      }
+      
+      // ✅ Combine all methods for display
+      const methods: string[] = [];
+      if (problemData.counseling) methods.push("การให้คำปรึกษาเบื้องต้น");
+      if (problemData.behavioral_contract) methods.push("กิจกรรมปรับเปลี่ยนพฤติกรรม");
+      if (problemData.home_visit) methods.push("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง");
+      if (problemData.referral) methods.push("การส่งต่อ");
+      if (problemData.custom_methods && Array.isArray(problemData.custom_methods)) {
+        methods.push(...problemData.custom_methods);
+      }
+      problemData.methods = methods;
+      
+      console.log("✅ Sending problem data with methods:", methods);
       
       return NextResponse.json({ 
         success: true, 
@@ -64,7 +76,7 @@ export async function GET(
       });
     }
     
-    // ถ้าไม่เจอใน Problem ให้ค้นหานักเรียนจาก Student
+    // ถ้าไม่เจอใน Problem ให้ค้นหาผู้เรียนจาก Student
     const student = await Student.findOne({ 
       $or: [
         { id: id },
@@ -83,14 +95,16 @@ export async function GET(
           activities: [],
           activities_status: {},
           activity_join_dates: {},
-          activity_completed_dates: {}
+          activity_completed_dates: {},
+          methods: [],
+          custom_methods: []
         }
       });
     }
     
     return NextResponse.json({ 
       success: false, 
-      error: "ไม่พบรหัสนักเรียนนี้ในระบบ" 
+      error: "ไม่พบรหัสนี้ในระบบ" 
     }, { status: 404 });
     
   } catch (error: any) {
@@ -113,21 +127,19 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     
-    // ค้นหานักเรียนด้วย student_id
     const student = await Student.findOne({ id });
     if (!student) {
       return NextResponse.json({ 
         success: false, 
-        error: "ไม่พบรหัสนักเรียนนี้ในระบบ" 
+        error: "ไม่พบรหัสนี้ในระบบ" 
       }, { status: 404 });
     }
     
-    // ตรวจสอบว่ามีแผนอยู่แล้ว
     const existing = await Problem.findOne({ student_id: id });
     if (existing) {
       return NextResponse.json({ 
         success: false, 
-        error: "นักเรียนนี้มีแผนการช่วยเหลือแล้ว" 
+        error: "ผู้เรียนนี้มีแผนการช่วยเหลือแล้ว" 
       }, { status: 400 });
     }
     
@@ -177,7 +189,6 @@ export async function PUT(
     
     let problem = null;
     
-    // ค้นหาด้วย _id หรือ student_id
     if (mongoose.Types.ObjectId.isValid(id)) {
       problem = await Problem.findById(id);
     }
@@ -189,7 +200,7 @@ export async function PUT(
     if (!problem) {
       return NextResponse.json({ 
         success: false, 
-        error: "ไม่พบข้อมูลนักเรียน" 
+        error: "ไม่พบข้อมูลผู้เรียน" 
       }, { status: 404 });
     }
     
@@ -210,7 +221,6 @@ export async function PUT(
       
       problem.evaluations.push(newEvaluation);
       
-      // อัปเดตความคืบหน้าตามผลการประเมิน
       if (body.result === 'ยุติการช่วยเหลือ') {
         problem.progress = 100;
         problem.isp_status = 'สำเร็จ';
@@ -227,7 +237,7 @@ export async function PUT(
       return NextResponse.json({ success: true, data: problem });
     }
     
-    // ✅ อัปเดตแผนปกติ (รวมถึงกิจกรรม)
+    // ✅ อัปเดตแผนปกติ
     const updateData: any = {
       problem: body.problem,
       goal: body.goal,
@@ -237,16 +247,30 @@ export async function PUT(
       isp_status: body.isp_status
     };
     
-    // อัปเดต methods
-    if (body.methods) {
+    // ✅ Handle methods properly
+    if (body.methods && Array.isArray(body.methods)) {
+      // Set boolean flags based on methods array
       updateData.counseling = body.methods.includes("การให้คำปรึกษาเบื้องต้น");
       updateData.behavioral_contract = body.methods.includes("กิจกรรมปรับเปลี่ยนพฤติกรรม");
       updateData.home_visit = body.methods.includes("การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง");
       updateData.referral = body.methods.includes("การส่งต่อ");
-      updateData.custom_methods = body.methods.filter((m: string) =>
-        !["การให้คำปรึกษาเบื้องต้น", "กิจกรรมปรับเปลี่ยนพฤติกรรม", "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง", "การส่งต่อ"].includes(m)
-      );
-      updateData.methods = body.methods; // ✅ บันทึก methods array โดยตรง
+      
+      // ✅ Extract custom methods (any method not in the default 4)
+      const defaultMethods = [
+        "การให้คำปรึกษาเบื้องต้น",
+        "กิจกรรมปรับเปลี่ยนพฤติกรรม",
+        "การเยี่ยมบ้าน/ปรึกษาผู้ปกครอง",
+        "การส่งต่อ"
+      ];
+      updateData.custom_methods = body.methods.filter((m: string) => !defaultMethods.includes(m));
+      
+      console.log("✅ Updating methods:", {
+        counseling: updateData.counseling,
+        behavioral_contract: updateData.behavioral_contract,
+        home_visit: updateData.home_visit,
+        referral: updateData.referral,
+        custom_methods: updateData.custom_methods
+      });
     }
     
     // ✅ อัปเดตกิจกรรมที่เลือก
@@ -256,15 +280,10 @@ export async function PUT(
       );
       const newActivityIds = body.activities.map((a: any) => a.activity_id?.toString());
       
-      // กิจกรรมที่เพิ่มใหม่
       const addedIds = newActivityIds.filter((id: string) => !currentActivityIds.includes(id));
-      
-      // กิจกรรมที่ถูกลบ
       const removedIds = currentActivityIds.filter((id: string) => !newActivityIds.includes(id));
       
-      // ✅ จัดการกิจกรรมที่เพิ่มใหม่
       for (const activityId of addedIds) {
-        // เพิ่มนักเรียนใน Activity participants
         await Activity.findByIdAndUpdate(
           activityId,
           {
@@ -280,7 +299,6 @@ export async function PUT(
           }
         );
         
-        // เพิ่มใน Problem activities
         problem.activities.push({
           activity_id: new mongoose.Types.ObjectId(activityId),
           status: "เข้าร่วมแล้ว",
@@ -292,9 +310,7 @@ export async function PUT(
         problem.activity_join_dates.set(activityId, new Date());
       }
       
-      // ✅ จัดการกิจกรรมที่ถูกลบ
       for (const activityId of removedIds) {
-        // ลบนักเรียนจาก Activity participants
         await Activity.findByIdAndUpdate(
           activityId,
           {
@@ -303,7 +319,6 @@ export async function PUT(
           }
         );
         
-        // ลบจาก Problem activities
         problem.activities = problem.activities.filter((a: any) => 
           (a.activity_id?.toString() || a.activity_id?.toString()) !== activityId
         );
@@ -313,13 +328,14 @@ export async function PUT(
       }
     }
     
+    // ✅ Apply updates
     const updated = await Problem.findByIdAndUpdate(
       problem._id,
       updateData,
-      { returnDocument: 'after' }
+      { new: true }
     );
     
-    // บันทึกการเปลี่ยนแปลง activities
+    // ✅ Save activities changes
     await problem.save();
     
     return NextResponse.json({ success: true, data: updated });

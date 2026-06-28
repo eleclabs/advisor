@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -227,9 +227,9 @@ export default function UserEditPage() {
   
   const getStatusBadge = (status: string) => {
     const colors = {
-      'นักเรียนปกติ': 'success',
-      'นักเรียนเสี่ยง': 'warning',
-      'นักเรียนพิเศษ': 'info'
+      'ผู้เรียนปกติ': 'success',
+      'ผู้เรียนเสี่ยง': 'warning',
+      'ผู้เรียนพิเศษ': 'info'
     };
     return colors[status as keyof typeof colors] || 'secondary';
   };
@@ -560,24 +560,24 @@ export default function UserEditPage() {
                 <div className="d-flex justify-content-between align-items-center">
                   <h5 className="mb-0">
                     <i className="bi bi-sliders me-2"></i>
-                    การจัดการนักเรียน
+                    การจัดการผู้เรียน
                   </h5>
                   <Link
                     href={`/user/${params.id}/assign-students`}
                     className="btn btn-primary btn-sm"
                   >
                     <i className="bi bi-people-fill me-2"></i>
-                    มอบหมายนักเรียน
+                    มอบหมายผู้เรียน
                   </Link>
                 </div>
               </div>
               <div className="card-body">
                 <div className="alert alert-info mb-0">
                   <i className="bi bi-info-circle me-2"></i>
-                  <strong>การจัดการนักเรียน:</strong>
+                  <strong>การจัดการผู้เรียน:</strong>
                   <ul className="mb-0 mt-2">
-                    <li>คลิกปุ่ม "มอบหมายนักเรียน" เพื่อเลือกนักเรียนที่จะมอบหมายให้ครูคนนี้</li>
-                    <li>สามารถเลือกนักเรียนได้ทีละหลายคนพร้อมกัน</li>
+                    <li>คลิกปุ่ม "มอบหมายผู้เรียน" เพื่อเลือกผู้เรียนที่จะมอบหมายให้ครูคนนี้</li>
+                    <li>สามารถเลือกผู้เรียนได้ทีละหลายคนพร้อมกัน</li>
                     <li>ระบบจะบันทึกการมอบหมายและอัปเดตข้อมูลการเข้าถึงโดยอัตโนมัติ</li>
                   </ul>
                 </div>

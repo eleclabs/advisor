@@ -1,4 +1,4 @@
-// app/dashboard/page.tsx
+﻿// app/dashboard/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -83,11 +83,11 @@ export default function Dashboard() {
                   <div className="mb-3">
                     <i className="bi bi-people-fill" style={{ fontSize: "3rem", color: "#007bff" }}></i>
                   </div>
-                  <h5 className="card-title">นักเรียน</h5>
+                  <h5 className="card-title">ผู้เรียน</h5>
                   <p className="display-4 fw-bold text-primary">
                     {loading ? "..." : stats?.studentCount || 0}
                   </p>
-                  <p className="text-muted">นักเรียนทั้งหมด</p>
+                  <p className="text-muted">ผู้เรียนทั้งหมด</p>
                 </div>
               </div>
             </div>
@@ -135,10 +135,10 @@ export default function Dashboard() {
                     <div className="mb-3">
                       <i className="bi bi-person-lines-fill" style={{ fontSize: "3rem", color: "#007bff" }}></i>
                     </div>
-                    <h5 className="card-title">จัดการนักเรียน</h5>
-                    <p className="text-muted">ดูและจัดการข้อมูลนักเรียน</p>
+                    <h5 className="card-title">จัดการผู้เรียน</h5>
+                    <p className="text-muted">ดูและจัดการข้อมูลผู้เรียน</p>
                     <Link href="/student" className="btn btn-primary w-100">
-                      <i className="bi bi-arrow-right me-1"></i> ไปยังนักเรียน
+                      <i className="bi bi-arrow-right me-1"></i> ไปยังผู้เรียน
                     </Link>
                   </div>
                 </div>
@@ -161,20 +161,8 @@ export default function Dashboard() {
             </div>
 
             {userRole === "ADMIN" && (
-              <div className="col-md-4 mb-3">
-                <div className="card h-100">
-                  <div className="card-body text-center">
-                    <div className="mb-3">
-                      <i className="bi bi-emoji-smile-fill" style={{ fontSize: "3rem", color: "#ffc107" }}></i>
-                    </div>
-                    <h5 className="card-title">การประเมินความพึงพอใจ</h5>
-                    <p className="text-muted">การประเมินความพึงพอใจของผู้ใช้</p>
-                    <Link href="/evaluation" className="btn btn-warning w-100">
-                      <i className="bi bi-star me-1"></i> การประเมินความพึงพอใจ
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              <div className="col-md-4 mb-3"></div>
+             
             )}
           </div>
 
@@ -197,7 +185,7 @@ export default function Dashboard() {
                 <div className="card-body text-center">
                   <i className="bi bi-clipboard-check-fill" style={{ fontSize: "2rem", color: "#28a745" }}></i>
                   <h6 className="mt-2">การประเมินผล</h6>
-                  <p className="small text-muted">การประเมินนักเรียน</p>
+                  <p className="small text-muted">การประเมินผู้เรียน</p>
                 </div>
               </div>
             </div>

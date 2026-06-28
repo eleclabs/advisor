@@ -1,4 +1,4 @@
-// D:\advisor-main\app\api\learn\[id]\route.ts
+﻿// D:\advisor-main\app\api\learn\[id]\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "next-auth";

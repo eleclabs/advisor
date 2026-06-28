@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Student from "@/models/Student";
 import Problem from "@/models/Problem";
@@ -169,13 +169,13 @@ export async function PUT(
 
     if (!updatedStudent) {
       return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูลนักเรียน" },
+        { success: false, message: "ไม่พบข้อมูลผู้เรียน" },
         { status: 404 }
       );
     }
  
     // อัปเดตข้อมูลที่เกี่ยวข้องใน model อื่นด้วย
-    console.log(`🔄 อัปเดตข้อมูลที่เกี่ยวข้องกับนักเรียน ID: ${id}`);
+    console.log(`🔄 อัปเดตข้อมูลที่เกี่ยวข้องกับผู้เรียน ID: ${id}`);
  
     // อัปเดตข้อมูลปัญหา (Problem)
     const oldStudent = await Student.findById(id);
@@ -297,17 +297,17 @@ export async function DELETE(
       );
     }
  
-    // ตรวจสอบว่ามีนักเรียนนี้อยู่จริงหรือไม่
+    // ตรวจสอบว่ามีผู้เรียนนี้อยู่จริงหรือไม่
     const student = await Student.findById(id);
     if (!student) {
       return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูลนักเรียน" },
+        { success: false, message: "ไม่พบข้อมูลผู้เรียน" },
         { status: 404 }
       );
     }
  
     // 1. ลบข้อมูลที่เกี่ยวข้องทั้งหมดก่อน
-    console.log(`🧹 เริ่มลบข้อมูลที่เกี่ยวข้องกับนักเรียน ID: ${id}`);
+    console.log(`🧹 เริ่มลบข้อมูลที่เกี่ยวข้องกับผู้เรียน ID: ${id}`);
  
     // ลบข้อมูลปัญหา (Problem) - ลบตาม student_id และ ObjectId
     const deletedProblems = await Problem.deleteMany({ 
@@ -327,7 +327,7 @@ export async function DELETE(
     });
     console.log(`📤 ลบข้อมูลการส่งต่อ: ${deletedReferrals.deletedCount} รายการ`);
  
-    // ลบตามชื่อนักเรียนด้วย (กรณี student_id ไม่ตรง)
+    // ลบตามชื่อผู้เรียนด้วย (กรณี student_id ไม่ตรง)
     const deletedProblemsByName = await Problem.deleteMany({ 
       student_name: `${student.prefix || ''}${student.first_name} ${student.last_name}`.trim()
     });
@@ -338,7 +338,7 @@ export async function DELETE(
     });
     console.log(`📤 ลบข้อมูลการส่งต่อ (ตามชื่อ): ${deletedReferralsByName.deletedCount} รายการ`);
  
-    // 2. ลบข้อมูลนักเรียนจริงๆ จากฐานข้อมูล
+    // 2. ลบข้อมูลผู้เรียนจริงๆ จากฐานข้อมูล
     const deletedStudent = await Student.findByIdAndDelete(id);
  
     if (!deletedStudent) {
@@ -348,7 +348,7 @@ export async function DELETE(
       );
     }
  
-    console.log(`✅ ลบนักเรียน ID: ${id} ชื่อ: ${student.first_name} ${student.last_name} และข้อมูลที่เกี่ยวข้องทั้งหมดเรียบร้อยแล้ว`);
+    console.log(`✅ ลบผู้เรียน ID: ${id} ชื่อ: ${student.first_name} ${student.last_name} และข้อมูลที่เกี่ยวข้องทั้งหมดเรียบร้อยแล้ว`);
  
     return NextResponse.json({
       success: true,

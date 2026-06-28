@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Assessment from "@/models/Assessment";
 
-// GET - ดึงข้อมูลการประเมิน SDQ ของนักเรียนคนเดียว
+// GET - ดึงข้อมูลการประเมิน SDQ ของผู้เรียนคนเดียว
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -10,33 +10,34 @@ export async function GET(
   try {
     await dbConnect();
     const { id } = await params;
-    
+
     console.log('🔍 Fetching SDQ assessments for student:', id);
 
-    // ดึงข้อมูลการประเมิน SDQ ของนักเรียนคนเดียว
-    const assessments = await Assessment.find({ 
-      studentId: id,
+    const studentId = id;
+
+    const assessments = await Assessment.find({
+      studentId: studentId,
       assessmentType: 'sdq'
     })
     .sort({ createdAt: -1 });
 
-    // คำนวณคะแนนและจัดกลุ่ม
     const processedAssessments = assessments.map(assessment => {
       const answers = assessment.answers || {};
       
-      // คำนวณคะแนน SDQ
+      // ✅ คำนวณคะแนน SDQ ตามรูป
       const emotionalScore = calculateEmotionalScore(answers);
       const conductScore = calculateConductScore(answers);
       const hyperactivityScore = calculateHyperactivityScore(answers);
       const peerScore = calculatePeerScore(answers);
       const prosocialScore = calculateProsocialScore(answers);
-      const totalScore = emotionalScore + conductScore + hyperactivityScore + peerScore; // รวม 4 ด้านปัญหา (ไม่รวม prosocial)
       
-      // กำหนดระดับความเสี่ยง
-      let overallRisk = 'normal';
-      if (totalScore >= 20) overallRisk = 'high';
-      else if (totalScore >= 16) overallRisk = 'medium';
-      else if (totalScore >= 11) overallRisk = 'low';
+      // ✅ คะแนนรวม = 4 ด้านปัญหา (ไม่รวม prosocial)
+      const totalScore = emotionalScore + conductScore + hyperactivityScore + peerScore;
+      
+      // ✅ เกณฑ์ตามรูป: ปกติ 0-16, เสี่ยง 17-18, มีปัญหา 19-40
+      let overallRisk = 'ปกติ';
+      if (totalScore >= 19) overallRisk = 'มีปัญหา';
+      else if (totalScore >= 17) overallRisk = 'เสี่ยง';
 
       return {
         _id: assessment._id,
@@ -72,53 +73,43 @@ export async function GET(
   }
 }
 
-// ฟังก์ชันคำนวณคะแนน
-function calculateEmotionalScore(answers: any) {
-  const emotionalQuestions = ['sdq1', 'sdq2', 'sdq3', 'sdq4', 'sdq6', 'sdq8', 'sdq10', 'sdq13', 'sdq17', 'sdq19'];
-  return emotionalQuestions.reduce((sum, q) => {
+// ✅ SDQ Scoring Functions ตามรูป
+function calculateEmotionalScore(answers: any): number {
+  const questions = ['sdq3', 'sdq8', 'sdq13', 'sdq16', 'sdq24'];
+  return questions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
+}
+
+function calculateConductScore(answers: any): number {
+  const questions = ['sdq5', 'sdq7', 'sdq12', 'sdq18', 'sdq22'];
+  const reversed = ['sdq7', 'sdq12'];
+  return questions.reduce((sum, q) => {
     const score = parseInt(answers[q] || '0');
-    // ข้อที่ต้อง reverse scoring: sdq6, sdq17, sdq19
-    const reversed = ['sdq6', 'sdq17', 'sdq19'].includes(q);
-    return sum + (reversed ? (2 - score) : score);
+    return sum + (reversed.includes(q) ? (2 - score) : score);
   }, 0);
 }
 
-function calculateConductScore(answers: any) {
-  const conductQuestions = ['sdq5', 'sdq7', 'sdq12', 'sdq14', 'sdq22'];
-  return conductQuestions.reduce((sum, q) => {
+function calculateHyperactivityScore(answers: any): number {
+  const questions = ['sdq2', 'sdq10', 'sdq15', 'sdq21', 'sdq25'];
+  const reversed = ['sdq15', 'sdq21', 'sdq25'];
+  return questions.reduce((sum, q) => {
     const score = parseInt(answers[q] || '0');
-    // ข้อที่ต้อง reverse scoring: sdq7, sdq12, sdq14
-    const reversed = ['sdq7', 'sdq12', 'sdq14'].includes(q);
-    return sum + (reversed ? (2 - score) : score);
+    return sum + (reversed.includes(q) ? (2 - score) : score);
   }, 0);
 }
 
-function calculateHyperactivityScore(answers: any) {
-  const hyperactivityQuestions = ['sdq9', 'sdq15', 'sdq18', 'sdq20', 'sdq21'];
-  return hyperactivityQuestions.reduce((sum, q) => {
+function calculatePeerScore(answers: any): number {
+  const questions = ['sdq6', 'sdq11', 'sdq14', 'sdq19', 'sdq23'];
+  const reversed = ['sdq11', 'sdq14'];
+  return questions.reduce((sum, q) => {
     const score = parseInt(answers[q] || '0');
-    // ข้อที่ต้อง reverse scoring: sdq15, sdq18, sdq20, sdq21
-    const reversed = ['sdq15', 'sdq18', 'sdq20', 'sdq21'].includes(q);
-    return sum + (reversed ? (2 - score) : score);
+    return sum + (reversed.includes(q) ? (2 - score) : score);
   }, 0);
 }
 
-function calculatePeerScore(answers: any) {
-  const peerQuestions = ['sdq11', 'sdq16', 'sdq23', 'sdq24'];
-  return peerQuestions.reduce((sum, q) => {
+function calculateProsocialScore(answers: any): number {
+  const questions = ['sdq1', 'sdq4', 'sdq9', 'sdq17', 'sdq20'];
+  return questions.reduce((sum, q) => {
     const score = parseInt(answers[q] || '0');
-    // ข้อที่ต้อง reverse scoring: sdq11, sdq16, sdq23, sdq24
-    const reversed = ['sdq11', 'sdq16', 'sdq23', 'sdq24'].includes(q);
-    return sum + (reversed ? (2 - score) : score);
-  }, 0);
-}
-
-function calculateProsocialScore(answers: any) {
-  const prosocialQuestions = ['sdq4', 'sdq25'];
-  return prosocialQuestions.reduce((sum, q) => {
-    const score = parseInt(answers[q] || '0');
-    // ข้อที่ต้อง reverse scoring: sdq4, sdq25
-    const reversed = ['sdq4', 'sdq25'].includes(q);
-    return sum + (reversed ? (2 - score) : score);
+    return sum + (2 - score);
   }, 0);
 }

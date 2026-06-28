@@ -1,4 +1,4 @@
-// app/student/student_filter/page.tsx
+﻿// app/student/student_filter/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -53,7 +53,7 @@ function StudentFilterPage() {
     try {
       setLoading(true);
       
-      // ดึงข้อมูลนักเรียนทั้งหมด
+      // ดึงข้อมูลผู้เรียนทั้งหมด
       const studentRes = await fetch("/api/student");
       const studentResult = await studentRes.json();
       
@@ -104,7 +104,7 @@ function StudentFilterPage() {
     }
   };
 
-  // กรองนักเรียนตามเงื่อนไข
+  // กรองผู้เรียนตามเงื่อนไข
   useEffect(() => {
     let filtered = students;
 
@@ -169,7 +169,7 @@ function StudentFilterPage() {
       const result = await response.json();
 
       if (result.success) {
-        alert(`✅ บันทึกสำเร็จ! มอบหมายนักเรียน ${result.data.length} คน`);
+        alert(`✅ บันทึกสำเร็จ! มอบหมายผู้เรียน ${result.data.length} คน`);
         router.push('/student');
       } else {
         alert(result.message || "เกิดข้อผิดพลาด");
@@ -182,7 +182,7 @@ function StudentFilterPage() {
     }
   };
 
-  // คำนวณจำนวนนักเรียนที่เลือก
+  // คำนวณจำนวนผู้เรียนที่เลือก
   const selectedCount = selectedStudents.length;
 
   if (loading) {
@@ -225,7 +225,7 @@ function StudentFilterPage() {
               <div className="card-header bg-dark text-white">
                 <h5 className="mb-0">
                   <i className="bi bi-sliders me-2"></i>
-                  กรองนักเรียน
+                  กรองผู้เรียน
                 </h5>
               </div>
               <div className="card-body">
@@ -291,7 +291,7 @@ function StudentFilterPage() {
                     <input
                       type="text"
                       className="form-control rounded-0"
-                      placeholder="ชื่อ หรือ รหัสนักเรียน"
+                      placeholder="ชื่อ หรือ รหัส"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -309,7 +309,7 @@ function StudentFilterPage() {
               <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">
                   <i className="bi bi-people me-2"></i>
-                  รายการนักเรียน ({filteredStudents.length} คน)
+                  รายการผู้เรียน ({filteredStudents.length} คน)
                 </h5>
                 <div className="form-check">
                   <input
@@ -384,7 +384,7 @@ function StudentFilterPage() {
                       ) : (
                         <tr>
                           <td colSpan={7} className="text-center py-4 text-muted">
-                            ไม่พบนักเรียนตามเงื่อนไขที่เลือก
+                            ไม่พบผู้เรียนตามเงื่อนไขที่เลือก
                           </td>
                         </tr>
                       )}
@@ -418,7 +418,7 @@ function StudentFilterPage() {
               ) : (
                 <>
                   <i className="bi bi-save me-2"></i>
-                  บันทึกนักเรียน {selectedCount} คน
+                  บันทึกผู้เรียน {selectedCount} คน
                 </>
               )}
             </button>

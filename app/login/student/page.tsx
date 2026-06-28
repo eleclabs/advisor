@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
@@ -77,9 +77,9 @@ export default function StudentLoginPage() {
               <div className="card-header bg-dark text-white text-center py-4 rounded-0">
                 <h3 className="fw-bold mb-0">
                   <i className="bi bi-mortarboard-fill me-2 text-warning"></i>
-                   ระบบประเมินสำหรับนักเรียน
+                   ระบบประเมินสำหรับผู้เรียน
                 </h3>
-                <h4 className="text-white-50 mb-0 mt-2">เข้าสู่ระบบนักเรียน</h4>
+                <h4 className="text-white-50 mb-0 mt-2">เข้าสู่ระบบผู้เรียน</h4>
               </div>
 
               {/* Body */}
@@ -140,7 +140,7 @@ export default function StudentLoginPage() {
                   <div className="mb-4">
                     <label className="form-label fw-semibold">
                       <i className="bi bi-card-text me-2"></i>
-                      รหัสนักเรียน
+                      รหัส
                     </label>
                     <div className="input-group">
                       <span className="input-group-text bg-light border-end-0 rounded-0">
@@ -149,7 +149,7 @@ export default function StudentLoginPage() {
                       <input
                         type="text"
                         className="form-control border-start-0 rounded-0"
-                        placeholder="รหัสนักเรียน"
+                        placeholder="รหัส"
                         value={studentId}
                         onChange={(e) => setStudentId(e.target.value)}
                         required

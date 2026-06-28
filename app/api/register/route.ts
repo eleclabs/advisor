@@ -1,4 +1,4 @@
-// app/api/register/route.ts
+﻿// app/api/register/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -202,12 +202,12 @@ const useStudentData = (studentId: string) => {
         if (data.success && data.data) {
           setStudent(data.data);
         } else {
-          setError(data.message || 'ไม่พบข้อมูลนักเรียน');
+          setError(data.message || 'ไม่พบข้อมูลผู้เรียน');
         }
       } catch (err) {
         if (err instanceof Error && err.name !== 'AbortError') {
           console.error('Error loading student:', err);
-          setError('เกิดข้อผิดพลาดในการโหลดข้อมูลนักเรียน');
+          setError('เกิดข้อผิดพลาดในการโหลดข้อมูลผู้เรียน');
         }
       } finally {
         setLoading(false);
@@ -320,7 +320,7 @@ interface ErrorDisplayProps {
 const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ 
   message, 
   returnPath, 
-  returnLabel = 'กลับไปหน้าข้อมูลนักเรียน' 
+  returnLabel = 'กลับไปหน้าข้อมูลผู้เรียน' 
 }) => (
   <div className="error-container" style={{
     backgroundColor: '#f8f9fa',
@@ -501,11 +501,11 @@ export default function StudentSDQResultsPage() {
   const router = useRouter();
   const params = useParams();
   const studentDocId = params?.id as string;
-  
+
   // Custom hooks for data fetching
   const { student, loading: studentLoading, error: studentError } = useStudentData(studentDocId);
-  const { responses, loading: responsesLoading, error: responsesError } = useSDQResponses(studentDocId);
-  
+  const { responses, loading: responsesLoading, error: responsesError } = useSDQResponses(student?.id || studentDocId);
+
   // Combined loading state
   const isLoading = studentLoading || responsesLoading;
   
@@ -560,9 +560,9 @@ export default function StudentSDQResultsPage() {
   if (displayError || !student) {
     return (
       <ErrorDisplay 
-        message={displayError || 'ไม่พบข้อมูลนักเรียน'}
+        message={displayError || 'ไม่พบข้อมูลผู้เรียน'}
         returnPath={`/student/student_detail/${studentDocId}`}
-        returnLabel="กลับไปหน้าข้อมูลนักเรียน"
+        returnLabel="กลับไปหน้าข้อมูลผู้เรียน"
       />
     );
   }
@@ -584,7 +584,7 @@ export default function StudentSDQResultsPage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
           <EmptyState
             message="ยังไม่มีข้อมูลการประเมิน SDQ"
-            description="นักเรียนยังไม่เคยได้รับการประเมินด้วยแบบ SDQ"
+            description="ผู้เรียนยังไม่เคยได้รับการประเมินด้วยแบบ SDQ"
             actionLink={`/assessment?type=sdq&studentId=${student?.id || studentDocId}`}
             actionLabel="เริ่มทำแบบประเมิน SDQ"
           />
@@ -745,7 +745,7 @@ const Header: React.FC<HeaderProps> = ({ studentName, studentId, onBack, onNewAs
             e.currentTarget.style.backgroundColor = 'transparent';
             e.currentTarget.style.color = '#6c757d';
           }}
-          aria-label="กลับไปหน้ารายละเอียดนักเรียน"
+          aria-label="กลับไปหน้ารายละเอียดผู้เรียน"
         >
           ← กลับ
         </button>
@@ -763,7 +763,7 @@ const Header: React.FC<HeaderProps> = ({ studentName, studentId, onBack, onNewAs
             fontSize: '14px',
             color: '#6c757d'
           }}>
-            นักเรียน: {studentName}
+            ผู้เรียน: {studentName}
           </p>
         </div>
       </div>

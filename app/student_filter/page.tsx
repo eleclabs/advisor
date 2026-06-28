@@ -1,15 +1,10 @@
+﻿// app/student_filter/page.tsx
 'use client';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 // ==================== CONSTANTS ====================
-const SDQ_RISK_THRESHOLDS = {
-  HIGH: 20,
-  MEDIUM: 16
-} as const;
-
 type RiskLevelType = 'low' | 'medium' | 'high' | 'critical';
 type StatusType = 'ปกติ' | 'เสี่ยง' | 'มีปัญหา';
 
@@ -78,140 +73,107 @@ interface StudentDetailModal {
 }
 
 // ==================== UTILITY FUNCTIONS ====================
-function getSDQStatusFromScore(score: number): { status: string; color: string; text: string } {
-  if (score === undefined || score === null) {
-    return { status: 'ยังไม่ประเมิน', color: '#6c757d', text: 'ยังไม่ประเมิน' };
+
+// ✅ SDQ เกณฑ์ตามรูป 33667, 33668, 33669
+// คะแนนรวม 4 ด้านปัญหา (ไม่รวม prosocial): ปกติ 0-16, เสี่ยง 17-18, มีปัญหา 19-40
+function getSDQTotalInterpretation(totalScore: number): { interpretation: string; color: string } {
+  if (!totalScore || totalScore === 0) {
+    return { interpretation: 'ยังไม่ประเมิน', color: '#6c757d' };
   }
-  if (score >= 20) {
-    return { status: 'high', color: '#dc3545', text: 'มีปัญหา' };
-  }
-  if (score >= 16) {
-    return { status: 'medium', color: '#fd7e14', text: 'คาบเกี่ยว' };
-  }
-  return { status: 'normal', color: '#28a745', text: 'ปกติ' };
+  if (totalScore <= 16) return { interpretation: 'ปกติ', color: '#28a745' };
+  if (totalScore <= 18) return { interpretation: 'เสี่ยง', color: '#ffc107' };
+  return { interpretation: 'มีปัญหา', color: '#dc3545' };
 }
 
-function getDASS21StatusFromScore(score: number, type: string): { status: string; color: string; text: string } {
-  if (score === undefined || score === null) {
-    return { status: 'unknown', color: '#6c757d', text: 'ยังไม่ประเมิน' };
-  }
-  
-  // Depression thresholds (multiplied score from API) - Matches API thresholds
-  if (type === 'depression') {
-    if (score <= 9) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
-    if (score <= 13) return { status: 'mild', color: '#ffc107', text: 'เบา' };
-    if (score <= 20) return { status: 'moderate', color: '#fd7e14', text: 'ปานกลาง' };
-    if (score <= 27) return { status: 'severe', color: '#6f42c1', text: 'รุนแรง' };
-    return { status: 'extremely_severe', color: '#dc3545', text: 'รุนแรงมาก' };
-  }
-  
-  // Anxiety thresholds (multiplied score from API) - Matches API thresholds
-  if (type === 'anxiety') {
-    if (score <= 7) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
-    if (score <= 9) return { status: 'mild', color: '#ffc107', text: 'เบา' };
-    if (score <= 14) return { status: 'moderate', color: '#fd7e14', text: 'ปานกลาง' };
-    if (score <= 19) return { status: 'severe', color: '#6f42c1', text: 'รุนแรง' };
-    return { status: 'extremely_severe', color: '#dc3545', text: 'รุนแรงมาก' };
-  }
-  
-  // Stress thresholds (multiplied score from API) - Matches API thresholds
-  if (type === 'stress') {
-    if (score <= 14) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
-    if (score <= 18) return { status: 'mild', color: '#ffc107', text: 'เบา' };
-    if (score <= 25) return { status: 'moderate', color: '#fd7e14', text: 'ปานกลาง' };
-    if (score <= 33) return { status: 'severe', color: '#6f42c1', text: 'รุนแรง' };
-    return { status: 'extremely_severe', color: '#dc3545', text: 'รุนแรงมาก' };
-  }
-  
-  return { status: 'unknown', color: '#6c757d', text: 'ไม่ทราบ' };
-}
-
+// ✅ SDQ แต่ละด้านตามรูป
 function getSDQAspectStatus(score: number, aspect: string): { status: string; color: string; text: string } {
   if (score === undefined || score === null || score === 0) {
     return { status: 'unknown', color: '#6c757d', text: '-' };
   }
   
-  // Emotional: 0-5 normal, 6 risk, 7-10 problem
+  // ด้านอารมณ์: 0-5 normal, 6 risk, 7-10 problem
   if (aspect === 'emotional') {
     if (score <= 5) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
     if (score === 6) return { status: 'risk', color: '#ffc107', text: 'เสี่ยง' };
     return { status: 'problem', color: '#dc3545', text: 'มีปัญหา' };
   }
   
-  // Conduct: 0-4 normal, 5 risk, 6-10 problem
+  // ด้านความประพฤติ: 0-4 normal, 5 risk, 6-10 problem
   if (aspect === 'conduct') {
     if (score <= 4) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
     if (score === 5) return { status: 'risk', color: '#ffc107', text: 'เสี่ยง' };
     return { status: 'problem', color: '#dc3545', text: 'มีปัญหา' };
   }
   
-  // Hyperactivity: 0-5 normal, 6 risk, 7-10 problem
+  // ด้านพฤติกรรมไม่อยู่นิ่ง: 0-5 normal, 6 risk, 7-10 problem
   if (aspect === 'hyperactivity') {
     if (score <= 5) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
     if (score === 6) return { status: 'risk', color: '#ffc107', text: 'เสี่ยง' };
     return { status: 'problem', color: '#dc3545', text: 'มีปัญหา' };
   }
   
-  // Peer: 0-3 normal, 4 risk, 5-10 problem
+  // ด้านความสัมพันธ์กับเพื่อน: 0-3 normal, 4 risk, 5-10 problem
   if (aspect === 'peer') {
     if (score <= 3) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
     if (score === 4) return { status: 'risk', color: '#ffc107', text: 'เสี่ยง' };
     return { status: 'problem', color: '#dc3545', text: 'มีปัญหา' };
   }
   
+  // ด้านสัมพันธภาพทางสังคม: 4-10 เป็นจุดแข็ง, 0-3 ไม่มีจุดแข็ง
+  if (aspect === 'prosocial') {
+    if (score >= 4) return { status: 'strength', color: '#28a745', text: 'เป็นจุดแข็ง' };
+    return { status: 'weakness', color: '#dc3545', text: 'ไม่มีจุดแข็ง' };
+  }
+  
   return { status: 'unknown', color: '#6c757d', text: '-' };
 }
 
-// SDQ Aspect Calculation Functions
-function calculateSDQEmotional(answers: any): number {
-  const emotionalQuestions = ['sdq3', 'sdq8', 'sdq13', 'sdq16', 'sdq24'];
-  return emotionalQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
-}
-
-function calculateSDQConduct(answers: any): number {
-  const conductQuestions = ['sdq5', 'sdq7', 'sdq12', 'sdq18', 'sdq22'];
-  return conductQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
-}
-
-function calculateSDQHyperactivity(answers: any): number {
-  const hyperactivityQuestions = ['sdq2', 'sdq10', 'sdq15', 'sdq21', 'sdq25'];
-  return hyperactivityQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
-}
-
-function calculateSDQPeer(answers: any): number {
-  const peerQuestions = ['sdq6', 'sdq11', 'sdq14', 'sdq19', 'sdq23'];
-  return peerQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
-}
-
-function parseClassGroup(classGroup: string): { department: string; room: string } {
-  if (!classGroup) return { department: '-', room: '-' };
-  const parts = classGroup.split('/');
-  if (parts.length >= 2) {
-    return { department: parts[0], room: parts[1] };
+// ✅ DASS-21 เกณฑ์ตามรูป 33674
+function getDASS21StatusFromScore(score: number, type: string): { status: string; color: string; text: string } {
+  if (score === undefined || score === null || score === 0) {
+    return { status: 'unknown', color: '#6c757d', text: 'ยังไม่ประเมิน' };
   }
-  return { department: classGroup, room: '-' };
-}
-
-function getSDQTotalInterpretation(totalScore: number): { interpretation: string; color: string } {
-  if (!totalScore || totalScore === 0) {
-    return { interpretation: 'ยังไม่ประเมิน', color: '#6c757d' };
+  
+  // Depression: ปกติ 0-4, ต่ำ 5-6, ปานกลาง 7-10, รุนแรง 11-13, รุนแรงที่สุด 14+
+  if (type === 'depression') {
+    if (score <= 4) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
+    if (score <= 6) return { status: 'mild', color: '#ffc107', text: 'ต่ำ' };
+    if (score <= 10) return { status: 'moderate', color: '#fd7e14', text: 'ปานกลาง' };
+    if (score <= 13) return { status: 'severe', color: '#6f42c1', text: 'รุนแรง' };
+    return { status: 'extremely_severe', color: '#dc3545', text: 'รุนแรงที่สุด' };
   }
-  if (totalScore <= 15) return { interpretation: 'ปกติ', color: '#28a745' };
-  if (totalScore <= 19) return { interpretation: 'คาบเกี่ยว', color: '#fd7e14' };
-  return { interpretation: 'มีปัญหา', color: '#dc3545' };
+  
+  // Anxiety: ปกติ 0-3, ต่ำ 4-5, ปานกลาง 6-7, รุนแรง 8-9, รุนแรงที่สุด 10+
+  if (type === 'anxiety') {
+    if (score <= 3) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
+    if (score <= 5) return { status: 'mild', color: '#ffc107', text: 'ต่ำ' };
+    if (score <= 7) return { status: 'moderate', color: '#fd7e14', text: 'ปานกลาง' };
+    if (score <= 9) return { status: 'severe', color: '#6f42c1', text: 'รุนแรง' };
+    return { status: 'extremely_severe', color: '#dc3545', text: 'รุนแรงที่สุด' };
+  }
+  
+  // Stress: ปกติ 0-7, ต่ำ 8-9, ปานกลาง 10-12, รุนแรง 13-16, รุนแรงที่สุด 17+
+  if (type === 'stress') {
+    if (score <= 7) return { status: 'normal', color: '#28a745', text: 'ปกติ' };
+    if (score <= 9) return { status: 'mild', color: '#ffc107', text: 'ต่ำ' };
+    if (score <= 12) return { status: 'moderate', color: '#fd7e14', text: 'ปานกลาง' };
+    if (score <= 16) return { status: 'severe', color: '#6f42c1', text: 'รุนแรง' };
+    return { status: 'extremely_severe', color: '#dc3545', text: 'รุนแรงที่สุด' };
+  }
+  
+  return { status: 'unknown', color: '#6c757d', text: 'ไม่ทราบ' };
 }
 
 function getRiskLevelFromSDQ(score: number): RiskLevelType {
   if (!score || score === 0) return 'low';
-  if (score >= 20) return 'high';
-  if (score >= 16) return 'medium';
+  if (score >= 19) return 'high';
+  if (score >= 17) return 'medium';
   return 'low';
 }
 
 function getRiskLevelFromDASS21(dass21Data: any): RiskLevelType {
   if (!dass21Data) return 'low';
   
-  // API returns data directly with depressionLevel, anxietyLevel, stressLevel
   const levels = [
     dass21Data.depressionLevel,
     dass21Data.anxietyLevel,
@@ -220,9 +182,8 @@ function getRiskLevelFromDASS21(dass21Data: any): RiskLevelType {
   
   const validLevels = levels.filter(l => l);
   
-  // Handle both Thai and English level strings
-  if (validLevels.some(l => l === 'รุนแรงมาก' || l === 'รุนแรง' || l === 'Extremely Severe' || l === 'Severe')) return 'high';
-  if (validLevels.some(l => l === 'ปานกลาง' || l === 'Moderate')) return 'medium';
+  if (validLevels.some(l => l === 'รุนแรงที่สุด' || l === 'รุนแรง')) return 'high';
+  if (validLevels.some(l => l === 'ปานกลาง')) return 'medium';
   return 'low';
 }
 
@@ -258,6 +219,39 @@ function formatDate(dateString: string): string {
   } catch {
     return '-';
   }
+}
+
+// SDQ Aspect Calculation Functions
+function calculateSDQEmotional(answers: any): number {
+  const emotionalQuestions = ['sdq3', 'sdq8', 'sdq13', 'sdq16', 'sdq24'];
+  return emotionalQuestions.reduce((sum, q) => sum + parseInt(answers[q] || '0'), 0);
+}
+
+function calculateSDQConduct(answers: any): number {
+  const conductQuestions = ['sdq5', 'sdq7', 'sdq12', 'sdq18', 'sdq22'];
+  const reversed = ['sdq7', 'sdq12'];
+  return conductQuestions.reduce((sum, q) => {
+    const score = parseInt(answers[q] || '0');
+    return sum + (reversed.includes(q) ? (2 - score) : score);
+  }, 0);
+}
+
+function calculateSDQHyperactivity(answers: any): number {
+  const hyperactivityQuestions = ['sdq2', 'sdq10', 'sdq15', 'sdq21', 'sdq25'];
+  const reversed = ['sdq15', 'sdq21', 'sdq25'];
+  return hyperactivityQuestions.reduce((sum, q) => {
+    const score = parseInt(answers[q] || '0');
+    return sum + (reversed.includes(q) ? (2 - score) : score);
+  }, 0);
+}
+
+function calculateSDQPeer(answers: any): number {
+  const peerQuestions = ['sdq6', 'sdq11', 'sdq14', 'sdq19', 'sdq23'];
+  const reversed = ['sdq11', 'sdq14'];
+  return peerQuestions.reduce((sum, q) => {
+    const score = parseInt(answers[q] || '0');
+    return sum + (reversed.includes(q) ? (2 - score) : score);
+  }, 0);
 }
 
 export default function StudentAnalyticsDashboard() {
@@ -370,15 +364,15 @@ export default function StudentAnalyticsDashboard() {
           
           // Fetch SDQ
           try {
-            const sdqRes = await fetch(`/api/assessment/sdq/student/${student.id || student._id}`);
+            const sdqRes = await fetch(`/api/assessment/sdq/student/${student.id}`);
             const sdqResult = await sdqRes.json();
-            console.log(`📊 SDQ data for ${student._id}:`, sdqResult);
+            console.log(`📊 SDQ data for ${student.id}:`, sdqResult);
             if (sdqResult.success && sdqResult.data && sdqResult.data.length > 0) {
               const latestSDQ = sdqResult.data[0];
               sdqScore = latestSDQ.totalScore || 0;
-              const sdqStatusObj = getSDQStatusFromScore(sdqScore);
-              sdqStatus = sdqStatusObj.status;
-              sdqStatusText = sdqStatusObj.text;
+              const sdqStatusObj = getSDQTotalInterpretation(sdqScore);
+              sdqStatus = sdqStatusObj.interpretation;
+              sdqStatusText = sdqStatusObj.interpretation;
               sdqRisk = getRiskLevelFromSDQ(sdqScore);
               sdqDate = latestSDQ.submittedAt;
               
@@ -399,13 +393,12 @@ export default function StudentAnalyticsDashboard() {
           
           // Fetch DASS-21
           try {
-            const dass21Res = await fetch(`/api/assessment/dass21/student/${student._id}`);
+            const dass21Res = await fetch(`/api/assessment/dass21/student/${student.id}`);
             const dass21Result = await dass21Res.json();
-            console.log(`📊 DASS-21 data for ${student._id}:`, dass21Result);
+            console.log(`📊 DASS-21 data for ${student.id}:`, dass21Result);
             if (dass21Result.success && dass21Result.data && dass21Result.data.length > 0) {
               const latestDASS21 = dass21Result.data[0];
               
-              // API returns data directly with depressionScore, anxietyScore, stressScore
               dass21Depression = latestDASS21.depressionScore || 0;
               dass21Anxiety = latestDASS21.anxietyScore || 0;
               dass21Stress = latestDASS21.stressScore || 0;
@@ -447,7 +440,6 @@ export default function StudentAnalyticsDashboard() {
           const behavior_risk = student.risk_behaviors && student.risk_behaviors.length > 0;
           const status = getStatusFromRiskLevel(finalRiskLevel);
           
-          // Parse class_group into department and room
           const department = student.class_group || '-';
           const room = student.class_number || '-';
           return {
@@ -694,10 +686,8 @@ export default function StudentAnalyticsDashboard() {
               </thead>
               <tbody>
                 {filteredStudents.map((student) => {
-                  const sdqStatusColor = student.sdq_score && student.sdq_score > 0 ? 
-                    (student.sdq_score >= 20 ? '#dc3545' : student.sdq_score >= 16 ? '#fd7e14' : '#28a745') : '#6c757d';
-                  const sdqStatusText = student.sdq_score && student.sdq_score > 0 ?
-                    (student.sdq_score >= 20 ? 'มีปัญหา' : student.sdq_score >= 16 ? 'คาบเกี่ยว' : 'ปกติ') : 'ยังไม่ประเมิน';
+                  const sdqTotal = (student.sdq_emotional || 0) + (student.sdq_conduct || 0) + (student.sdq_hyperactivity || 0) + (student.sdq_peer || 0);
+                  const sdqInterpretation = getSDQTotalInterpretation(sdqTotal);
                   
                   return (
                     <tr key={student._id}>
@@ -715,22 +705,20 @@ export default function StudentAnalyticsDashboard() {
                         {student.room}
                       </td>
                       
-                      {/* SDQ Column - Show total score with interpretation only */}
+                      {/* SDQ Column */}
                       <td className="align-middle">
                         {student.sdq_emotional !== undefined && student.sdq_emotional !== null &&
                          student.sdq_conduct !== undefined && student.sdq_conduct !== null &&
                          student.sdq_hyperactivity !== undefined && student.sdq_hyperactivity !== null &&
                          student.sdq_peer !== undefined && student.sdq_peer !== null ? (
                           <div>
-                            {/* Total score with interpretation badge */}
                             <div>
-                              
-                              <span className="badge ms-2" style={{ 
-                                backgroundColor: getSDQTotalInterpretation(student.sdq_emotional + student.sdq_conduct + student.sdq_hyperactivity + student.sdq_peer).color,
+                              <span className="badge" style={{ 
+                                backgroundColor: sdqInterpretation.color,
                                 color: 'white',
                                 fontSize: '11px'
                               }}>
-                                {getSDQTotalInterpretation(student.sdq_emotional + student.sdq_conduct + student.sdq_hyperactivity + student.sdq_peer).interpretation}
+                                {sdqInterpretation.interpretation}
                               </span>
                             </div>
                           </div>
@@ -741,7 +729,7 @@ export default function StudentAnalyticsDashboard() {
                         )}
                       </td>
                       
-                      {/* DASS-21 Column - Show three separate statuses */}
+                      {/* DASS-21 Column */}
                       <td className="align-middle">
                         {student.dass21_depression !== undefined && student.dass21_depression !== null && student.dass21_depression > 0 &&
                          student.dass21_anxiety !== undefined && student.dass21_anxiety !== null && student.dass21_anxiety > 0 &&
@@ -777,7 +765,6 @@ export default function StudentAnalyticsDashboard() {
                                 {getDASS21StatusFromScore(student.dass21_stress, 'stress').text}
                               </span>
                             </div>
-                          
                           </div>
                         ) : (
                           <span className="text-muted">
@@ -874,7 +861,7 @@ export default function StudentAnalyticsDashboard() {
                 <div className="modal-header bg-primary text-white">
                   <h5 className="modal-title">
                     <i className="bi bi-person-badge me-2"></i>
-                    ข้อมูลนักเรียน: {modal.student.name}
+                    ข้อมูลผู้เรียน: {modal.student.name}
                   </h5>
                   <button type="button" className="btn-close btn-close-white" onClick={closeModal}></button>
                 </div>
@@ -892,7 +879,7 @@ export default function StudentAnalyticsDashboard() {
                         <div className="col-md-6">
                           <table className="table table-sm table-borderless">
                             <tbody>
-                              <tr><td className="fw-semibold">รหัสนักเรียน:</td><td>{modal.student.id}</td></tr>
+                              <tr><td className="fw-semibold">รหัส:</td><td>{modal.student.id}</td></tr>
                               <tr><td className="fw-semibold">ชื่อ-นามสกุล:</td><td>{modal.student.name}</td></tr>
                               <tr><td className="fw-semibold">เพศ:</td><td>{modal.student.studentData?.gender || 'ไม่ระบุ'}</td></tr>
                               <tr><td className="fw-semibold">วันเกิด:</td><td>{modal.student.studentData?.birth_date || 'ไม่ระบุ'}</td></tr>
@@ -935,17 +922,16 @@ export default function StudentAnalyticsDashboard() {
                              modal.student.sdq_hyperactivity !== undefined && modal.student.sdq_hyperactivity !== null &&
                              modal.student.sdq_peer !== undefined && modal.student.sdq_peer !== null ? (
                               <>
-                                {/* Total score with interpretation badge */}
                                 <div className="mb-3">
                                   <strong>คะแนนรวม (4 ด้าน):</strong> {modal.student.sdq_emotional + modal.student.sdq_conduct + modal.student.sdq_hyperactivity + modal.student.sdq_peer}/40 
-                                 
-                                </div>
-                                <p className="mb-1 mt-2">ระดับความเสี่ยง:  <span className="badge ms-2" style={{ 
+                                  <span className="badge ms-2" style={{ 
                                     backgroundColor: getSDQTotalInterpretation(modal.student.sdq_emotional + modal.student.sdq_conduct + modal.student.sdq_hyperactivity + modal.student.sdq_peer).color,
                                     color: 'white'
                                   }}>
                                     {getSDQTotalInterpretation(modal.student.sdq_emotional + modal.student.sdq_conduct + modal.student.sdq_hyperactivity + modal.student.sdq_peer).interpretation}
-                                  </span></p>
+                                  </span>
+                                </div>
+                                <p className="mb-1 mt-2">ระดับความเสี่ยง: </p>
                                 <small className="text-muted"><br />ประเมินล่าสุด: {formatDate(modal.student.sdq_date || '')}</small>
                               </>
                             ) : (
@@ -1091,4 +1077,3 @@ export default function StudentAnalyticsDashboard() {
     </div>
   );
 }
-

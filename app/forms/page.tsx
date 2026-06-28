@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -85,7 +85,7 @@ function ShareModal({ isOpen, onClose, formUrl, formTitle, isStudentShare = fals
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>
-            {isStudentShare ? '👥 แชร์สำหรับนักเรียน' : '🔗 แชร์แบบฟอร์ม'}
+            {isStudentShare ? '👥 แชร์สำหรับผู้เรียน' : '🔗 แชร์แบบฟอร์ม'}
           </h3>
           <button 
             onClick={onClose}
@@ -158,7 +158,7 @@ function ShareModal({ isOpen, onClose, formUrl, formTitle, isStudentShare = fals
         {/* Link */}
         <div style={{ marginBottom: '16px' }}>
           <label style={{ fontSize: '13px', fontWeight: 500, color: '#495057', marginBottom: '6px', display: 'block' }}>
-            ลิงก์{isStudentShare ? 'สำหรับนักเรียน' : 'แบบฟอร์ม'}:
+            ลิงก์{isStudentShare ? 'สำหรับผู้เรียน' : 'แบบฟอร์ม'}:
           </label>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input 
@@ -193,7 +193,7 @@ function ShareModal({ isOpen, onClose, formUrl, formTitle, isStudentShare = fals
           </div>
         </div>
         
-        {/* ลบข้อความ "💡 นักเรียนสามารถเข้าถึง..." ออกแล้ว */}
+        {/* ลบข้อความ "💡 ผู้เรียนสามารถเข้าถึง..." ออกแล้ว */}
       </div>
     </div>
   );
@@ -201,7 +201,7 @@ function ShareModal({ isOpen, onClose, formUrl, formTitle, isStudentShare = fals
 
 // ส่วนประกอบอื่นๆคงเดิม...
 
-// ✅ เพิ่ม StudentShareModal Component แยกสำหรับนักเรียนโดยเฉพาะ
+// ✅ เพิ่ม StudentShareModal Component แยกสำหรับผู้เรียนโดยเฉพาะ
 function StudentShareModal({ isOpen, onClose, formTitle }: { 
   isOpen: boolean; 
   onClose: () => void; 
@@ -214,7 +214,7 @@ function StudentShareModal({ isOpen, onClose, formTitle }: {
       isOpen={isOpen}
       onClose={onClose}
       formUrl={studentLoginUrl}
-      formTitle={`${formTitle} (สำหรับนักเรียน)`}
+      formTitle={`${formTitle} (สำหรับผู้เรียน)`}
       isStudentShare={true}
     />
   );
@@ -470,7 +470,7 @@ export default function StudentFormsPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h1 style={{ fontSize: '24px', fontWeight: 600, margin: 0, color: '#212529' }}>
-                📝 แบบฟอร์มนักเรียน
+                📝 แบบฟอร์มผู้เรียน
               </h1>
               <p style={{ margin: '4px 0 0', color: '#6c757d', fontSize: '14px' }}>
                 เลือกแบบประเมินที่ต้องการทำ
@@ -532,7 +532,7 @@ export default function StudentFormsPage() {
                 fontSize: '14px',
                 fontWeight: 500,
               }}>
-                ← กลับสู่หน้านักเรียน
+                ← กลับสู่หน้าผู้เรียน
               </Link>
             </div>
           </div>
@@ -600,7 +600,7 @@ export default function StudentFormsPage() {
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
                 
-                {/* SDQ Card - ✅ เพิ่มปุ่ม "แชร์สำหรับนักเรียน" */}
+                {/* SDQ Card - ✅ เพิ่มปุ่ม "แชร์สำหรับผู้เรียน" */}
                 <div style={{
                   border: '2px solid #007bff',
                   borderRadius: '8px',
@@ -689,7 +689,7 @@ export default function StudentFormsPage() {
                       }}>
                       🔗 แชร์
                     </button>
-                    {/* ✅ ปุ่ม "แชร์สำหรับนักเรียน" เฉพาะ SDQ - จะไปหน้า /login/student */}
+                    {/* ✅ ปุ่ม "แชร์สำหรับผู้เรียน" เฉพาะ SDQ - จะไปหน้า /login/student */}
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -705,12 +705,12 @@ export default function StudentFormsPage() {
                         fontWeight: 500,
                         cursor: 'pointer'
                       }}>
-                      👥 แชร์สำหรับนักเรียน
+                      👥 แชร์สำหรับผู้เรียน
                     </button>
                   </div>
                 </div>
 
-                {/* DASS-21 Card - ✅ เพิ่มปุ่ม "แชร์สำหรับนักเรียน" */}
+                {/* DASS-21 Card - ✅ เพิ่มปุ่ม "แชร์สำหรับผู้เรียน" */}
                 <div style={{
                   border: '2px solid #28a745',
                   borderRadius: '8px',
@@ -799,7 +799,7 @@ export default function StudentFormsPage() {
                       }}>
                       🔗 แชร์
                     </button>
-                    {/* ✅ ปุ่ม "แชร์สำหรับนักเรียน" เฉพาะ DASS-21 - จะไปหน้า /login/student */}
+                    {/* ✅ ปุ่ม "แชร์สำหรับผู้เรียน" เฉพาะ DASS-21 - จะไปหน้า /login/student */}
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -815,7 +815,7 @@ export default function StudentFormsPage() {
                         fontWeight: 500,
                         cursor: 'pointer'
                       }}>
-                      👥 แชร์สำหรับนักเรียน
+                      👥 แชร์สำหรับผู้เรียน
                     </button>
                   </div>
                 </div>
@@ -1140,7 +1140,7 @@ export default function StudentFormsPage() {
           borderTop: '1px solid #dee2e6',
           marginTop: '24px'
         }}>
-          ระบบแบบฟอร์มนักเรียน • {new Date().toLocaleDateString('th-TH')}
+          ระบบแบบฟอร์มผู้เรียน • {new Date().toLocaleDateString('th-TH')}
         </div>
 
       </div>

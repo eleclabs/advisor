@@ -1,4 +1,4 @@
-// app/api/send/route.ts
+﻿// app/api/send/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Referral } from "@/models/Send";
@@ -54,27 +54,27 @@ export async function GET(request: NextRequest) {
       query.type = type;
     }
     
-    // ✅ ถ้าไม่ใช่ Admin ให้กรองเฉพาะนักเรียนที่ดูแล
+    // ✅ ถ้าไม่ใช่ Admin ให้กรองเฉพาะผู้เรียนที่ดูแล
     if (!isAdmin && userId) {
       try {
-        // ดึงข้อมูลนักเรียนที่ครูคนนี้ดูแล
+        // ดึงข้อมูลผู้เรียนที่ครูคนนี้ดูแล
         const user = await User.findById(userId).populate({
           path: 'assigned_students.student_id',
           model: Student
         });
         
         if (user && user.assigned_students && user.assigned_students.length > 0) {
-          // ดึงรหัสนักเรียนที่ครูดูแล (ใช้ student.id)
+          // ดึงรหัสที่ครูดูแล (ใช้ student.id)
           const assignedStudentIds = user.assigned_students
             .filter((item: any) => item.student_id)
             .map((item: any) => item.student_id.id);
           
           console.log("📊 Assigned student IDs for send page:", assignedStudentIds);
           
-          // กรองตามรหัสนักเรียนที่ดูแล
+          // กรองตามรหัสที่ดูแล
           query.student_id = { $in: assignedStudentIds };
         } else {
-          // ถ้าครูไม่มีนักเรียนในความดูแล ให้คืนค่าว่าง
+          // ถ้าครูไม่มีผู้เรียนในความดูแล ให้คืนค่าว่าง
           return NextResponse.json({
             success: true,
             data: [],
@@ -152,16 +152,16 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     
-    // ตรวจสอบว่ามีนักเรียนอยู่จริง
+    // ตรวจสอบว่ามีผู้เรียนอยู่จริง
     const student = await Student.findOne({ id: body.student_id });
     if (!student) {
       return NextResponse.json(
-        { success: false, error: "ไม่พบข้อมูลนักเรียน" },
+        { success: false, error: "ไม่พบข้อมูลผู้เรียน" },
         { status: 404 }
       );
     }
     
-    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่านักเรียนอยู่ในความดูแลหรือไม่
+    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่าผู้เรียนอยู่ในความดูแลหรือไม่
     if (!isAdmin && userId) {
       const user = await User.findById(userId).populate({
         path: 'assigned_students.student_id',
@@ -175,13 +175,13 @@ export async function POST(request: NextRequest) {
         
         if (!assignedStudentIds.includes(body.student_id)) {
           return NextResponse.json(
-            { success: false, error: "ไม่มีสิทธิ์สร้างการส่งต่อสำหรับนักเรียนนี้" },
+            { success: false, error: "ไม่มีสิทธิ์สร้างการส่งต่อสำหรับผู้เรียนนี้" },
             { status: 403 }
           );
         }
       } else {
         return NextResponse.json(
-          { success: false, error: "คุณไม่มีนักเรียนในความดูแล" },
+          { success: false, error: "คุณไม่มีผู้เรียนในความดูแล" },
           { status: 403 }
         );
       }

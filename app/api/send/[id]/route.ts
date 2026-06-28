@@ -1,4 +1,4 @@
-// app/api/send/[id]/route.ts
+﻿// app/api/send/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { Referral, Coordination, FollowUp } from "@/models/Send";
@@ -49,7 +49,7 @@ export async function GET(
       );
     }
     
-    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่านักเรียนอยู่ในความดูแลหรือไม่
+    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่าผู้เรียนอยู่ในความดูแลหรือไม่
     if (!isAdmin && userId) {
       const user = await User.findById(userId).populate({
         path: 'assigned_students.student_id',
@@ -141,7 +141,7 @@ export async function PUT(
       );
     }
     
-    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่านักเรียนอยู่ในความดูแลหรือไม่
+    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่าผู้เรียนอยู่ในความดูแลหรือไม่
     if (!isAdmin && userId) {
       const user = await User.findById(userId).populate({
         path: 'assigned_students.student_id',
@@ -227,7 +227,7 @@ export async function DELETE(
       );
     }
     
-    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่านักเรียนอยู่ในความดูแลหรือไม่
+    // ✅ ถ้าไม่ใช่ Admin ตรวจสอบว่าผู้เรียนอยู่ในความดูแลหรือไม่
     if (!isAdmin && userId) {
       const user = await User.findById(userId).populate({
         path: 'assigned_students.student_id',

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -400,7 +400,7 @@ export default function DASS21ResultsPage() {
                       letterSpacing: '0.5px',
                       borderBottom: '1px solid #dee2e6'
                     }}>
-                      ชื่อนักเรียน
+                      ชื่อผู้เรียน
                     </th>
                     <th style={{
                       padding: '12px 16px',
@@ -633,7 +633,7 @@ export default function DASS21ResultsPage() {
             <div style={{ marginBottom: '20px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
                 <div>
-                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ชื่อนักเรียน</div>
+                  <div style={{ fontSize: '12px', color: '#6c757d', marginBottom: '4px' }}>ชื่อผู้เรียน</div>
                   <div style={{ fontSize: '14px', color: '#212529', fontWeight: 500 }}>
                     {selectedResponse.studentName}
                   </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -123,7 +123,7 @@ export default function StudentSendPage() {
                       <table className="table table-bordered">
                         <thead>
                           <tr>
-                            <th>ชื่อนักเรียน</th>
+                            <th>ชื่อผู้เรียน</th>
                             <th>ระดับชั้น</th>
                             <th>สาขา</th>
                             <th>ห้อง</th>

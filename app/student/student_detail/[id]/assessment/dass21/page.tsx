@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -52,7 +52,7 @@ export default function Dass21AssessmentPage() {
       "66002": "นางสาวจิรา สวยใจ",
       "66003": "นายสมเด็จ วิจิตร",
     };
-    setStudentName(mockNames[studentId || ""] || "นักเรียน");
+    setStudentName(mockNames[studentId || ""] || "ผู้เรียน");
     setLoading(false);
   }, [studentId]);
 
@@ -195,7 +195,7 @@ export default function Dass21AssessmentPage() {
                   <i className="bi bi-clipboard-heart me-2 text-warning"></i>
                   แบบประเมิน DASS-21
                 </h2>
-                <p className="text-muted mb-0 mt-1">นักเรียน: {studentName}</p>
+                <p className="text-muted mb-0 mt-1">ผู้เรียน: {studentName}</p>
               </div>
               <div>
                 <span className="badge bg-info rounded-0 p-2">
@@ -214,7 +214,7 @@ export default function Dass21AssessmentPage() {
               <div className="border bg-white p-3">
                 <p className="mb-0">
                   <i className="bi bi-info-circle me-2 text-warning"></i>
-                  กรุณาอ่านแต่ละข้อความและเลือกคำตอบที่ตรงกับความรู้สึกของนักเรียนในช่วง 1 สัปดาห์ที่ผ่านมา
+                  กรุณาอ่านแต่ละข้อความและเลือกคำตอบที่ตรงกับความรู้สึกของผู้เรียนในช่วง 1 สัปดาห์ที่ผ่านมา
                 </p>
               </div>
             </div>

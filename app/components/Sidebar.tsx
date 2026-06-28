@@ -1,4 +1,4 @@
-// app/components/Sidebar.tsx
+﻿// app/components/Sidebar.tsx
 "use client";
 
 import Link from "next/link";
@@ -81,11 +81,11 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* เมนูนักเรียน */}
+      {/* เมนูผู้เรียน */}
       {!isStudent && (
         <div className="p-2">
           <h6 className="text-uppercase text-white-50 small fw-bold px-3 mt-3 mb-2">
-            <i className="bi bi-people me-2"></i>เมนูนักเรียน
+            <i className="bi bi-people me-2"></i>เมนูผู้เรียน
           </h6>
           {studentLinks.map((link) => (
             <Link

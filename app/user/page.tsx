@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -428,7 +428,7 @@ export default function UserManagementPage() {
                                   router.push(`/user/${user._id}/assign-students`);
                                 }}
                                 className="btn btn-sm btn-outline-primary rounded-0"
-                                title="มอบหมายนักเรียน"
+                                title="มอบหมายผู้เรียน"
                               >
                                 <i className="bi bi-people-fill"></i>
                               </button>

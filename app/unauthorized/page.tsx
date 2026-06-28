@@ -1,4 +1,4 @@
-// app/unauthorized/page.tsx
+﻿// app/unauthorized/page.tsx
 "use client";  // ✅ เพิ่มบรรทัดนี้
 
 import Link from 'next/link';

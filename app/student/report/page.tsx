@@ -1,4 +1,4 @@
-// app/student/report/page.tsx
+﻿// app/student/report/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -65,7 +65,7 @@ export default function StudentReport() {
               <i className="bi bi-graph-up me-2 text-warning"></i>
               การรายงานและสถิติ
             </h1>
-           {/*  <p className="text-muted mb-0 mt-2">ภาพรวมสถานะนักเรียนและการดำเนินงาน</p> */}
+           {/*  <p className="text-muted mb-0 mt-2">ภาพรวมสถานะผู้เรียนและการดำเนินงาน</p> */}
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function StudentReport() {
         <div className="col-12">
           <h3 className="mb-3">
             <i className="bi bi-people me-2 text-primary"></i>
-            ภาพรวมสถานะนักเรียน
+            ภาพรวมสถานะผู้เรียน
           </h3>
         </div>
         
@@ -90,7 +90,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.normalCount || 0}
               </p>
-              <small className="card-text">นักเรียน</small>
+              <small className="card-text">ผู้เรียน</small>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.riskCount || 0}
               </p>
-              <small className="card-text">นักเรียน</small>
+              <small className="card-text">ผู้เรียน</small>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.riskBehaviorCount || 0}
               </p>
-              <small className="card-text">นักเรียน</small>
+              <small className="card-text">ผู้เรียน</small>
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function StudentReport() {
               <div className="mb-2">
                 <i className="bi bi-people-fill fs-1"></i>
               </div>
-              <h5 className="card-title fw-bold">นักเรียนทั้งหมด</h5>
+              <h5 className="card-title fw-bold">ผู้เรียนทั้งหมด</h5>
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.totalStudents || 0}
               </p>
@@ -162,7 +162,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.familyProblemCount || 0}
               </p>
-              <small className="card-text">นักเรียนได้รับผลกระทบ</small>
+              <small className="card-text">ผู้เรียนได้รับผลกระทบ</small>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.lowIncomeCount || 0}
               </p>
-              <small className="card-text">นักเรียนได้รับผลกระทบ</small>
+              <small className="card-text">ผู้เรียนได้รับผลกระทบ</small>
             </div>
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : (stats?.familyProblemCount || 0) + (stats?.lowIncomeCount || 0)}
               </p>
-              <small className="card-text">นักเรียนได้รับผลกระทบ</small>
+              <small className="card-text">ผู้เรียนได้รับผลกระทบ</small>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.problemSolvedCount || 0}
               </p>
-              <small className="card-text">นักเรียนได้รับการช่วยเหลือ</small>
+              <small className="card-text">ผู้เรียนได้รับการช่วยเหลือ</small>
             </div>
           </div>
         </div>
@@ -234,7 +234,7 @@ export default function StudentReport() {
               <p className="card-text display-4 fw-bold">
                 {loading ? "..." : stats?.referredCount || 0}
               </p>
-              <small className="card-text">นักเรียนที่ถูกส่งต่อ</small>
+              <small className="card-text">ผู้เรียนที่ถูกส่งต่อ</small>
             </div>
           </div>
         </div>
@@ -260,19 +260,19 @@ export default function StudentReport() {
               </thead>
               <tbody>
                 <tr>
-                  <td><i className="bi bi-check-circle me-2 text-success"></i>นักเรียนปกติ</td>
+                  <td><i className="bi bi-check-circle me-2 text-success"></i>ผู้เรียนปกติ</td>
                   <td className="fw-bold">{loading ? "..." : stats?.normalCount || 0}</td>
                   <td className="fw-bold">{loading ? "..." : stats ? ((stats.normalCount / stats.totalStudents) * 100).toFixed(1) : 0}%</td>
                   <td><span className="badge bg-success rounded-0">ดี</span></td>
                 </tr>
                 <tr>
-                  <td><i className="bi bi-exclamation-triangle me-2 text-warning"></i>นักเรียนเสี่ยง</td>
+                  <td><i className="bi bi-exclamation-triangle me-2 text-warning"></i>ผู้เรียนเสี่ยง</td>
                   <td className="fw-bold">{loading ? "..." : stats?.riskCount || 0}</td>
                   <td className="fw-bold">{loading ? "..." : stats ? ((stats.riskCount / stats.totalStudents) * 100).toFixed(1) : 0}%</td>
                   <td><span className="badge bg-warning text-dark rounded-0">ติดตาม</span></td>
                 </tr>
                 <tr>
-                  <td><i className="bi bi-x-circle me-2 text-danger"></i>นักเรียนพฤติกรรมเสี่ยง</td>
+                  <td><i className="bi bi-x-circle me-2 text-danger"></i>ผู้เรียนพฤติกรรมเสี่ยง</td>
                   <td className="fw-bold">{loading ? "..." : stats?.riskBehaviorCount || 0}</td>
                   <td className="fw-bold">{loading ? "..." : stats ? ((stats.riskBehaviorCount / stats.totalStudents) * 100).toFixed(1) : 0}%</td>
                   <td><span className="badge bg-danger rounded-0">ต้องดำเนินการ</span></td>
@@ -290,13 +290,13 @@ export default function StudentReport() {
                   <td><span className="badge bg-secondary rounded-0">ต้องการความช่วยเหลือ</span></td>
                 </tr>
                 <tr>
-                  <td><i className="bi bi-check-square me-2 text-success"></i>นักเรียนที่ได้รับการป้องกันและแก้ปัญหา</td>
+                  <td><i className="bi bi-check-square me-2 text-success"></i>ผู้เรียนที่ได้รับการป้องกันและแก้ปัญหา</td>
                   <td className="fw-bold">{loading ? "..." : stats?.problemSolvedCount || 0}</td>
                   <td className="text-muted">-</td>
                   <td><span className="badge bg-success rounded-0"></span></td>
                 </tr>
                 <tr>
-                  <td><i className="bi bi-send me-2 text-warning"></i>นักเรียนที่ส่งต่อ</td>
+                  <td><i className="bi bi-send me-2 text-warning"></i>ผู้เรียนที่ส่งต่อ</td>
                   <td className="fw-bold">{loading ? "..." : stats?.referredCount || 0}</td>
                   <td className="text-muted">-</td>
                   <td><span className="badge bg-warning text-dark rounded-0"></span></td>

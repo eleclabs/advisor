@@ -1,4 +1,4 @@
-// D:\advisor-main\app\student_problem\[id]\result\page.tsx
+﻿// D:\advisor-main\app\student_problem\[id]\result\page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -128,7 +128,7 @@ export default function EvaluationPage({ params }: { params: Promise<{ id: strin
               </h4>
             </div>
             <div className="card-body">
-              {/* ข้อมูลนักเรียน */}
+              {/* ข้อมูลผู้เรียน */}
               {student && (
                 <div className="alert alert-info mb-4">
                   <div className="d-flex justify-content-between align-items-center">

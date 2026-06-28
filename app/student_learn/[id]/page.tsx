@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -470,7 +470,7 @@ export default function HomeroomPlanDetailPage() {
                   </div>
                   {plan.target_class_group && (
                     <div className="col-md-4">
-                      <strong>สาขาเรียน:</strong> {plan.target_class_group}
+                      <strong>สาขา:</strong> {plan.target_class_group}
                     </div>
                   )}
                   {plan.target_class_numbers && plan.target_class_numbers.length > 0 && (
@@ -482,7 +482,7 @@ export default function HomeroomPlanDetailPage() {
                 {!plan.target_class_group && !plan.target_class_numbers?.length && (
                   <div className="text-muted mt-2">
                     <i className="bi bi-info-circle me-2"></i>
-                    แผนนี้ไม่ได้ระบุสาขาเรียนหรือห้องเฉพาะเจาะจง แสดงผู้เรียนทั้งหมดในระดับชั้น {plan.level}
+                    แผนนี้ไม่ได้ระบุสาขาหรือห้องเฉพาะเจาะจง แสดงผู้เรียนทั้งหมดในระดับชั้น {plan.level}
                   </div>
                 )}
               </div>
@@ -502,7 +502,7 @@ export default function HomeroomPlanDetailPage() {
                           <th>รหัส</th>
                           <th>ชื่อ-นามสกุล</th>
                           <th>ระดับชั้น</th>
-                          <th>สาขาเรียน</th>
+                          <th>สาขา</th>
                           <th>ห้อง</th>
                         </tr>
                       </thead>

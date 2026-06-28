@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -649,7 +649,7 @@ function AssessmentPageContent() {
     e.preventDefault();
     
     if (!studentInfo.studentName || !studentInfo.grade) {
-      alert('กรุณากรอกข้อมูลนักเรียนให้ครบถ้วน');
+      alert('กรุณากรอกข้อมูลผู้เรียนให้ครบถ้วน');
       return;
     }
 
@@ -1035,7 +1035,7 @@ function AssessmentPageContent() {
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* ข้อมูลนักเรียน */}
+          {/* ข้อมูลผู้เรียน */}
           <div style={{
             backgroundColor: 'white',
             border: '1px solid #dee2e6',
@@ -1047,11 +1047,11 @@ function AssessmentPageContent() {
               borderBottom: '1px solid #e9ecef',
               backgroundColor: '#fefefe'
             }}>
-              <span style={{ fontSize: '14px', fontWeight: 500, color: '#495057' }}>ข้อมูลนักเรียน</span>
+              <span style={{ fontSize: '14px', fontWeight: 500, color: '#495057' }}>ข้อมูลผู้เรียน</span>
             </div>
             <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
               <InputField 
-                label="รหัสนักเรียน" 
+                label="รหัส" 
                 name="studentId" 
                 value={studentInfo.studentId} 
                 onChange={handleStudentInfoChange}
@@ -1101,7 +1101,7 @@ function AssessmentPageContent() {
               <SectionHeader 
                 number="1" 
                 title="แบบประเมิน SDQ (Strengths and Difficulties Questionnaire)"
-                subtitle="คำชี้แจง: โปรดทำเครื่องหมาย ✓ ในช่องที่ตรงกับพฤติกรรมของนักเรียนมากที่สุด"
+                subtitle="คำชี้แจง: โปรดทำเครื่องหมาย ✓ ในช่องที่ตรงกับพฤติกรรมของผู้เรียนมากที่สุด"
                 description="⏱️ คำถาม 25 ข้อ • ใช้เวลาประมาณ 5-10 นาที • คะแนน 0-2 (ไม่จริง=0, ค่อนข้างจริง=1, จริงมาก=2)"
               />
 

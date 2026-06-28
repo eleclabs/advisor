@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -87,7 +87,7 @@ export default function StudentAssignmentPage() {
     fetchTeachers();
   }, []);
 
-  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับนักเรียนแต่ละคน
+  // ฟังก์ชันดึงครูที่ได้รับมอบหมายสำหรับผู้เรียนแต่ละคน
   const fetchAssignedTeachersForStudent = async (studentId: string): Promise<Teacher[]> => {
     try {
       const assignedTeachers: Teacher[] = [];
@@ -198,7 +198,7 @@ export default function StudentAssignmentPage() {
     }
   };
 
-  // จัดกลุ่มนักเรียนตามระดับชั้น สาขาวิชาและห้อง
+  // จัดกลุ่มผู้เรียนตามระดับชั้น สาขาวิชาและห้อง
   const groupStudents = (students: Student[]) => {
     if (groupBy === 'none') return students;
     
@@ -222,14 +222,14 @@ export default function StudentAssignmentPage() {
     return grouped;
   };
 
-  // คำนวณจำนวนนักเรียนในแต่ละกลุ่ม
+  // คำนวณจำนวนผู้เรียนในแต่ละกลุ่ม
   const getGroupCount = (group: Record<string, Student[]>) => {
     return Object.values(group).reduce((total, students) => total + students.length, 0);
   };
 
   const handleSaveAssignments = async () => {
     if (selectedTeachers.size === 0 || selectedStudents.size === 0) {
-      alert('กรุณาเลือกอย่างน้อย 1 ครู และ 1 นักเรียน');
+      alert('กรุณาเลือกอย่างน้อย 1 ครู และ 1 ผู้เรียน');
       return;
     }
 
@@ -259,7 +259,7 @@ export default function StudentAssignmentPage() {
         setAssignmentResults(data.data.results);
         setShowResults(true);
         
-        // จัดกลุ่มนักเรียนตามสาขาวิชาและห้อง
+        // จัดกลุ่มผู้เรียนตามสาขาวิชาและห้อง
         const groupStudents = (students: Student[]) => {
           if (groupBy === 'none') return students;
           
@@ -279,7 +279,7 @@ export default function StudentAssignmentPage() {
           return grouped;
         };
 
-        // คำนวณจำนวนนักเรียนในแต่ละกลุ่ม
+        // คำนวณจำนวนผู้เรียนในแต่ละกลุ่ม
         const getGroupCount = (group: Record<string, Student[]>) => {
           return Object.values(group).reduce((total, students) => total + students.length, 0);
         };
@@ -341,8 +341,8 @@ export default function StudentAssignmentPage() {
         <div className="container">
           <div className="row align-items-center">
             <div className="col">
-              <h1 className="h3 mb-0">จัดการการมอบหมายนักเรียน</h1>
-              <p className="mb-0 text-white-50">เลือกครูและนักเรียนเพื่อมอบหมายความรับผิดชอบ</p>
+              <h1 className="h3 mb-0">จัดการการมอบหมายผู้เรียน</h1>
+              <p className="mb-0 text-white-50">เลือกครูและผู้เรียนเพื่อมอบหมายความรับผิดชอบ</p>
             </div>
             <div className="col-auto">
               <Link
@@ -473,7 +473,7 @@ export default function StudentAssignmentPage() {
               <div className="card-header bg-success text-white">
                 <div className="d-flex justify-content-between align-items-center">
                   <h5 className="mb-0">
-                    <i className="bi bi-mortarboard me-2"></i>เลือกนักเรียน
+                    <i className="bi bi-mortarboard me-2"></i>เลือกผู้เรียน
                   </h5>
                   <span className="badge bg-light text-dark">
                     เลือกแล้ว {selectedStudents.size}/{filteredStudents.length} คน
@@ -506,7 +506,7 @@ export default function StudentAssignmentPage() {
                     </span>
                     <input
                       type="text"
-                      placeholder="ค้นหานักเรียน..."
+                      placeholder="ค้นหาผู้เรียน..."
                       value={searchStudent}
                       onChange={(e) => setSearchStudent(e.target.value)}
                       className="form-control border-0 bg-light"
@@ -651,7 +651,7 @@ export default function StudentAssignmentPage() {
                   <div className="col-md-3">
                     <div className="border-end">
                       <h4 className="text-success mb-1">{selectedStudents.size}</h4>
-                      <small className="text-muted">นักเรียนที่เลือก</small>
+                      <small className="text-muted">ผู้เรียนที่เลือก</small>
                     </div>
                   </div>
                   <div className="col-md-3">

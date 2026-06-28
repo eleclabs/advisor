@@ -1,4 +1,4 @@
-// D:\advisor-main\app\api\student\route.ts
+﻿// D:\advisor-main\app\api\student\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "next-auth";
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       bmi: bmi || "",
       image: imageUrl,
       email: `${id}@student.com`,
-      status: "นักเรียนปกติ",
+      status: "ผู้เรียนปกติ",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
     if (classNumber) query.class_number = classNumber;
     
     if (assignedOnly && !isAdmin && userId) {
-      // ✅ ดึงเฉพาะนักเรียนที่ครูคนนี้ดูแล
+      // ✅ ดึงเฉพาะผู้เรียนที่ครูคนนี้ดูแล
       console.log("📊 Fetching assigned students only for user:", userId);
       
       const user = await User.findById(userId).populate({
@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
       });
       
       if (user && user.assigned_students && user.assigned_students.length > 0) {
-        // ดึงข้อมูลนักเรียนจาก assigned_students
+        // ดึงข้อมูลผู้เรียนจาก assigned_students
         students = user.assigned_students
           .filter((item: any) => item.student_id)
           .map((item: any) => item.student_id);
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
         students = [];
       }
     } else {
-      // ✅ Admin หรือ ไม่ได้ระบุ assignedOnly: ดึงนักเรียนทั้งหมดตาม query
+      // ✅ Admin หรือ ไม่ได้ระบุ assignedOnly: ดึงผู้เรียนทั้งหมดตาม query
       console.log("📊 Fetching all students with query:", query);
       students = await Student.find(query).sort({ level: 1, class_group: 1, class_number: 1 });
       console.log(`✅ Found ${students.length} students`);

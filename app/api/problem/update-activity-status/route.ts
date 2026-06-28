@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
 import Activity from "@/models/Activity";
@@ -34,11 +34,11 @@ export async function PUT(req: NextRequest) {
       { new: true }
     );
 
-    // 2. ค้นหานักเรียน
+    // 2. ค้นหาผู้เรียน
     const student = await Problem.findOne({ student_id: student_id });
     if (!student) {
       return NextResponse.json(
-        { success: false, error: "ไม่พบข้อมูลนักเรียน" }, 
+        { success: false, error: "ไม่พบข้อมูลผู้เรียน" }, 
         { status: 404 }
       );
     }

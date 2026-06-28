@@ -1,4 +1,4 @@
-// D:\advisor-main\app\api\problem\activity\route.ts
+﻿// D:\advisor-main\app\api\problem\activity\route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Activity from "@/models/Activity";
@@ -49,9 +49,9 @@ export async function GET(request: NextRequest) {
       }, { status: 404 });
     }
     
-    // ✅ กรณีที่ 2: ค้นหากิจกรรมของนักเรียนคนเดียว
+    // ✅ กรณีที่ 2: ค้นหากิจกรรมของผู้เรียนคนเดียว
     if (student_id) {
-      // ถ้าไม่ใช่ Admin ต้องตรวจสอบว่านักเรียนคนนี้อยู่ในความดูแลหรือไม่
+      // ถ้าไม่ใช่ Admin ต้องตรวจสอบว่าผู้เรียนคนนี้อยู่ในความดูแลหรือไม่
       if (!isAdmin && userId) {
         const user = await User.findById(userId).populate({
           path: 'assigned_students.student_id',
@@ -59,20 +59,20 @@ export async function GET(request: NextRequest) {
         });
         
         if (user && user.assigned_students && user.assigned_students.length > 0) {
-          // ดึงรหัสนักเรียนที่ครูดูแล
+          // ดึงรหัสที่ครูดูแล
           const assignedStudentIds = user.assigned_students
             .filter((item: any) => item.student_id)
             .map((item: any) => item.student_id.id);
           
-          // ตรวจสอบว่านักเรียนที่ขอมาอยู่ในความดูแลหรือไม่
+          // ตรวจสอบว่าผู้เรียนที่ขอมาอยู่ในความดูแลหรือไม่
           if (!assignedStudentIds.includes(student_id)) {
             return NextResponse.json({ 
               success: false, 
-              error: "ไม่มีสิทธิ์เข้าถึงข้อมูลนักเรียนนี้" 
+              error: "ไม่มีสิทธิ์เข้าถึงข้อมูลผู้เรียนนี้" 
             }, { status: 403 });
           }
         } else {
-          // ถ้าครูไม่มีนักเรียนในความดูแล ให้คืนค่าว่าง
+          // ถ้าครูไม่มีผู้เรียนในความดูแล ให้คืนค่าว่าง
           return NextResponse.json({ 
             success: true, 
             data: [] 
@@ -97,19 +97,19 @@ export async function GET(request: NextRequest) {
       // Admin เห็นทั้งหมด
       activities = await Activity.find().sort({ createdAt: -1 });
     } else if (userId) {
-      // Teacher: ดึงกิจกรรมที่มีนักเรียนในความดูแลเข้าร่วม
+      // Teacher: ดึงกิจกรรมที่มีผู้เรียนในความดูแลเข้าร่วม
       const user = await User.findById(userId).populate({
         path: 'assigned_students.student_id',
         model: 'Student'
       });
       
       if (user && user.assigned_students && user.assigned_students.length > 0) {
-        // ดึงรหัสนักเรียนที่ครูดูแล
+        // ดึงรหัสที่ครูดูแล
         const assignedStudentIds = user.assigned_students
           .filter((item: any) => item.student_id)
           .map((item: any) => item.student_id.id);
         
-        // ค้นหากิจกรรมที่มีนักเรียนเหล่านี้เข้าร่วม
+        // ค้นหากิจกรรมที่มีผู้เรียนเหล่านี้เข้าร่วม
         activities = await Activity.find({
           "participants.student_id": { $in: assignedStudentIds }
         }).sort({ createdAt: -1 });
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     // ===== เตรียมข้อมูล participants =====
     let participants = [];
     if (body.student_ids && body.student_ids.length > 0) {
-      // ดึงข้อมูลนักเรียนจาก Problem model
+      // ดึงข้อมูลผู้เรียนจาก Problem model
       const problems = await Problem.find({
         student_id: { $in: body.student_ids }
       });
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
         name: p.student_name 
       })));
       
-      // สร้าง map สำหรับค้นหาชื่อนักเรียน
+      // สร้าง map สำหรับค้นหาชื่อผู้เรียน
       const studentMap = new Map();
       problems.forEach(p => {
         studentMap.set(p.student_id, p.student_name);
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       participants = body.student_ids.map((id: string) => {
         const studentName = studentMap.get(id);
         if (!studentName) {
-          console.warn(`⚠️ ไม่พบชื่อนักเรียนสำหรับรหัส: ${id}`);
+          console.warn(`⚠️ ไม่พบชื่อผู้เรียนสำหรับรหัส: ${id}`);
         }
         return {
           student_id: id,
@@ -299,7 +299,7 @@ export async function PUT(request: NextRequest) {
     
     // ถ้ามีการส่ง student_ids มา ให้อัปเดต participants
     if (body.student_ids) {
-      // ดึงข้อมูลนักเรียนปัจจุบัน
+      // ดึงข้อมูลผู้เรียนปัจจุบัน
       const students = await Problem.find({
         student_id: { $in: body.student_ids }
       });
@@ -333,7 +333,7 @@ export async function PUT(request: NextRequest) {
       activity.total_participants = newParticipants.length;
     }
     
-    // อัปเดตสถานะการเข้าร่วมของนักเรียนทีละคน
+    // อัปเดตสถานะการเข้าร่วมของผู้เรียนทีละคน
     if (body.student_id && body.joined !== undefined) {
       const participantIndex = activity.participants.findIndex(
         (p: any) => p.student_id === body.student_id

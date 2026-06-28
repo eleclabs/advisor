@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -63,13 +63,13 @@ export default function StudentSidebar() {
         <div className="mb-2">
           <i className="bi bi-person-circle fs-1 text-warning"></i>
         </div>
-        <h6 className="mb-0 text-truncate">{studentName || 'นักเรียน'}</h6>
+        <h6 className="mb-0 text-truncate">{studentName || 'ผู้เรียน'}</h6>
         <span className="badge bg-warning text-dark rounded-0 mt-1 px-3 py-1">
           STUDENT
         </span>
       </div>
 
-      {/* เมนูนักเรียน */}
+      {/* เมนูผู้เรียน */}
       <div className="p-2">
         <h6 className="text-uppercase text-white-50 small fw-bold px-3 mt-3 mb-2">
           <i className="bi bi-person me-2"></i>เมนูของฉัน

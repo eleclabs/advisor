@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export default function BootstrapClient() {
   // Temporarily disabled to prevent chunk loading errors
